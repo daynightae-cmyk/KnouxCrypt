@@ -1,0 +1,7 @@
+{
+  "name": "KnouxCrypt™ - Disk Encryption Dashboard",
+  "description": "نظام التشفير وإدارة الأقراص المتقدم KnouxCrypt - لوحة تحكم التشفير وحماية البيانات",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

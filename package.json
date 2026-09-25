@@ -5,19 +5,10 @@
   "main": "electron/main.js",
   "homepage": "./",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 0.0.0.0 --port 3000",
     "build": "vite build",
-    "preview": "vite preview",
-    "start": "vite preview --port 3000",
-    "electron": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron-dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && cross-env NODE_ENV=development electron .\"",
-    "electron-build": "npm run build && electron .",
-    "dist": "npm run build && electron-builder",
-    "dist:win": "npm run build && electron-builder --win",
-    "dist:mac": "npm run build && electron-builder --mac",
-    "dist:linux": "npm run build && electron-builder --linux",
-    "pack": "npm run build && electron-builder --dir",
-    "postinstall": "electron-builder install-app-deps"
+    "preview": "vite preview --host 0.0.0.0 --port 3000",
+    "start": "vite preview --host 0.0.0.0 --port 3000"
   },
   "keywords": [
     "encryption",
