@@ -15,6 +15,8 @@ export function createAmbientAudio(Context) {
   const lfo = context.createOscillator(); const lfoDepth = context.createGain();
   lfo.frequency.value = .07; lfoDepth.gain.value = 85; lfo.connect(lfoDepth); lfoDepth.connect(filter.frequency); lfo.start(); nodes.push(lfo);
   let enabled = false; let visible = true; let intensity = .06; let disposed = false;
+  let lastCue = -Infinity;
+  const cues = new Set();
   function fade() {
     if (disposed) return;
     const now = context.currentTime;
@@ -26,6 +28,31 @@ export function createAmbientAudio(Context) {
     mute() { enabled = false; fade(); },
     setVisible(value) { visible = value; fade(); },
     setScene(splash) { intensity = splash ? .08 : .045; fade(); },
-    dispose() { disposed = true; nodes.forEach(node => node.stop()); return context.close(); },
+    cue(kind = 'tap') {
+      if (disposed || !enabled || !visible || context.state === 'suspended') return false;
+      const now = context.currentTime;
+      if (now - lastCue < .09) return false;
+      lastCue = now;
+      const oscillator = context.createOscillator();
+      const envelope = context.createGain();
+      oscillator.type = 'sine';
+      oscillator.frequency.value = kind === 'navigate' ? 330 : kind === 'toggle' ? 440 : 520;
+      envelope.gain.setValueAtTime(0, now);
+      envelope.gain.linearRampToValueAtTime(.006, now + .008);
+      envelope.gain.exponentialRampToValueAtTime(.0001, now + .09);
+      oscillator.connect(envelope); envelope.connect(master);
+      cues.add(oscillator);
+      oscillator.onended = () => { cues.delete(oscillator); oscillator.disconnect(); envelope.disconnect(); };
+      oscillator.start(now); oscillator.stop(now + .11);
+      return true;
+    },
+    dispose() {
+      if (disposed) return;
+      disposed = true;
+      nodes.forEach(node => node.stop());
+      cues.forEach(node => { try { node.stop(); } catch { /* Already ended. */ } });
+      cues.clear();
+      return context.close();
+    },
   };
 }

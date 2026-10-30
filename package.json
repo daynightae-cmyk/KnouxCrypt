@@ -8,7 +8,10 @@
     "dev": "vite --host 0.0.0.0 --port 3000",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0 --port 3000",
-    "start": "vite preview --host 0.0.0.0 --port 3000"
+    "start": "vite preview --host 0.0.0.0 --port 3000",
+    "check:routes": "node scripts/check-all-routes.cjs",
+    "check:audio": "node scripts/check-audio.cjs",
+    "check": "npm run check:routes && npm run check:audio && npm run build"
   },
   "keywords": [
     "encryption",
