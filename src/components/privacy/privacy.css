@@ -1,0 +1,293 @@
+.privacy-screen {
+  min-height: 100%;
+  padding: max(24px, env(safe-area-inset-top))
+    max(24px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom))
+    max(24px, env(safe-area-inset-left));
+  color: var(--crypt-ink);
+  font-family: var(--crypt-font);
+}
+.privacy-shell {
+  width: min(100%, var(--crypt-content-width));
+  margin-inline: auto;
+  container-type: inline-size;
+}
+.privacy-back {
+  display: inline-block;
+  color: #bd92dc;
+  padding: 8px 0;
+  font-size: 12px;
+  text-decoration: none;
+}
+.privacy-header {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  margin-bottom: 24px;
+}
+.privacy-header > .stag-emblem {
+  width: 36%;
+}
+.privacy-header h1 {
+  font-size: 7.2cqw;
+  font-weight: 500;
+  line-height: 1.5;
+  margin-top: 8px;
+}
+.privacy-header p {
+  font-size: 3cqw;
+  color: #ac8fc0;
+  line-height: 1.8;
+  margin-top: 5px;
+}
+.privacy-recovery {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 33cqw;
+  padding: 20px 16px;
+  border: 1px solid #a261d0aa;
+  border-radius: 19px;
+  background:
+    radial-gradient(ellipse at 0 100%, #782caf55, transparent 65%),
+    linear-gradient(130deg, #331546aa, #10081d);
+  box-shadow:
+    inset 0 1px 9px #bd71ed22,
+    0 0 12px #8f37bc22;
+  text-decoration: none;
+  color: #f1ddff;
+}
+.privacy-recovery-art {
+  display: grid;
+  place-items: center;
+  position: relative;
+  width: 23cqw;
+  height: 23cqw;
+  flex-shrink: 0;
+}
+.privacy-recovery-art > svg:first-child {
+  width: 76%;
+  height: 76%;
+  color: #c88df6;
+  filter: drop-shadow(0 0 9px #a849eb55);
+}
+.privacy-recovery-art > svg:last-child {
+  position: absolute;
+  width: 35%;
+  height: 35%;
+  bottom: 4%;
+  inset-inline-end: 0;
+  color: #e0b0ff;
+}
+.privacy-recovery-art i {
+  position: absolute;
+  inset: 3%;
+  border-radius: 50%;
+  border: 1px solid #9d51df44;
+  border-top-color: #d4a2f8aa;
+  animation: privacy-recovery-orbit 18s linear infinite;
+  pointer-events: none;
+}
+.privacy-recovery-copy {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  flex: 1;
+}
+.privacy-recovery-copy strong {
+  font-size: 5cqw;
+  line-height: 1.5;
+  font-weight: 500;
+}
+.privacy-recovery-copy small {
+  font-size: 2.9cqw;
+  line-height: 1.7;
+  color: #b293c4;
+}
+.privacy-recovery-copy em {
+  justify-self: start;
+  font-style: normal;
+  font-size: 9px;
+  color: #ceb0e3;
+  padding: 2px 8px;
+  border: 1px solid #8654a566;
+  border-radius: 99px;
+  background: #49205d33;
+}
+.privacy-recovery > svg {
+  width: 18px;
+  height: 18px;
+  color: #d3a6ef;
+  flex-shrink: 0;
+}
+.privacy-demo-caption {
+  font-size: 10px;
+  line-height: 1.8;
+  color: #ad8cbe;
+  text-align: center;
+  margin-top: 10px;
+}
+.privacy-group {
+  margin-top: 24px;
+}
+.privacy-group h2 {
+  font-size: 4.2cqw;
+  font-weight: 500;
+  line-height: 1.6;
+  margin-bottom: 10px;
+  color: #e5caef;
+}
+.privacy-panel {
+  border: 1px solid #75439699;
+  border-radius: 16px;
+  padding-inline: 14px;
+  background: linear-gradient(120deg, #23103499, #0e081b);
+  overflow: hidden;
+}
+.privacy-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 77px;
+  padding: 14px 0;
+  width: 100%;
+  background: none;
+  border: 0;
+  color: #ead7f5;
+  text-align: start;
+  font: inherit;
+}
+.privacy-row + .privacy-row {
+  border-top: 1px solid #56336966;
+}
+button.privacy-row {
+  cursor: pointer;
+  transition:
+    background 200ms,
+    box-shadow 200ms;
+}
+.privacy-row > span:nth-child(2) {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+.privacy-row strong {
+  font-weight: 400;
+  font-size: 3.8cqw;
+  line-height: 1.6;
+}
+.privacy-row small {
+  font-size: 2.65cqw;
+  line-height: 1.75;
+  color: #a78bb9;
+}
+.privacy-row-icon {
+  display: grid;
+  place-items: center;
+  position: relative;
+  width: 38px;
+  height: 42px;
+  border: 1px solid #6f3d9c66;
+  border-radius: 11px;
+  background: #3c185a55;
+  color: #be8ae9;
+  flex-shrink: 0;
+}
+.privacy-row-icon svg {
+  width: 22px;
+  height: 22px;
+}
+.privacy-row > svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: #bf95df;
+}
+.privacy-switch {
+  direction: ltr;
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border: 1px solid #7b449f;
+  border-radius: 99px;
+  background: #281135;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.privacy-switch i {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #aa7bc5;
+  transform: translateX(3px);
+  transition:
+    transform 220ms,
+    background 220ms;
+}
+.privacy-switch[aria-checked="true"] {
+  background: #6e28ab;
+}
+.privacy-switch[aria-checked="true"] i {
+  transform: translateX(20px);
+  background: #ebcdff;
+}
+.privacy-biometric-ring::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border: 1px solid #cf9cff;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: privacy-press-wave 700ms ease-out both;
+}
+.privacy-state {
+  font-size: 10px;
+  line-height: 1.8;
+  color: #b28cc7;
+  text-align: center;
+  margin-top: 18px;
+}
+.privacy-review-list {
+  padding-inline-start: 20px;
+  margin-top: 18px;
+  color: #cfb2df;
+  line-height: 1.9;
+  font-size: 13px;
+}
+.privacy-review-list li + li {
+  margin-top: 10px;
+}
+.privacy-row:hover {
+  box-shadow: inset 0 -1px #b479d766;
+}
+.privacy-screen :focus-visible {
+  outline: 2px solid #e2baff;
+  outline-offset: 3px;
+}
+html[dir="rtl"] .privacy-recovery > svg,
+html[dir="rtl"] .privacy-row > svg {
+  transform: scaleX(-1);
+}
+@keyframes privacy-recovery-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes privacy-press-wave {
+  from {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .privacy-screen *,
+  .privacy-screen *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

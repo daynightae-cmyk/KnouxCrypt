@@ -7,6 +7,11 @@ export const SCREENS = Object.freeze({
   FILE_CIPHER: "/file-cipher",
   SHADOW_VAULT: "/vault",
   INTEGRITY: "/tools/integrity",
+  HASH_INTEGRITY: "/tools/integrity",
+  TEXT_CIPHER: "/tools/text-cipher",
+  CERTIFICATE_INSPECTOR: "/tools/certificates",
+  FILE_INTEGRITY: "/tools/file-integrity",
+  SIGNATURE_STUDIO: "/key-forge/signature-studio",
   ARCHIVE: "/tools/archive",
   COLLECTIONS: "/vault/collections",
   DOCUMENT_VIEWER: "/vault/documents",
@@ -21,6 +26,10 @@ export const SCREENS = Object.freeze({
   KEY_DETAILS: "/key-forge/device-keys",
   SIGNATURE: "/key-forge/signature",
   SECURE_SHARE: "/tools/secure-share",
+  LOCAL_TRANSFER: "/tools/secure-share/local-transfer",
+  DEVICE_PAIRING: "/tools/secure-share/pairing",
+  TRANSFER_WIZARD: "/tools/secure-share/transfer",
+  SECRET_CAPSULE: "/tools/secure-share/capsule",
   VAULT_KEY_ROTATION: "/vault/key-rotation",
   AUTHENTICATOR: "/authenticator",
   AUTH_IMPORT: "/authenticator/import",
@@ -83,4 +92,11 @@ export const KEY_WORKFLOWS = Object.freeze([
   { id: "SIGNATURE", title: "Signature Verification" },
   { id: "SECURE_SHARE", title: "Secure Share" },
   { id: "VAULT_KEY_ROTATION", title: "Key Rotation" },
+]);
+
+export const SHARE_WORKFLOWS = Object.freeze([
+  { id: "LOCAL_TRANSFER", title: "Local Transfer" },
+  { id: "DEVICE_PAIRING", title: "Device Pairing" },
+  { id: "TRANSFER_WIZARD", title: "Transfer Wizard" },
+  { id: "SECRET_CAPSULE", title: "Expiring Secret Capsule" },
 ]);

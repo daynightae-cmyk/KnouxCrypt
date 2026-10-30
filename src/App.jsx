@@ -1,3 +1,4 @@
+import { HashIntegrity, TextCipher, DigitalSignature, CertificateInspector } from "./components/inspectors/InspectionScreens";
 import React from "react";
 import { LanguageProvider } from "./i18n/Language";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -22,7 +23,18 @@ import {
   KeyDetails,
   KeyWorkflowPreview,
 } from "./components/keys/KeyForge";
-import { SCREENS, SERVICES, KEY_WORKFLOWS } from "./config/screens";
+import { PrivacyCenter } from "./components/privacy/PrivacyCenter";
+import { Recovery } from "./components/recovery/Recovery";
+import {
+  SecureShare,
+  ShareWorkflowPreview,
+} from "./components/share/SecureShare";
+import {
+  SCREENS,
+  SERVICES,
+  KEY_WORKFLOWS,
+  SHARE_WORKFLOWS,
+} from "./config/screens";
 
 function App() {
   return (
@@ -38,9 +50,35 @@ function App() {
                   element={<SecureAccess />}
                 />
                 <Route path={SCREENS.HOME} element={<Home />} />
+                <Route
+                  path={SCREENS.HASH_INTEGRITY}
+                  element={<HashIntegrity />}
+                />
+                <Route path={SCREENS.TEXT_CIPHER} element={<TextCipher />} />
+                <Route
+                  path={SCREENS.SIGNATURE}
+                  element={<DigitalSignature />}
+                />
+                <Route
+                  path={SCREENS.CERTIFICATE_INSPECTOR}
+                  element={<CertificateInspector />}
+                />
+                <Route path={SCREENS.SECURE_SHARE} element={<SecureShare />} />
+                {SHARE_WORKFLOWS.map((workflow) => (
+                  <Route
+                    key={workflow.id}
+                    path={SCREENS[workflow.id]}
+                    element={<ShareWorkflowPreview title={workflow.title} />}
+                  />
+                ))}
+                <Route path={SCREENS.BACKUP} element={<Recovery />} />
+                <Route path={SCREENS.PRIVACY} element={<PrivacyCenter />} />
                 <Route path={SCREENS.KEY_FORGE} element={<KeyForge />} />
                 <Route path={SCREENS.KEY_DETAILS} element={<KeyDetails />} />
-                {KEY_WORKFLOWS.map((workflow) => (
+                {KEY_WORKFLOWS.filter(
+                  (workflow) =>
+                    !["SECURE_SHARE", "SIGNATURE"].includes(workflow.id),
+                ).map((workflow) => (
                   <Route
                     key={workflow.id}
                     path={SCREENS[workflow.id]}
@@ -68,7 +106,8 @@ function App() {
                 {[
                   ["AUTOFILL", "Autofill"],
                   ["PASSWORD_AUDIT", "Password audit"],
-                  ["INTEGRITY", "Integrity"],
+                  ["FILE_INTEGRITY", "File integrity"],
+                  ["SIGNATURE_STUDIO", "Signature Studio"],
                   ["ARCHIVE", "Archive"],
                   ["COLLECTIONS", "Collections"],
                   ["DOCUMENT_VIEWER", "Document viewer"],
@@ -88,6 +127,8 @@ function App() {
                       "PASSWORDS",
                       "AUTHENTICATOR",
                       "KEY_FORGE",
+                      "PRIVACY",
+                      "BACKUP",
                     ].includes(service.id),
                 ).map((service) => (
                   <Route
