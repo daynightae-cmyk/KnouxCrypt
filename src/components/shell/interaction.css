@@ -12,3 +12,9 @@
 @media(hover:hover){.crypt-app-shell :where(.hub-service,.keys-service,.vt-card,.notes-card,.password-record) {transition:border-color 180ms ease,box-shadow 220ms ease;} .crypt-app-shell :where(.hub-service,.keys-service,.vt-card,.notes-card,.password-record):hover {border-color:#bd86e5;}}
 @media(prefers-reduced-motion:reduce){.crypt-app-shell *, .crypt-app-shell *::before, .crypt-app-shell *::after {animation:none!important;transition:none!important;scroll-behavior:auto!important;}}
 @media(forced-colors:active){.crypt-app-shell :where(button,a,input,textarea,select) {border-color:ButtonText;} .crypt-app-shell :focus-visible {outline:2px solid Highlight!important;}}
+
+.app-screen-announcement { position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap; }
+.crypt-app-shell[data-page-hidden="true"] .app-atmosphere *,
+.crypt-app-shell[data-page-hidden="true"] .app-atmosphere *::before,
+.crypt-app-shell[data-page-hidden="true"] .app-atmosphere *::after { animation-play-state:paused!important; }
+.crypt-app-shell main h1[tabindex="-1"]:focus {outline:none;}
