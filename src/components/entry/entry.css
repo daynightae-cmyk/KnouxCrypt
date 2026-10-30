@@ -19,6 +19,7 @@
   align-items: center;
   width: min(78vw, 620px);
   max-width: 100%;
+  container-type: inline-size;
   gap: 32px;
 }
 .crypt-emblem { position: relative; width: 100%; }
@@ -29,9 +30,9 @@
 .crypt-ignite .crypt-eye-right { animation-delay: 0.75s; }
 .crypt-ignite .crypt-antler { stroke-dasharray: 70 1000; animation: crypt-antler-sweep 2.8s ease-out 1s both; }
 .crypt-branding { text-align: center; width: 100%; }
-.crypt-branding h1 { margin: 0; font-size: clamp(36px, 9.25vw, 82px); font-weight: 400; line-height: 1.12; letter-spacing: -0.035em; white-space: nowrap; }
+.crypt-branding h1 { margin: 0; font-size: clamp(32px, 14.7cqw, 92px); font-weight: 400; line-height: 1.12; letter-spacing: 0; white-space: nowrap; }
 .crypt-branding h1 span { color: #b393eb; background: linear-gradient(140deg, #ddc8fa, #9b72e5 75%); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.crypt-branding p { margin: 24px 0 0; color: #9992a7; font-size: clamp(10px, 2.9vw, 27px); font-weight: 300; letter-spacing: 0.28em; white-space: nowrap; }
+.crypt-branding p { margin: 24px 0 0; color: #9992a7; font-size: clamp(10px, 3.6cqw, 24px); font-weight: 300; letter-spacing: 0.28em; white-space: nowrap; }
 .crypt-gate { display: flex; align-items: center; flex-direction: column; gap: 8px; padding: 8px 24px; border: 0; border-radius: 32px; background: transparent; color: #aaa0be; font: inherit; font-size: 11px; letter-spacing: 0.13em; cursor: pointer; transition: color 180ms, opacity 180ms; -webkit-tap-highlight-color: transparent; }
 .crypt-fingerprint { display: grid; place-items: center; position: relative; width: 56px; height: 56px; border-radius: 50%; }
 .crypt-fingerprint svg { width: 40px; height: 40px; }
@@ -62,6 +63,10 @@
 @keyframes crypt-ember-drift { 0%, 100% { opacity: 0; transform: translate(0, 0); } 35% { opacity: 0.35; } 80% { opacity: 0; transform: translate(12px, -64px); } }
 @media (max-width: 480px) {
   .crypt-entry-group { gap: 24px; }
+  .crypt-branding p { margin-top: 16px; }
+}
+@media (min-aspect-ratio: 1/1) {
+  .crypt-entry-group { width: min(40vw, 320px); gap: 24px; }
   .crypt-branding p { margin-top: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
