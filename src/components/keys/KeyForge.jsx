@@ -265,7 +265,7 @@ export function KeyDetails() {
                   "This public sample fingerprint is illustrative and does not identify a real key.",
                 )}
               </p>
-              <code className="keys-fingerprint" dir="ltr">
+              <Link to={SCREENS.PUBLIC_KEY_QR}>{t("Public Key QR")}</Link><code className="keys-fingerprint" dir="ltr">
                 DEMO-ONLY · 0000 1111 2222 3333
                 <br />
                 4444 5555 6666 7777

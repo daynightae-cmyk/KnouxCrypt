@@ -1,4 +1,10 @@
 import {
+  ClipboardGuard,
+  SecureRandom,
+  HmacAuthenticity,
+  PublicKeyQr,
+} from "./components/labs/LabScreens";
+import {
   EncryptedArchive,
   LocalTransfer,
   FingerprintVerify,
@@ -60,6 +66,19 @@ function App() {
                   path={SCREENS.SECURE_ACCESS_LOGIN}
                   element={<SecureAccess />}
                 />
+                <Route
+                  path={SCREENS.CLIPBOARD_GUARD}
+                  element={<ClipboardGuard />}
+                />
+                <Route
+                  path={SCREENS.SECURE_RANDOM}
+                  element={<SecureRandom />}
+                />
+                <Route
+                  path={SCREENS.HMAC_AUTHENTICITY}
+                  element={<HmacAuthenticity />}
+                />
+                <Route path={SCREENS.PUBLIC_KEY_QR} element={<PublicKeyQr />} />
                 <Route path={SCREENS.ARCHIVE} element={<EncryptedArchive />} />
                 <Route
                   path={SCREENS.LOCAL_TRANSFER}
@@ -132,6 +151,7 @@ function App() {
                 {[
                   ["AUTOFILL", "Autofill"],
                   ["PASSWORD_AUDIT", "Password audit"],
+                  ["SECURE_CLIPBOARD", "Secure Clipboard"],
                   ["FILE_INTEGRITY", "File integrity"],
                   ["SIGNATURE_STUDIO", "Signature Studio"],
                   ["COLLECTIONS", "Collections"],
