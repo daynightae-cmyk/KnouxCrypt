@@ -1,3 +1,5 @@
+# SUPERSEDING HOME REFERENCE NOTICE
+The existing REFERENCE.png with the glowing GLOBE is OUTDATED. The newly supplied Home screenshot with large free-standing stag-K is authoritative, as documented in LATEST_HOME_REFERENCE.md. DO NOT implement the old globe UI. The updated image binary must replace REFERENCE.png when available.
 AUTONOMOUS SEQUENCE: Inspect the actual running app and same-folder REFERENCE.png, implement/refine safely, verify and show a REAL screenshot, then continue the next numbered task. Do not restart the app or ask routine questions.
 
 # DIRECT REPO AGENT MISSION: 03_HOME
