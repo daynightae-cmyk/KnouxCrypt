@@ -42,7 +42,6 @@ export function SplashEntry() {
       <div className="crypt-entry-group">
         <div className="crypt-emblem" aria-hidden="true">
           <StagEmblem ignite={playIntro}/>
-
         </div>
         <div className="crypt-branding">
           <h1 id="crypt-brand">Knoux <span>Crypt</span></h1>
