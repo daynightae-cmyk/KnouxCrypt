@@ -17,7 +17,12 @@ import {
   Authenticator,
   AuthImport,
 } from "./components/authenticator/Authenticator";
-import { SCREENS, SERVICES } from "./config/screens";
+import {
+  KeyForge,
+  KeyDetails,
+  KeyWorkflowPreview,
+} from "./components/keys/KeyForge";
+import { SCREENS, SERVICES, KEY_WORKFLOWS } from "./config/screens";
 
 function App() {
   return (
@@ -33,6 +38,15 @@ function App() {
                   element={<SecureAccess />}
                 />
                 <Route path={SCREENS.HOME} element={<Home />} />
+                <Route path={SCREENS.KEY_FORGE} element={<KeyForge />} />
+                <Route path={SCREENS.KEY_DETAILS} element={<KeyDetails />} />
+                {KEY_WORKFLOWS.map((workflow) => (
+                  <Route
+                    key={workflow.id}
+                    path={SCREENS[workflow.id]}
+                    element={<KeyWorkflowPreview {...workflow} />}
+                  />
+                ))}
                 <Route path={SCREENS.TOOLS} element={<Home tools />} />
                 <Route path={SCREENS.FILE_CIPHER} element={<FileCipher />} />
                 <Route
@@ -73,6 +87,7 @@ function App() {
                       "NOTES",
                       "PASSWORDS",
                       "AUTHENTICATOR",
+                      "KEY_FORGE",
                     ].includes(service.id),
                 ).map((service) => (
                   <Route

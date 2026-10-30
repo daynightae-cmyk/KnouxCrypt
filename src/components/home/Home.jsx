@@ -64,7 +64,7 @@ export function Home({ tools = false }) {
         <h1 id="hub-status">{t("Your Vault is Protected")}</h1><p>{t("End-to-End Encrypted")}</p><span id="hub-demo-context" className="hub-sr-only">{t("Visual demo reference text only. No vault protection or encryption has been verified.")}</span>
       </section> : <div className="hub-tools-heading"><h1>{t("Tools")}</h1><p>{t("Choose a service to preview")}</p></div>}
       <ServiceGrid/>
-      {tools && <div className="hub-extra-tools">{[['INTEGRITY','Integrity'],['ARCHIVE','Archive'],['COLLECTIONS','Collections'],['DOCUMENT_VIEWER','Document viewer']].map(([id,title])=><Link key={id} to={SCREENS[id]}>{t(title)}{t(" preview")}</Link>)}</div>}
+      {tools && <div className="hub-extra-tools">{[['KEY_FORGE','Key Forge'],['SIGNATURE','Signature Verification'],['SECURE_SHARE','Secure Share'],['INTEGRITY','Integrity'],['ARCHIVE','Archive'],['COLLECTIONS','Collections'],['DOCUMENT_VIEWER','Document viewer']].map(([id,title])=><Link key={id} to={SCREENS[id]}>{t(title)}{t(" preview")}</Link>)}</div>}
     </div>
     {dialog && <HubDialog kind={dialog} onClose={() => setDialog(null)}/>}
   </main>;

@@ -1,3 +1,6 @@
+> **تنبيه توثيقي / Historical report — NOT current verification**
+> الادعاءات أدناه محفوظة كتقرير تاريخي غير متحقق منه، وليست إثباتًا لجهوزية الإنتاج أو الأمان الحالي. الشاشات الجديدة معاينات مرئية؛ لا تعتمد عليها لحماية بيانات حقيقية. راجع تقارير الاختبار الحالية في `docs/`. Source presence, a build, or this legacy report does not establish audited encryption or production readiness.
+
 # KnouxCrypt™ 2025 - تقرير المراجعة الشاملة
 
 ## 🎯 ملخص المراجعة
