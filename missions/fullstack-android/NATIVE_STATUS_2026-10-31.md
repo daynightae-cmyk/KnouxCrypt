@@ -2,6 +2,7 @@
 
 **Branch:** `android/native-implementation-20261031`
 **Implementation commit:** `2975ec6b7508b9f51305a808470475453e1cf3ed`
+**Security P0 commit:** `c3f718f7cee4b8f663b05e9d3aae858101554029`
 **PR #14 reconciliation merge:** `b4fe65c`
 **Base:** `integration/knoux-crypt-android-ready-20261030` @ `8f6f992`
 **PR #14 branch untouched:** `android/task00-foundation-review` @ `310665d` (still unmerged, not deleted).
@@ -17,7 +18,10 @@
 | Debug APK | `./gradlew :app:assembleDebug` | PASS — 14,383,574 bytes |
 | APK SHA-256 | `sha256sum` | `7608ea31a33f4beb1a64c3ef776deb63a53358f01a26c5494d885e6f36482cd9` |
 | Android lint | `./gradlew :app:lintDebug` | PASS — 0 errors, 12 warnings (dependency updates, API-33 attribute) |
-| Instrumented test sources | `./gradlew :app:compileDebugAndroidTestKotlin` | PASS (compiled, **NOT RUN**) |
+| Instrumented test sources | `./gradlew :app:compileDebugAndroidTestKotlin :core:data:compileDebugAndroidTestKotlin` | PASS (compiled, **NOT RUN**) |
+| Security P0 fresh JVM suite | `./gradlew :core:security:test :core:data:test :app:testDebugUnitTest --rerun-tasks` | PASS — **65 tests**, 0 failures, 0 errors |
+| Security P0 debug APK | `./gradlew :app:assembleDebug` | PASS — 14,383,574 bytes, SHA-256 `e07cb48e…8c4eec` |
+| Security P0 lint | `./gradlew :core:data:lintDebug :app:lintDebug` | PASS — 0 errors |
 | Device availability | `adb devices`; `HypervisorPresent` | **No device; False** → no emulator |
 
 Test distribution: FileEnvelope 13, PassphraseEnvelope 6, TOTP/Base32/hash/random 7, PR14 Foundation 10, SecretCodec 4, Catalog/search 4.
@@ -28,7 +32,7 @@ Test distribution: FileEnvelope 13, PassphraseEnvelope 6, TOTP/Base32/hash/rando
 |---|---|---|
 | 00 | Native foundation | **BUILD_VERIFIED + JVM-TESTED**; device/security review open |
 | 01 | Splash entry | **BUILD_VERIFIED** (UI); device screenshot open |
-| 02 | Secure access login | **BUILD_VERIFIED**; biometric/Keystore runtime **UNVERIFIED** |
+| 02 | Secure access login | **BUILD_VERIFIED + JVM-TESTED (21 boundary tests)**; BiometricPrompt/Keystore runtime **DEVICE_UNVERIFIED**; locked-state reset removed, atomic gate rotation added |
 | 03 | Home | **BUILD_VERIFIED + catalog tests**; device visual parity open |
 | 04 | File cipher | **BUILD_VERIFIED + core TESTED (13)**; SAF/device open |
 | 05 | Shadow vault | PLANNED — design-only placeholder |
@@ -68,7 +72,7 @@ Test distribution: FileEnvelope 13, PassphraseEnvelope 6, TOTP/Base32/hash/rando
 | 39 | Security activity | PLANNED |
 | 40 | Transfer wizard | PLANNED |
 | 41 | Expiring capsule | PLANNED |
-| 42 | Session privacy controls | PLANNED (lock/reset exist in Account/Privacy) |
+| 42 | Session privacy controls | **PARTIAL / BUILD_VERIFIED**: 30 s lock, explicit lock, decrypted-state clearing, lock-aware repository/file checks; remaining privacy controls PLANNED |
 | 43 | File integrity tool | PLANNED (hash screen covers part of 43) |
 | 44 | Secure clipboard | PLANNED |
 | 45 | Final integration/verification | **BLOCKED by device availability** |
@@ -80,7 +84,7 @@ Catalog accounting: 34 destinations total = **9 IMPLEMENTED**, **1 BLOCKED (Reco
 - Modules: `:app`, `:core:designsystem`, `:core:security`, `:core:data`.
 - Entry flow, 8 Home cards, 34-tool directory, AR/EN search + RTL + reduced motion, Account, truthful Privacy/Recovery.
 - KNC1 small-record AEAD (PR14 code reused), KNF1 chunked file AEAD, KNP1 passphrase envelope, RFC 6238 TOTP, SHA-256/HMAC, SecureRandom.
-- Keystore: non-exportable master data key; auth-per-use unlock key + check token; session capability; 30 s background lock; explicit gate reset. **The data key is not auth-bound per use** — documented in-app and here.
+- Keystore: non-exportable master data key; auth-per-use unlock keys + check token; sealed session capability; 30 s background lock; atomic owner-authorized gate rotation with no locked-state reset. **The data key is not auth-bound per use** — documented in-app and here.
 - Room stores only ciphertext rows plus id/kind/timestamp; DataStore stores nonsecret settings only; Android backup is disabled; no INTERNET permission.
 
 ## Risks and gaps
@@ -90,6 +94,8 @@ Catalog accounting: 34 destinations total = **9 IMPLEMENTED**, **1 BLOCKED (Reco
 3. **Crypto scope**: PBKDF2 not Argon2id; no recovery/rotation; no large-file soak; nonce/key-usage limits not formally analyzed.
 4. **Auth binding**: master key use is gated by the app capability, not per-use biometric authorization.
 5. **Design-only majority**: 24 tools remain explicit placeholders; they do not fake operations.
+6. **Gate recovery**: a biometric-invalidated or lost gate now shows a truthful non-destructive recovery-required state; restore is BLOCKED on TASK 15.
+7. **Biometric cipher identity**: unlock passes the exact prepared `Cipher` back to the domain and rejects substitution; real `BiometricPrompt` same-instance behavior is still DEVICE_UNVERIFIED.
 6. **Visual parity**: PR15 is the accepted baseline, not pixel certification; the external Preview artifact is not the APK.
 7. **PR14 review branch** remains unmerged and untouched; this branch must be reviewed before any merge to `main`.
 
@@ -99,5 +105,13 @@ Catalog accounting: 34 destinations total = **9 IMPLEMENTED**, **1 BLOCKED (Reco
 2. **Vertical slices:** 05 Vault (uses KNF1), 07 Notes editor, 09 Password detail, 21 Archive (uses KNF1), 43 File Integrity.
 3. **Device gate:** obtain a physical Android 8.0+ device with strong biometrics; install `app-debug.apk`, run both instrumented classes, then capture Compose screenshots at 360/390/441 widths in EN/AR and compare against canonical references.
 4. **Quality gate:** detekt/ktlint, dependency locking, CVE scan, and a real CI workflow (the PR14 template remains uninstalled).
+
+## Security P0 closure — 2026-10-31 (`c3f718f`)
+
+- Capability minting now requires a verified auth-bound gate operation; UI state cannot unlock.
+- Fresh enrollment is refused when a master key or any gate token exists; guest/locked reset was removed.
+- Gate replacement is atomic across two frozen aliases; cancellation or crash keeps the old gate; master key and ciphertext are untouched.
+- Repository flows, in-flight reads/writes and file chunk loops revalidate the capability; decrypted ViewModel state is cleared on lock.
+- 21 new JVM tests cover guest reset/re-enrollment, stale and locked capabilities, in-flight revocation, invalidation, corrupt/substituted tokens, rotation atomicity and format compatibility. Biometric/Keystore behavior remains DEVICE_UNVERIFIED.
 
 No merge to `main`, release, signing, Play upload, or production claim was performed.
