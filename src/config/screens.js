@@ -19,6 +19,7 @@ export const SCREENS = Object.freeze({
   OFFLINE_ADVISOR: "/tools/security-advisor",
   KEY_DERIVATION: "/key-forge/derivation",
   SECURITY_ACTIVITY: "/privacy/activity",
+  SESSION_PRIVACY: "/privacy/session",
   TEXT_CIPHER: "/tools/text-cipher",
   CERTIFICATE_INSPECTOR: "/tools/certificates",
   FILE_INTEGRITY: "/tools/file-integrity",

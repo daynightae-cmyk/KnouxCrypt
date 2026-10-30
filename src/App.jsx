@@ -1,4 +1,10 @@
 import {
+  SecretCapsule,
+  SessionPrivacy,
+  FileIntegrity,
+  SecureClipboard,
+} from "./components/finaltools/FinalTools";
+import {
   KeyDerivation,
   SignatureStudio,
   SecurityActivity,
@@ -79,6 +85,22 @@ function App() {
           <BrowserRouter>
             <AppShell>
               <Routes>
+                <Route
+                  path={SCREENS.SECRET_CAPSULE}
+                  element={<SecretCapsule />}
+                />
+                <Route
+                  path={SCREENS.SESSION_PRIVACY}
+                  element={<SessionPrivacy />}
+                />
+                <Route
+                  path={SCREENS.FILE_INTEGRITY}
+                  element={<FileIntegrity />}
+                />
+                <Route
+                  path={SCREENS.SECURE_CLIPBOARD}
+                  element={<SecureClipboard />}
+                />
                 <Route
                   path={SCREENS.KEY_DERIVATION}
                   element={<KeyDerivation />}
@@ -176,6 +198,7 @@ function App() {
                       "LOCAL_TRANSFER",
                       "DEVICE_PAIRING",
                       "TRANSFER_WIZARD",
+                      "SECRET_CAPSULE",
                     ].includes(workflow.id),
                 ).map((workflow) => (
                   <Route
@@ -220,10 +243,7 @@ function App() {
                   element={<NotesEditor />}
                 />
                 <Route path={SCREENS.SHADOW_VAULT} element={<ShadowVault />} />
-                {[
-                  ["SECURE_CLIPBOARD", "Secure Clipboard"],
-                  ["FILE_INTEGRITY", "File integrity"],
-                ].map(([id, title]) => (
+                {[].map(([id, title]) => (
                   <Route
                     key={id}
                     path={SCREENS[id]}
