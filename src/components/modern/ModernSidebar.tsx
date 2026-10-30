@@ -25,7 +25,7 @@ export const ModernSidebar: React.FC = () => {
       title: "الرئيسية",
       items: [
         {
-          path: "/",
+          path: "/home",
           icon: "🏠",
           label: "لوحة التحكم",
           description: "نظرة عامة عل�� النظام",

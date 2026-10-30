@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
+import { SCREENS } from "../../config/screens";
 import { motion } from "framer-motion";
 import { ModernNavbar } from "./ModernNavbar";
 import { ModernSidebar } from "./ModernSidebar";
@@ -30,49 +31,47 @@ export const ModernApp: React.FC = () => {
   return (
     <SecurityProvider>
       <NotificationProvider>
-        <Router>
-          <div className="modern-app min-h-screen bg-gradient-background">
-            {/* Navigation Header */}
-            <ModernNavbar />
+        <div className="modern-app min-h-screen bg-gradient-background">
+          {/* Navigation Header */}
+          <ModernNavbar />
 
-            {/* Main Layout */}
-            <div className="flex">
-              {/* Sidebar */}
-              <ModernSidebar />
+          {/* Main Layout */}
+          <div className="flex">
+            {/* Sidebar */}
+            <ModernSidebar />
 
-              {/* Main Content */}
-              <motion.main
-                className="modern-main"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                <Routes>
-                  <Route path="/" element={<ModernDashboard />} />
-                  <Route path="/analytics" element={<AnalyticsPage />} />
-                  <Route path="/encrypt" element={<EncryptPage />} />
-                  <Route path="/disk-manager" element={<DiskManager />} />
-                  <Route
-                    path="/system-encryption"
-                    element={<SystemEncryption />}
-                  />
-                  <Route path="/algorithms" element={<Algorithms />} />
-                  <Route path="/quantum" element={<QuantumPage />} />
-                  <Route path="/ai-assistant" element={<AIAssistant />} />
-                  <Route
-                    path="/threat-detection"
-                    element={<ThreatDetectionPage />}
-                  />
-                  <Route path="/crypto-test" element={<CryptoTest />} />
-                  <Route path="/live-preview" element={<LivePreview />} />
-                  <Route path="/vmware" element={<VMwareInterface />} />
-                  <Route path="/settings" element={<SettingsPage />} />
-                  <Route path="/logs" element={<LogsPage />} />
-                </Routes>
-              </motion.main>
-            </div>
+            {/* Main Content */}
+            <motion.main
+              className="modern-main"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <Routes>
+                <Route path={SCREENS.HOME} element={<ModernDashboard />} />
+                <Route path="/analytics" element={<AnalyticsPage />} />
+                <Route path="/encrypt" element={<EncryptPage />} />
+                <Route path="/disk-manager" element={<DiskManager />} />
+                <Route
+                  path="/system-encryption"
+                  element={<SystemEncryption />}
+                />
+                <Route path="/algorithms" element={<Algorithms />} />
+                <Route path="/quantum" element={<QuantumPage />} />
+                <Route path="/ai-assistant" element={<AIAssistant />} />
+                <Route
+                  path="/threat-detection"
+                  element={<ThreatDetectionPage />}
+                />
+                <Route path="/crypto-test" element={<CryptoTest />} />
+                <Route path="/live-preview" element={<LivePreview />} />
+                <Route path="/vmware" element={<VMwareInterface />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/logs" element={<LogsPage />} />
+              </Routes>
+            </motion.main>
           </div>
-        </Router>
+        </div>
       </NotificationProvider>
     </SecurityProvider>
   );
