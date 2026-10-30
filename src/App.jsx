@@ -1,4 +1,15 @@
-import { HashIntegrity, TextCipher, DigitalSignature, CertificateInspector } from "./components/inspectors/InspectionScreens";
+import {
+  EncryptedArchive,
+  LocalTransfer,
+  FingerprintVerify,
+  MetadataCleaner,
+} from "./components/workflows/WorkflowScreens";
+import {
+  HashIntegrity,
+  TextCipher,
+  DigitalSignature,
+  CertificateInspector,
+} from "./components/inspectors/InspectionScreens";
 import React from "react";
 import { LanguageProvider } from "./i18n/Language";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -49,6 +60,19 @@ function App() {
                   path={SCREENS.SECURE_ACCESS_LOGIN}
                   element={<SecureAccess />}
                 />
+                <Route path={SCREENS.ARCHIVE} element={<EncryptedArchive />} />
+                <Route
+                  path={SCREENS.LOCAL_TRANSFER}
+                  element={<LocalTransfer />}
+                />
+                <Route
+                  path={SCREENS.FINGERPRINT_VERIFY}
+                  element={<FingerprintVerify />}
+                />
+                <Route
+                  path={SCREENS.METADATA_CLEANER}
+                  element={<MetadataCleaner />}
+                />
                 <Route path={SCREENS.HOME} element={<Home />} />
                 <Route
                   path={SCREENS.HASH_INTEGRITY}
@@ -64,7 +88,9 @@ function App() {
                   element={<CertificateInspector />}
                 />
                 <Route path={SCREENS.SECURE_SHARE} element={<SecureShare />} />
-                {SHARE_WORKFLOWS.map((workflow) => (
+                {SHARE_WORKFLOWS.filter(
+                  (workflow) => workflow.id !== "LOCAL_TRANSFER",
+                ).map((workflow) => (
                   <Route
                     key={workflow.id}
                     path={SCREENS[workflow.id]}
@@ -108,7 +134,6 @@ function App() {
                   ["PASSWORD_AUDIT", "Password audit"],
                   ["FILE_INTEGRITY", "File integrity"],
                   ["SIGNATURE_STUDIO", "Signature Studio"],
-                  ["ARCHIVE", "Archive"],
                   ["COLLECTIONS", "Collections"],
                   ["DOCUMENT_VIEWER", "Document viewer"],
                 ].map(([id, title]) => (

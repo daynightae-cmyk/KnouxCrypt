@@ -96,7 +96,7 @@ export function KeyForge() {
             </Link>
           ))}
         </section>
-        <p className="keys-demo-caption">
+        <Link className="inspection-link" to={SCREENS.FINGERPRINT_VERIFY} state={{returnTo:SCREENS.KEY_DETAILS}}>{t("Fingerprint Verify")}</Link><p className="keys-demo-caption">
           {t("Visual demo · no device keys or security operations")}
         </p>
       </div>

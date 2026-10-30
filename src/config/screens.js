@@ -8,6 +8,8 @@ export const SCREENS = Object.freeze({
   SHADOW_VAULT: "/vault",
   INTEGRITY: "/tools/integrity",
   HASH_INTEGRITY: "/tools/integrity",
+  FINGERPRINT_VERIFY: "/key-forge/fingerprint",
+  METADATA_CLEANER: "/tools/metadata-cleaner",
   TEXT_CIPHER: "/tools/text-cipher",
   CERTIFICATE_INSPECTOR: "/tools/certificates",
   FILE_INTEGRITY: "/tools/file-integrity",
