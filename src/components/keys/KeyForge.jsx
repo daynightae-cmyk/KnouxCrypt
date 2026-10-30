@@ -152,7 +152,7 @@ export function KeyDetails() {
           <h1>{t("Key Forge")}</h1>
           <p>{t("Device Keys")}</p>
         </header>
-        <section className="keys-metadata" aria-label={t("Key metadata")}>
+        <Link className="keys-secondary" to={SCREENS.KEY_DERIVATION}>{t("Key Derivation")}</Link><section className="keys-metadata" aria-label={t("Key metadata")}>
           {KEY_METADATA.map((row) => (
             <div key={row.id} className="keys-metadata-item">
               <button

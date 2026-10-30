@@ -1,4 +1,10 @@
 import {
+  KeyDerivation,
+  SignatureStudio,
+  SecurityActivity,
+  TransferWizard,
+} from "./components/advanced/AdvancedScreens";
+import {
   AndroidAutofill,
   OfflineAdvisor,
   DevicePairing,
@@ -73,6 +79,22 @@ function App() {
           <BrowserRouter>
             <AppShell>
               <Routes>
+                <Route
+                  path={SCREENS.KEY_DERIVATION}
+                  element={<KeyDerivation />}
+                />
+                <Route
+                  path={SCREENS.SIGNATURE_STUDIO}
+                  element={<SignatureStudio />}
+                />
+                <Route
+                  path={SCREENS.SECURITY_ACTIVITY}
+                  element={<SecurityActivity />}
+                />
+                <Route
+                  path={SCREENS.TRANSFER_WIZARD}
+                  element={<TransferWizard />}
+                />
                 <Route path={SCREENS.AUTOFILL} element={<AndroidAutofill />} />
                 <Route
                   path={SCREENS.OFFLINE_ADVISOR}
@@ -150,7 +172,11 @@ function App() {
                 <Route path={SCREENS.SECURE_SHARE} element={<SecureShare />} />
                 {SHARE_WORKFLOWS.filter(
                   (workflow) =>
-                    !["LOCAL_TRANSFER", "DEVICE_PAIRING"].includes(workflow.id),
+                    ![
+                      "LOCAL_TRANSFER",
+                      "DEVICE_PAIRING",
+                      "TRANSFER_WIZARD",
+                    ].includes(workflow.id),
                 ).map((workflow) => (
                   <Route
                     key={workflow.id}
@@ -197,7 +223,6 @@ function App() {
                 {[
                   ["SECURE_CLIPBOARD", "Secure Clipboard"],
                   ["FILE_INTEGRITY", "File integrity"],
-                  ["SIGNATURE_STUDIO", "Signature Studio"],
                 ].map(([id, title]) => (
                   <Route
                     key={id}
