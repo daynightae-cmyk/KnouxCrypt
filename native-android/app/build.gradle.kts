@@ -38,6 +38,8 @@ android {
     kotlinOptions { jvmTarget = "17" }
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        // Bouncy Castle and jspecify both ship this OSGi-only manifest entry.
+        resources.excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
     }
 }
 

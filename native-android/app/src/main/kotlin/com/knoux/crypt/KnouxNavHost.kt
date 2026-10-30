@@ -13,6 +13,7 @@ import com.knoux.crypt.ui.AuthenticatorScreen
 import com.knoux.crypt.ui.FileCipherScreen
 import com.knoux.crypt.ui.HashIntegrityScreen
 import com.knoux.crypt.ui.HomeScreen
+import com.knoux.crypt.ui.KeyDerivationScreen
 import com.knoux.crypt.ui.KeyForgeScreen
 import com.knoux.crypt.ui.NotesScreen
 import com.knoux.crypt.ui.PasswordsScreen
@@ -144,6 +145,9 @@ fun KnouxNavHost(
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
                 isUnlocked = container.session.isUnlocked,
             )
+        }
+        composable("key_derivation") {
+            KeyDerivationScreen(onBack = { nav.popBackStack() })
         }
         composable("authenticator") {
             AuthenticatorScreen(

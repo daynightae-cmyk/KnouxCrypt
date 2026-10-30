@@ -80,8 +80,8 @@ fun PrivacyScreen(container: AppContainer, onBack: () -> Unit, onLock: () -> Uni
             Spacer(Modifier.height(6.dp))
             Text(
                 tr(
-                    "The data key is Keystore-protected but not auth-bound per use, so decryption relies on the in-app session capability. PBKDF2 is used for portable text; Argon2id, recovery export, secure clipboard, autofill and cross-device pairing are not implemented.",
-                    "مفتاح البيانات محمي بـ Keystore لكنه غير مرتبط بمصادقة لكل استخدام، لذا يعتمد فك التشفير على صلاحية الجلسة داخل التطبيق. يُستخدم PBKDF2 للنص المحمول؛ Argon2id وتصدير الاستعادة والحافظة الآمنة والملء التلقائي والاقتران بين الأجهزة غير منفذة.",
+                    "The data key is Keystore-protected but not auth-bound per use, so decryption relies on the in-app session capability. Portable text uses KNP2/Argon2id with legacy KNP1 readable; KNF1 file containers still use PBKDF2. Recovery export, secure clipboard, autofill and cross-device pairing are not implemented.",
+                    "مفتاح البيانات محمي بـ Keystore لكنه غير مرتبط بمصادقة لكل استخدام، لذا يعتمد فك التشفير على صلاحية الجلسة داخل التطبيق. يستخدم النص المحمول KNP2/Argon2id مع بقاء KNP1 مقروءًا؛ ما زالت حاويات KNF1 للملفات تستخدم PBKDF2. تصدير الاستعادة والحافظة الآمنة والملء التلقائي والاقتران بين الأجهزة غير منفذة.",
                 ),
                 style = MaterialTheme.typography.bodySmall,
                 color = KnouxColors.Text,

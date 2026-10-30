@@ -59,7 +59,7 @@ object Catalog {
         ServiceDef("PACKAGE_INSPECTOR", "Package Inspector", "فاحص الحزم", "Inspect KNF/KNP headers without keys", "افحص ترويسات KNF/KNP دون مفاتيح", ServiceArt.ENCRYPT, null, ServiceStatus.DESIGN_ONLY, false),
         ServiceDef("AUTOFILL", "Autofill", "الملء التلقائي", "Fill passwords through Android Autofill", "املأ كلمات المرور عبر خدمة أندرويد", ServiceArt.PASSWORDS, null, ServiceStatus.DESIGN_ONLY, true),
         ServiceDef("OFFLINE_ADVISOR", "Offline Security Advisor", "مستشار الأمان دون اتصال", "Review local security posture", "راجع الوضع الأمني المحلي", ServiceArt.PRIVACY, null, ServiceStatus.DESIGN_ONLY, false),
-        ServiceDef("KEY_DERIVATION", "Key Derivation", "اشتقاق المفاتيح", "Derive keys with a documented KDF", "اشتق المفاتيح بدالة موثقة", ServiceArt.KEY, null, ServiceStatus.DESIGN_ONLY, false),
+        ServiceDef("KEY_DERIVATION", "Key Derivation", "اشتقاق المفاتيح", "Derive keys with Argon2id", "اشتق المفاتيح باستخدام Argon2id", ServiceArt.KEY, "key_derivation", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("SECURITY_ACTIVITY", "Security Activity", "نشاط الأمان", "Review local security events", "راجع أحداث الأمان المحلية", ServiceArt.PRIVACY, null, ServiceStatus.DESIGN_ONLY, false),
         ServiceDef("SECRET_CAPSULE", "Expiring Secret Capsule", "كبسولة سرية مؤقتة", "Seal a secret with an expiry label", "اختم سرًا مع تاريخ انتهاء", ServiceArt.KEY, null, ServiceStatus.DESIGN_ONLY, false),
         ServiceDef("SESSION_PRIVACY", "Session Privacy", "خصوصية الجلسة", "Control session lock behavior", "تحكّم في قفل الجلسة", ServiceArt.PRIVACY, null, ServiceStatus.DESIGN_ONLY, false),

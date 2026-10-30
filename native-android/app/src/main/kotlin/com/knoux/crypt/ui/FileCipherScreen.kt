@@ -338,8 +338,8 @@ fun FileCipherScreen(
                 )
                 Text(
                     tr(
-                        "Portable KNF1 container with PBKDF2-HMAC-SHA256 (310,000 iterations). Argon2id is not implemented yet.",
-                        "حاوية KNF1 محمولة مع PBKDF2-HMAC-SHA256 (310,000 تكرار). لم يتم تنفيذ Argon2id بعد.",
+                        "Portable KNF1 container with PBKDF2-HMAC-SHA256 (310,000 iterations). Argon2id is currently used for KNP2 text envelopes and the Key Derivation tool; file containers remain KNF1/PBKDF2.",
+                        "حاوية KNF1 محمولة مع PBKDF2-HMAC-SHA256 (310,000 تكرار). يُستخدم Argon2id حاليًا لحاويات النص KNP2 وأداة اشتقاق المفاتيح؛ تبقى حاويات الملفات على KNF1/PBKDF2.",
                     ),
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.padding(top = 4.dp),

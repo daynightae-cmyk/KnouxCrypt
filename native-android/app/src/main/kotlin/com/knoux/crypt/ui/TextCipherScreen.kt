@@ -67,8 +67,12 @@ fun TextCipherScreen(onBack: () -> Unit) {
         "Wrong passphrase or corrupted ciphertext. Nothing was decrypted.",
         "عبارة مرور خاطئة أو نص مشفر تالف. لم يتم فك أي شيء.",
     )
-    val messageInvalid = tr("The ciphertext is not a valid KNP1 envelope.", "النص المشفر ليس حاوية KNP1 صالحة.")
+    val messageInvalid = tr("The ciphertext is not a valid KNP envelope.", "النص المشفر ليس حاوية KNP صالحة.")
     val messageFailed = tr("The operation failed.", "فشلت العملية.")
+    val messageOom = tr(
+        "Not enough memory for Argon2id. Close other apps and retry; the ciphertext was not changed.",
+        "لا توجد ذاكرة كافية لـ Argon2id. أغلق التطبيقات الأخرى وأعد المحاولة؛ لم يتغير النص المشفر.",
+    )
 
     fun run() {
         if (busy) return
@@ -96,6 +100,8 @@ fun TextCipherScreen(onBack: () -> Unit) {
                     }
                 }
                 output = result
+            } catch (_: OutOfMemoryError) {
+                error = messageOom
             } catch (_: GeneralSecurityException) {
                 error = messageWrong
             } catch (_: IllegalArgumentException) {
@@ -188,8 +194,8 @@ fun TextCipherScreen(onBack: () -> Unit) {
         Spacer(Modifier.height(10.dp))
         Text(
             tr(
-                "KNP1: AES-256-GCM with PBKDF2-HMAC-SHA256 (310,000 iterations). PBKDF2 is not memory-hard; Argon2id remains mission 37 and is not implemented.",
-                "KNP1: AES-256-GCM مع PBKDF2-HMAC-SHA256 (310,000 تكرار). PBKDF2 ليس مقاومًا للذاكرة؛ Argon2id مهمة 37 وغير منفذ.",
+                "KNP2: AES-256-GCM with Argon2id (64 MiB, t=3, p=2 by default; Bouncy Castle, RFC 9106). Older KNP1/PBKDF2 envelopes remain readable. Not independently audited.",
+                "KNP2: AES-256-GCM مع Argon2id (64 ميبيبايت، t=3، p=2 افتراضيًا؛ Bouncy Castle، RFC 9106). تبقى حاويات KNP1/PBKDF2 الأقدم قابلة للقراءة. غير مدقق أمنيًا بشكل مستقل.",
             ),
             style = MaterialTheme.typography.labelSmall,
         )
