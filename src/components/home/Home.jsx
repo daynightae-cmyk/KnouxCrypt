@@ -53,7 +53,7 @@ export function Home({ tools = false }) {
     <div className="hub-shell">
       <Header onSearch={() => setDialog("search")} onSettings={() => setDialog("settings")}/>
       {!tools ? <section className="hub-hero" aria-labelledby="hub-status" aria-describedby="hub-demo-context">
-        <div className="hub-core-art"><img src={core} width="714" height="418" alt=""/><span className="hub-orbit" aria-hidden="true"/><svg className="hub-core-eyes" viewBox="0 0 714 418" aria-hidden="true"><path d="M284 214q24 4 43 21-21-3-32-10Z M430 214q-24 4-43 21 21-3 32-10Z"/></svg></div>
+        <div className="hub-core-art"><img src={core} width="714" height="418" alt=""/><span className="hub-orbit" aria-hidden="true"/><svg className="hub-core-eyes" viewBox="0 0 714 418" aria-hidden="true"><ellipse cx="306" cy="190" rx="13" ry="8"/><ellipse cx="408" cy="190" rx="13" ry="8"/></svg></div>
         <h1 id="hub-status">Your Vault is Protected</h1><p>End-to-End Encrypted</p><span id="hub-demo-context" className="hub-sr-only">Visual demo reference text only. No vault protection or encryption has been verified.</span>
       </section> : <div className="hub-tools-heading"><h1>Tools</h1><p>Choose a service to preview</p></div>}
       <ServiceGrid/>
