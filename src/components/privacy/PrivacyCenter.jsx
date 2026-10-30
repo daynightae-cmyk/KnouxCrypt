@@ -141,7 +141,7 @@ export function PrivacyCenter() {
             </button>
           </div>
         </section>
-        <Link className="privacy-back" to={SCREENS.SECURITY_ACTIVITY}>{t("Security Activity")}</Link><p className="privacy-state" role="status">
+        <Link className="privacy-back" to={SCREENS.SECURITY_ACTIVITY}>{t("Security Activity")}</Link><Link className="privacy-back" to={SCREENS.SESSION_PRIVACY}>{t("Session Privacy")}</Link><p className="privacy-state" role="status">
           {t(
             biometric
               ? "Biometric animation enabled for this preview only."
