@@ -57,3 +57,5 @@ html,body,#root { background: var(--crypt-obsidian); }
 @keyframes crypt-energy-wave {from{transform:rotate(-33deg) translateY(0);opacity:.4;}to{transform:rotate(-28deg) translateY(12px);opacity:.8;}}
 @keyframes crypt-star-twinkle {0%,100%{opacity:0;transform:translateY(5px) scale(.7);}45%{opacity:.48;transform:translateY(0) scale(1);}70%{opacity:.1;}}
 @media(prefers-reduced-motion:reduce){.app-atmosphere *{animation:none!important;will-change:auto;}.app-starfield i:nth-child(4n){opacity:.12;}.app-nebula{opacity:.2;}}
+
+.crypt-app-shell .crypt-entry { min-height:calc(100dvh - 28px); }

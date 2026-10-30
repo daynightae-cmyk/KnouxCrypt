@@ -72,3 +72,7 @@
 
 .hub-extra-tools { display: grid; gap: 12px; padding: 24px 0; }
 .hub-extra-tools a { padding: 12px; border: 1px solid #7241a2; border-radius: 12px; color: #dcc0ff; }
+
+.hub-service { transition:border-color 220ms ease,box-shadow 250ms ease; }
+.hub-service:focus-visible .hub-icon { filter:drop-shadow(0 0 6px #b376f066); }
+@media(prefers-reduced-motion:reduce){.hub-service{transition:none!important;}}
