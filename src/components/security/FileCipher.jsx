@@ -19,6 +19,7 @@ export function FileCipher() {
  const action=mode==='encrypt'?'Encrypt':'Decrypt';
  const rows=[['Algorithm','AES-256-GCM','Modern standard with authenticated encryption.','shield'],['Key Protection','Device-protected','Keys secured with your device’s security.','key'],['Destination',destination,`Select output location for ${mode==='encrypt'?'encrypted':'decrypted'} file.`,'folder'],['Integrity','Authenticated','Includes integrity check (SHA-256 + GCM tag).','shield']];
  return <ScreenFrame type="cipher-screen"><ScreenHeader title={t("FILE")} accent="CIPHER" caption="Encrypt and decrypt with authenticated protection."><IconButton icon="settings" label="File Cipher settings" onClick={()=>setSheet('Settings')}/></ScreenHeader>
+ <Link to={SCREENS.ARCHIVE}>{t("Encrypted Archive")}</Link>
  <section className="cipher-file" aria-label={t("Sample file in memory")}>
   {file ? <><button className="cipher-pdf" onClick={()=>setSheet('Sample file')} aria-label={t("Choose a demo file")}><span>{t("PDF")}</span></button><button className="cipher-file-name" dir="ltr" onClick={()=>setSheet('Sample file')}><strong>{t("archive.pdf")}</strong><span>{t("12.8 MB")}</span><span>{t("/Documents")}</span></button><button className="cipher-remove" aria-label={t("Remove sample from preview, not device")} onClick={()=>setFile(false)}>{t("×")}</button></> : <button className="cipher-pick-empty" onClick={()=>setSheet('Sample file')}><Mark name="file"/>{t("Choose demo file")}<small>{t("Sample removed from preview only")}</small></button>}
  </section>
