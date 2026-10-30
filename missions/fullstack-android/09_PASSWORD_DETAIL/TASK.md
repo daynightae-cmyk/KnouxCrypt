@@ -47,3 +47,9 @@ No plaintext deep link, screen state persistence, unrestricted accessibility exp
 - Report actual modified Kotlin/Gradle files, working route, dependency updates, tests run and their raw results, Git SHA/branch, screenshots/diffs, emulator/phone API level and runtime behavior.
 - A feature is COMPLETE only after the real UI, core service and persistence/OS/optional backend integration behave correctly with evidence. A React/Anima prototype, compiled Compose UI or passing build alone is NOT proof.
 - Integrate the completed module safely with previous feature routes, preserve existing approved layout and unique code; move to task 10 ONLY after documenting the actual state, or continue under explicit BLOCKED condition with no fake closure.
+
+<!-- PR15_VISUAL_BASELINE_V1 -->
+## Visual baseline checkpoint - PR #15 (2026-10-31)
+- Use merged main visual source 'de01b23f9a010cb3743bc117bb3b78c2bb5ee86c' and 'missions/fullstack-android/POST_PR15_VISUAL_BASELINE.md', together with this mission's SCREEN_QA.md (when present), before implementing native Compose UI.
+- Maintain the original business/security scope and task dependencies. Preserve all 46 tasks; do not equate React/Vercel screenshots with native functionality. PR #14 partial TASK 00 stays unmerged and IMPLEMENTED_UNVERIFIED until separately reconciled/tested.
+- All owner-accepted visual deviations are **implementation baseline only**, not pixel-perfect approval. Compare actual Android outputs with canonical per-screen references and record residual differences in EVIDENCE.md.

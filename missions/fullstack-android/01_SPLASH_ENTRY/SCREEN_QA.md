@@ -21,3 +21,11 @@ Required before implementing: read TASK.md, 00_VISUAL_QA_HANDOFF.md, actual merg
 - Source baseline SHA, implemented Android SHA, device model/API, screenshot paths for the reference and actual runtime, measured differences and approved exceptions.
 - Automated Compose preview/screenshot and instrumented navigation/gestures/accessibility tests, plus functional domain positive/negative results from TASK.md.
 - Record acceptance in EVIDENCE.md when actually performed. Until then keep state NOT_TESTED.
+
+<!-- PR15_VISUAL_BASELINE_V1 -->
+## PR #15 visual baseline overlay (2026-10-31)
+- Visual code baseline: main merge 'de01b23f9a010cb3743bc117bb3b78c2bb5ee86c' from PR #15 head 'f836a5c8e7c2e03a94f06fa8dc22a3cb5c702f55'.
+- Shared current acceptance, provenance and unresolved visual exceptions: 'missions/fullstack-android/POST_PR15_VISUAL_BASELINE.md'. This addendum supersedes any older source SHA or browser NOT_TESTED statement above; the original task's native/device verification remains untested until actually executed.
+- Splash: preserve original freestanding stag-K and independent bounded eye activation; compare illuminated eye contour and cinematic timing to the approved image/video.
+- Preserve cross-screen Tools inventory of 34 unique destinations, AR/EN search, categorized default and anchored navigation; compare the screen against its canonical PNG. Record any approved mismatch in this task's eventual EVIDENCE.md.
+- React browser checks do NOT make native Android/crypto tests pass; status remains PLANNED unless independently implemented and evidenced.

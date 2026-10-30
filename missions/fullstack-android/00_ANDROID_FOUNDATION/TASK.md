@@ -19,3 +19,9 @@ Create the production Android Kotlin/Jetpack Compose vertical foundation alongsi
 
 ## Acceptance
 Android debug build installs and launches on a tested Android device/emulator; route stack and lock state function; core AEAD tests pass independent vectors; no actual secrets in logs; screenshot parity assessed; CI and gradle outputs archived; app remains independent of Windows BitLocker/VeraCrypt assumptions. No PASS without evidence.
+
+<!-- PR15_VISUAL_BASELINE_V1 -->
+## Visual baseline checkpoint - PR #15 (2026-10-31)
+- Use merged main visual source 'de01b23f9a010cb3743bc117bb3b78c2bb5ee86c' and 'missions/fullstack-android/POST_PR15_VISUAL_BASELINE.md', together with this mission's SCREEN_QA.md (when present), before implementing native Compose UI.
+- Maintain the original business/security scope and task dependencies. Preserve all 46 tasks; do not equate React/Vercel screenshots with native functionality. PR #14 partial TASK 00 stays unmerged and IMPLEMENTED_UNVERIFIED until separately reconciled/tested.
+- All owner-accepted visual deviations are **implementation baseline only**, not pixel-perfect approval. Compare actual Android outputs with canonical per-screen references and record residual differences in EVIDENCE.md.

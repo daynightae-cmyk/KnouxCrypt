@@ -11,3 +11,9 @@ Status: PLANNED. This is the last gate, not a pre-approved release.
 7. Build signed AAB with authorized signing key only, verify Android target/permissions policies and pre-launch report, review CI and publish only with explicit owner authorization.
 8. Evidence-ledger per feature: sha, branch, PR, merged, deployed, installed, raw commands/results, screenshots and release track. Distinguish implemented, unverified, unmerged, unpushed, unreleased and blocked.
 9. Never announce 100%, COMPLETE, AUDITED, RELEASED or Google Play approval without evidence for each applicable gate.
+
+<!-- PR15_VISUAL_BASELINE_V1 -->
+## Visual baseline checkpoint - PR #15 (2026-10-31)
+- Use merged main visual source 'de01b23f9a010cb3743bc117bb3b78c2bb5ee86c' and 'missions/fullstack-android/POST_PR15_VISUAL_BASELINE.md', together with this mission's SCREEN_QA.md (when present), before implementing native Compose UI.
+- Maintain the original business/security scope and task dependencies. Preserve all 46 tasks; do not equate React/Vercel screenshots with native functionality. PR #14 partial TASK 00 stays unmerged and IMPLEMENTED_UNVERIFIED until separately reconciled/tested.
+- All owner-accepted visual deviations are **implementation baseline only**, not pixel-perfect approval. Compare actual Android outputs with canonical per-screen references and record residual differences in EVIDENCE.md.
