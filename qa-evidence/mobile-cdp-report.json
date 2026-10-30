@@ -1,0 +1,65 @@
+{
+  "host": "127.0.0.1:3839",
+  "deviceViewport": {
+    "width": 390,
+    "height": 844
+  },
+  "engine": "installed Chrome CDP",
+  "time": "2026-10-30T18:18:22.943Z",
+  "results": [
+    {
+      "screen": "01_SPLASH",
+      "route": "/",
+      "metrics": {
+        "width": 390,
+        "height": 844,
+        "clientWidth": 390,
+        "docScrollWidth": 390,
+        "bodyScrollWidth": 390,
+        "title": "Knoux Crypt — Knoux Crypt",
+        "h1": "Knoux Crypt",
+        "bodyTextLen": 562,
+        "hasMain": true,
+        "horizontalOverflow": false
+      },
+      "file": "D:\\KnouxCrypt-Android-Ready\\qa-evidence\\01_SPLASH_MOBILE_390x844.png",
+      "bytes": 175294
+    },
+    {
+      "screen": "02_AUTH",
+      "route": "/secure-access-login",
+      "metrics": {
+        "width": 390,
+        "height": 844,
+        "clientWidth": 390,
+        "docScrollWidth": 390,
+        "bodyScrollWidth": 390,
+        "title": "وصول آمن — Knoux Crypt",
+        "h1": "وصول آمن",
+        "bodyTextLen": 837,
+        "hasMain": true,
+        "horizontalOverflow": false
+      },
+      "file": "D:\\KnouxCrypt-Android-Ready\\qa-evidence\\02_AUTH_MOBILE_390x844.png",
+      "bytes": 212782
+    },
+    {
+      "screen": "03_HOME",
+      "route": "/home",
+      "metrics": {
+        "width": 390,
+        "height": 844,
+        "clientWidth": 390,
+        "docScrollWidth": 390,
+        "bodyScrollWidth": 390,
+        "title": "خزنتك محمية — Knoux Crypt",
+        "h1": "خزنتك محمية",
+        "bodyTextLen": 1046,
+        "hasMain": true,
+        "horizontalOverflow": false
+      },
+      "file": "D:\\KnouxCrypt-Android-Ready\\qa-evidence\\03_HOME_MOBILE_390x844.png",
+      "bytes": 271813
+    }
+  ]
+}

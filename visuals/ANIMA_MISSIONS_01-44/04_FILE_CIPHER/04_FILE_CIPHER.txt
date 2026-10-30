@@ -1,0 +1,123 @@
+ANIMA IMAGE-TO-APP | LINK SCREEN 04 (FILE_CIPHER) TO THE CURRENT KNOUX CRYPT APP SHELL FIRST.
+
+[UNIVERSAL_ANIMA_ENGINEERING_V2_START]
+MANDATORY APP-INTEGRATION + PIXEL-LOCK + MOTION RULES, FOR THIS SCREEN:
+1) SAME APP: Reuse existing Anima React project, AppShell, stag-K, routes, Back and all approved screens. No new app, clone or remote assets. Mandatory flow: SPLASH_ENTRY -> SECURE_ACCESS_LOGIN -> HOME; later screens join this registry.
+2) REFERENCE FIRST: The single attached image defines the actual live viewport, visual hierarchy, gradients, lettering, icons, glass surfaces, geometry, and spacing. Do NOT use the screenshot as one flat clickable bitmap; text and controls must be real accessible React components. Do not add a phone frame, stray sections or visible badges not present in the image. Illustrative artwork may use local layers. Preserve all prior finished screens.
+3) SHARED RESPONSIVE GEOMETRY: Match Splash's screen coordinate system, viewport proportions and horizontal gutters across all screens. Use min-height:100dvh, CSS Grid/Flex, a shared 8px spacing rhythm and safe-area insets; never force an arbitrary fixed-height artboard. For centered Splash/Auth-like compositions, optically center the WHOLE content group between top and bottom safe areas, balancing outer whitespace. For content-dense lists, align as shown in the reference and scroll naturally. On short screens or open keyboards allow scrolling instead of shrinking or clipping content.
+4) ZERO COLLISIONS: Keep stag-K aspect ratio and visible artwork unchanged; give logo, KNOUX CRYPT wordmark, subtitle, heading, fields, cards and navigation separate collision-free layout regions. No text-over-logo, transform-based fake alignment, negative-margin crowding, cut-off footer, or overlapping cards. Use real layout gap (about 24-40px between logo art and brand wordmark when appropriate), adjusted to visible image bounds; glow may extend over empty background only.
+5) CINEMATIC PURPLE MOTION: Keep the static reference accurate. Add sparse purple fire-like embers, tiny drifting sparks, energy arcs and soft depth BEHIND content. Follow this screen's DISTINCTIVE MOTION: Splash stag eye/antler ignition; Auth focus/biometric rings; Home orbit; File Cipher sealed-file rail; Vault shutter; Notes page-fold; Passwords reveal; 2FA timer; Key Forge keys; Privacy shield; Recovery rings. Other screens animate their own controls, not generic pulses. Few particles; pointer-events:none; transform/opacity effects; readable text; reduced-motion; sound OFF.
+6) REAL LOCAL INTERACTION: Every visible CTA, input, tab, filter, list item, icon button, toggle, close action and bottom-nav control responds through local React state; provide focus, pressed, selected, expanded or disabled feedback as relevant. A deferred secure operation opens a clear VISUAL DEMO sheet, never a fake completed security result. Do not implement real crypto, auth, OAuth, biometrics, OTP, filesystem, cloud, key storage or backend.
+7) QA: Compare rendered frame to reference. Test vertical balance, logo/text clearance, mobile width, keyboard, scroll, controls, Back and reduced motion. Fix defects; report only actually tested changes.
+[UNIVERSAL_ANIMA_ENGINEERING_V2_END]
+
+CURRENT SCREEN 04 - FILE CIPHER / ENCRYPT AND DECRYPT
+Screen route ID: FILE_CIPHER. Existing mission references: 04, 08, 29.
+
+REFERENCE ANCHORS: No handset bezel: FILE CIPHER header, selected archive.pdf file capsule, segmented ENCRYPT/DECRYPT, algorithm and key and destination and integrity rows, purple Encrypt File CTA, Ready to start and two help cards.
+
+SCREEN INTERACTIONS: Mode selector; file remove and demo-file-picker sheet; algorithm detail; output destination selection overlay; CTA shows demo preview only, never real encrypted output.
+
+DISTINCTIVE MOTION: Locked document glyph subtly closes like a vault lid; violet process rail only moves during labeled visual preview.
+
+ROUTING: HOME Encrypt Files targets FILE_CIPHER; Back returns HOME; related integrity and archive tools open from tool index.
+
+AES-256-GCM label is reference copy; no fake new algorithm picker options beyond local explanatory panels. Avoid simulating 100% output. Show Ready to start until actual backend arrives. Keep the selected sample file in memory only and distinguish demo-file removal from filesystem deletion. Real output destination cannot be written in front-end mock.
+
+# KNOUX CRYPT — VISUAL FIDELITY & CONTINUOUS DELIVERY DIRECTIVE
+
+Continue your current work on the EXISTING KNOUX CRYPT repository. Keep your current progress, completed implementations, and architectural decisions.
+
+I trust your engineering judgment. You have the freedom to choose the best libraries, components, implementation techniques, animations, layout strategies, refactoring approaches, and tools required to deliver an exceptional result.
+
+I do not want unnecessary restrictions, excessive planning, or repeated requests for approval on ordinary engineering decisions.
+
+**There is one overriding requirement: THE FINAL UI MUST MATCH MY APPROVED REFERENCE IMAGES AS CLOSELY TO 100% AS TECHNICALLY POSSIBLE.**
+
+## 1. THE REFERENCE IMAGES ARE THE DESIGN AUTHORITY
+
+Use each approved screenshot as the source of truth for its corresponding screen.
+
+Carefully reproduce:
+
+- Exact screen composition and visual hierarchy
+- Logo placement, proportions, and original appearance
+- Colors, gradients, lighting, transparency, and glow
+- Fonts, typography, spacing, and alignment
+- Cards, buttons, icons, borders, and shadows
+- Background artwork and atmospheric effects
+- Header, navigation, and screen proportions
+- All visible content and interface elements
+
+Do not replace the design with a generic dashboard or a simplified approximation.
+
+You may freely improve the underlying code, implementation quality, responsiveness, performance, and architecture, but do not alter the approved visual result without a clear reason.
+
+Preserve the original transparent KNOUX stag-K emblem. Do not recreate its shape, introduce unwanted frames or backgrounds, or replace it with another logo.
+
+## 2. START WITH THE EXISTING SPLASH
+
+The repository currently contains work based on the initial Splash design.
+
+Inspect what has already been implemented and refine it against the latest approved Splash reference.
+
+Preserve completed work.
+
+Then continue the intended flow:
+
+SPLASH → SECURE ACCESS → HOME → ALL CONNECTED SCREENS
+
+Reuse the existing application structure and route components wherever practical.
+
+As I provide additional approved reference images, implement their corresponding screens and connect them to the application.
+
+Never invent an approved screen reference that has not been supplied.
+
+## 3. CONSISTENT APP-WIDE DESIGN
+
+The entire application should feel like one premium product, not a collection of unrelated pages.
+
+Maintain consistent:
+
+- Dark obsidian and violet color identity
+- Mobile viewport geometry
+- Horizontal margins and safe areas
+- Header and logo treatment
+- Typography scale
+- Card and button styling
+- Navigation placement
+- Transition and lighting language
+
+Keep each screen's unique approved composition while reusing shared design tokens and components.
+
+Fix alignment issues, inconsistent background brightness, excessive whitespace, clipped content, overlapping text, and elements hidden behind navigation.
+
+## 4. PREMIUM CINEMATIC INTERACTIONS
+
+Use your creative and technical expertise to produce exceptional motion that complements the references.
+
+Examples include illuminated stag eyes, elegant purple energy, floating violet embers, luminous particles, subtle orbital animation, refined glass effects, and sophisticated transitions.
+
+Choose the appropriate effects for each screen rather than repeating the same animation everywhere.
+
+Motion should enhance the approved design, never distort it.
+
+Ensure controls respond naturally and that animations remain smooth, performant, and accessible.
+
+For interfaces that do not yet have a real security backend, clearly distinguish visual demo interactions from working encryption or authentication.
+
+## 5. MANDATORY SCREENSHOT AFTER EVERY COMPLETED TASK
+
+**THIS IS A NON-NEGOTIABLE DELIVERY REQUIREMENT.**
+
+After completing EACH task, produce and present a fresh screenshot captured from the ACTUAL RUNNING APPLICATION.
+
+The screenshot must reflect the implemented code, not an AI-generated illustration, original reference image, or design mockup.
+
+For visual screens:
+
+1. Open the implemented screen in the running application.
+2. Capture a real screenshot at the same viewport size or aspect ratio as its approved reference.
+3. Compare the implementation with the reference.
+4. Correct visible mismatches before marking the task complete.
+5. Attach or provide

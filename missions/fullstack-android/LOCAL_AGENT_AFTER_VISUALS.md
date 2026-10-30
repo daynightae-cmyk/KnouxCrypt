@@ -4,6 +4,16 @@ YOU ARE THE IMPLEMENTATION AGENT FOR AN ANDROID NATIVE APPLICATION.
 THIS IS EXECUTION, NOT A DESIGN DISCUSSION OR A PLANNING-ONLY REPORT.
 Read this entire mandate, then TASK 00 and each TASK 01..45.
 
+## CURRENT LOCAL READY WORKTREE — READ FIRST (2026-10-30)
+Use D:\KnouxCrypt-Android-Ready as the ONLY active execution root for this handoff, not the older planning checkout D:\KnouxCrypt.
+Read 00_READY_TO_START_LOCAL_ANDROID.md, 00_VISUAL_QA_HANDOFF.md, 00_NAVIGATION_BACK_QA_HANDOFF.md, and visuals/ANIMA_REFERENCE_MAP.csv before any code changes.
+This ready integration branch contains merged visual main at dc22d15 plus cherry-picked unique planning docs and 46 native mission specifications. It is local/unpushed. Forty-three local reference PNGs match the canonical GitHub references exactly; one local Home differs and is preserved as a legacy alternative. Use the freestanding approved Home from agent-handoff, never silently replace it.
+Every numbered mission folder now also includes SCREEN_QA.md. These are pending acceptance checks, NOT completed device screenshots or Android services.
+PR #4 feat/splash-entry is still open/unmerged at this snapshot; verify remotely before touching overlapping files. Vercel deployment is blocked; do not claim deployed.
+Local React tests/build must be evidenced by docs/LOCAL_SYNC_QA_RESULTS.md; when absent or incomplete mark NOT VERIFIED.
+Do not delete old ZIPs/staging/worktrees until exact candidates are verified, no unique data remains, and explicit owner approval is obtained. See docs/CLEANUP_PROTECTION_LEDGER.md.
+
+
 ## Work ownership and readiness
 The Vercel/Anima agent is currently editing screens and the GitHub repository. DO NOT run a competing edit on the same app files. Start the actual Android port only after the user says the visual agent has finished or there is clear evidence that its current branch/PR has been merged/reconciled. Do not assume a process is finished from one silent minute.
 
