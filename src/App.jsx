@@ -1,4 +1,10 @@
 import {
+  VaultCollections,
+  DocumentViewer,
+  VaultKeyRotation,
+  PackageInspector,
+} from "./components/vaulttools/VaultTools";
+import {
   ClipboardGuard,
   SecureRandom,
   HmacAuthenticity,
@@ -61,6 +67,10 @@ function App() {
           <BrowserRouter>
             <AppShell>
               <Routes>
+                <Route path={SCREENS.COLLECTIONS} element={<VaultCollections />} />
+                <Route path={SCREENS.DOCUMENT_VIEWER} element={<DocumentViewer />} />
+                <Route path={SCREENS.VAULT_KEY_ROTATION} element={<VaultKeyRotation />} />
+                <Route path={SCREENS.PACKAGE_INSPECTOR} element={<PackageInspector />} />
                 <Route path={SCREENS.SPLASH_ENTRY} element={<SplashEntry />} />
                 <Route
                   path={SCREENS.SECURE_ACCESS_LOGIN}
@@ -122,7 +132,11 @@ function App() {
                 <Route path={SCREENS.KEY_DETAILS} element={<KeyDetails />} />
                 {KEY_WORKFLOWS.filter(
                   (workflow) =>
-                    !["SECURE_SHARE", "SIGNATURE"].includes(workflow.id),
+                    ![
+                      "SECURE_SHARE",
+                      "SIGNATURE",
+                      "VAULT_KEY_ROTATION",
+                    ].includes(workflow.id),
                 ).map((workflow) => (
                   <Route
                     key={workflow.id}
@@ -154,8 +168,6 @@ function App() {
                   ["SECURE_CLIPBOARD", "Secure Clipboard"],
                   ["FILE_INTEGRITY", "File integrity"],
                   ["SIGNATURE_STUDIO", "Signature Studio"],
-                  ["COLLECTIONS", "Collections"],
-                  ["DOCUMENT_VIEWER", "Document viewer"],
                 ].map(([id, title]) => (
                   <Route
                     key={id}

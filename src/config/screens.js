@@ -15,6 +15,7 @@ export const SCREENS = Object.freeze({
   HMAC_AUTHENTICITY: "/tools/hmac",
   PUBLIC_KEY_QR: "/key-forge/public-qr",
   SECURE_CLIPBOARD: "/tools/secure-clipboard",
+  PACKAGE_INSPECTOR: "/tools/package-inspector",
   TEXT_CIPHER: "/tools/text-cipher",
   CERTIFICATE_INSPECTOR: "/tools/certificates",
   FILE_INTEGRITY: "/tools/file-integrity",
