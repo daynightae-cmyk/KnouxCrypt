@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { SCREENS, SERVICES } from "../../config/screens";
 import { StagEmblem } from "../entry/StagEmblem";
 import core from "../../assets/home-core.webp";
@@ -22,13 +22,6 @@ function Header({ onSearch, onSettings }) {
     <Link to={SCREENS.HOME} className="hub-brand" aria-label="Knoux Crypt Home"><StagEmblem/><span><span className="hub-wordmark">Knoux <em>Crypt</em></span><small>Private Encryption Suite</small></span></Link>
     <div className="hub-header-actions"><button type="button" aria-label="Search tools" onClick={onSearch}><Glyph name="search"/></button><button type="button" aria-label="Settings visual demo" onClick={onSettings}><Glyph name="settings"/></button></div>
   </header>;
-}
-function BottomNav() {
-  return <nav className="hub-nav" aria-label="Primary">
-    <NavLink to={SCREENS.HOME} end><span><Glyph name="home"/></span>Home</NavLink>
-    <NavLink to={SCREENS.TOOLS}><span><Glyph name="tools"/></span>Tools</NavLink>
-    <NavLink to={SCREENS.SECURE_ACCESS_LOGIN} state={{returnTo: SCREENS.HOME}}><span><Glyph name="account"/></span>Account</NavLink>
-  </nav>;
 }
 export function ServiceGrid({ filter = "" }) {
   const filtered = SERVICES.filter(s => `${s.title} ${s.description}`.toLowerCase().includes(filter.toLowerCase()));
@@ -58,7 +51,6 @@ export function Home({ tools = false }) {
       </section> : <div className="hub-tools-heading"><h1>Tools</h1><p>Choose a service to preview</p></div>}
       <ServiceGrid/>
       {tools && <div className="hub-extra-tools">{[['INTEGRITY','Integrity'],['ARCHIVE','Archive'],['COLLECTIONS','Collections'],['DOCUMENT_VIEWER','Document viewer']].map(([id,title])=><Link key={id} to={SCREENS[id]}>{title} preview</Link>)}</div>}
-      <BottomNav/>
     </div>
     {dialog && <HubDialog kind={dialog} onClose={() => setDialog(null)}/>}
   </main>;

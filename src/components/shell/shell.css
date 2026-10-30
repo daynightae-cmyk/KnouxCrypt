@@ -1,0 +1,42 @@
+:root {
+  --crypt-obsidian: #080411;
+  --crypt-violet: #ad72ee;
+  --crypt-ink: #f4edff;
+  --crypt-muted: #ad99c3;
+  --crypt-glass: #1a0d2b99;
+  --crypt-edge: #8050b180;
+  --crypt-gutter: 24px;
+  --crypt-content-width: 420px;
+  --crypt-shell-width: 480px;
+  --crypt-safe-top: max(24px, env(safe-area-inset-top));
+  --crypt-safe-bottom: max(16px, env(safe-area-inset-bottom));
+  --crypt-nav-height: 76px;
+  --crypt-font: "Segoe UI", Arial, sans-serif;
+}
+html,body,#root { background: var(--crypt-obsidian); }
+.crypt-app-shell { height:100dvh; position:relative; isolation:isolate; overflow:hidden; background:var(--crypt-obsidian); color:var(--crypt-ink); font-family:var(--crypt-font); }
+.app-scroll-region { height:100%; overflow-y:auto; overflow-x:hidden; overscroll-behavior-y:contain; position:relative; z-index:1; scrollbar-gutter:stable; }
+.app-has-navigation .app-scroll-region { padding-bottom:calc(var(--crypt-nav-height) + var(--crypt-safe-bottom) + 24px); }
+.app-atmosphere { position:absolute; inset:0; z-index:0; overflow:hidden; pointer-events:none; background:radial-gradient(ellipse at -15% 8%,#4d187b25,transparent 40%),radial-gradient(ellipse at 110% 90%,#54148225,transparent 40%); contain:strict; }
+.app-code-rain { position:absolute; inset:-50% 0; }
+.app-code-rain span { position:absolute; top:0; white-space:pre; line-height:1.8; font:11px/1.9 ui-monospace,monospace; color:#b777f5; opacity:.075; text-shadow:0 0 6px #9f45e8; animation:crypt-code-fall 35s linear infinite; user-select:none; }
+.app-code-rain span:nth-child(3n) { opacity:.045; font-size:9px; }
+.app-energy { position:absolute; width:90%; height:26%; border-radius:50%; border-bottom:1px solid #ab54ec25; box-shadow:0 12px 25px -20px #a344ee; transform:rotate(-33deg); }
+.app-energy-one { top:-12%;left:-24%; }.app-energy-two { bottom:2%;right:-42%; }
+.app-global-ember { position:absolute; left:9%; bottom:10%; width:2px; height:2px; border-radius:50%; background:#be83ff; box-shadow:0 0 6px #a05aff; animation:crypt-global-ember 13s ease-in-out infinite; opacity:0; }
+.app-global-ember:nth-of-type(4) {left:87%;bottom:24%;animation-delay:-5s;}.app-global-ember:nth-of-type(5) {left:62%;bottom:14%;animation-delay:-9s;}
+.app-bottom-nav { position:absolute; z-index:5; bottom:var(--crypt-safe-bottom); left:50%; transform:translateX(-50%); width:min(calc(100% - 32px),var(--crypt-shell-width)); min-height:var(--crypt-nav-height); display:grid; grid-template-columns:repeat(3,1fr); padding:4px; border:1px solid #9d59ec99; border-radius:999px; background:linear-gradient(135deg,#281044f0,#0d071cf5 60%,#271044f0); box-shadow:inset 0 1px 3px #ca9aff44,0 0 12px #7c26be33; backdrop-filter:blur(20px); }
+.app-bottom-nav a { display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;border-radius:999px;color:#ad9bca;text-decoration:none;font-size:13px;position:relative; }
+.app-bottom-nav a>span {display:grid;place-items:center;width:36px;height:32px;}.app-bottom-nav svg {width:24px;height:24px;}
+.app-bottom-nav a.active {color:#faf0ff;background:radial-gradient(ellipse at 50% 10%,#aa52ff55,transparent 80%),linear-gradient(135deg,#5b1ca955,#341b6233);}.app-bottom-nav a.active>span {border-radius:35%;background:#9d55ed66;box-shadow:0 0 10px #a763ff55,inset 0 1px 2px #edccff99;}.app-bottom-nav a.active::after {content:"";position:absolute;bottom:1px;width:9px;height:2px;border-radius:99px;background:#f0dcff;box-shadow:0 0 6px #c68bff;}
+.app-bottom-nav a:focus-visible {outline:2px solid #e2c6ff;outline-offset:2px;}
+/* Transparent screen surfaces expose one continuous atmosphere. Artwork stays local. */
+.crypt-app-shell .crypt-entry,.crypt-app-shell .crypt-hub,.crypt-app-shell .security-screen { background:transparent; color:var(--crypt-ink); font-family:var(--crypt-font); }
+.crypt-app-shell .crypt-atmosphere,.crypt-app-shell .security-atmosphere,.crypt-app-shell .hub-shell::before { display:none; }
+.crypt-app-shell .security-shell {width:min(100%,var(--crypt-content-width));}
+.crypt-app-shell .hub-shell {width:min(100%,var(--crypt-shell-width));}
+.crypt-app-shell .hub-service {border-color:var(--crypt-edge);}
+.crypt-app-shell .crypt-hub {min-height:100%;}
+@keyframes crypt-code-fall { from {transform:translateY(-10%);}to {transform:translateY(180%);} }
+@keyframes crypt-global-ember {0%,100%{opacity:0;transform:translate(0,0);}40%{opacity:.3;}85%{opacity:0;transform:translate(12px,-90px);}}
+@media(prefers-reduced-motion:reduce){.app-atmosphere *{animation:none!important;}.app-code-rain span{transform:translateY(35%);opacity:.035;}.app-global-ember{display:none;}}

@@ -6,11 +6,13 @@ import { SecureAccess } from "./components/entry/SecureAccess";
 import { Home, ServicePlaceholder } from "./components/home/Home";
 import { FileCipher } from "./components/security/FileCipher";
 import { ShadowVault } from "./components/security/ShadowVault";
+import { AppShell } from "./components/shell/AppShell";
 import { SCREENS, SERVICES } from "./config/screens";
 
 function App() {
   return (
     <BrowserRouter>
+      <AppShell>
       <Routes>
         <Route path={SCREENS.SPLASH_ENTRY} element={<SplashEntry />} />
         <Route path={SCREENS.SECURE_ACCESS_LOGIN} element={<SecureAccess />} />
@@ -22,6 +24,7 @@ function App() {
         {SERVICES.filter(service => !['ENCRYPT','VAULT'].includes(service.id)).map(service => <Route key={service.id} path={SCREENS[service.id]} element={<ServicePlaceholder service={service} />} />)}
         <Route path="*" element={<ModernApp />} />
       </Routes>
+      </AppShell>
     </BrowserRouter>
   );
 }
