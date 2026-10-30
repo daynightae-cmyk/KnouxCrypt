@@ -23,6 +23,7 @@ import {
   KeyWorkflowPreview,
 } from "./components/keys/KeyForge";
 import { PrivacyCenter } from "./components/privacy/PrivacyCenter";
+import { Recovery } from "./components/recovery/Recovery";
 import { SCREENS, SERVICES, KEY_WORKFLOWS } from "./config/screens";
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
                   element={<SecureAccess />}
                 />
                 <Route path={SCREENS.HOME} element={<Home />} />
+                <Route path={SCREENS.BACKUP} element={<Recovery />} />
                 <Route path={SCREENS.PRIVACY} element={<PrivacyCenter />} />
                 <Route path={SCREENS.KEY_FORGE} element={<KeyForge />} />
                 <Route path={SCREENS.KEY_DETAILS} element={<KeyDetails />} />
@@ -91,6 +93,7 @@ function App() {
                       "AUTHENTICATOR",
                       "KEY_FORGE",
                       "PRIVACY",
+                      "BACKUP",
                     ].includes(service.id),
                 ).map((service) => (
                   <Route

@@ -29,6 +29,7 @@ export function PrivacyCenter() {
         <Link
           className="privacy-recovery"
           to={SCREENS.BACKUP}
+          state={{ returnTo: SCREENS.PRIVACY }}
           aria-describedby="privacy-recovery-note"
         >
           <span className="privacy-recovery-art" aria-hidden="true">
@@ -188,7 +189,9 @@ export function PrivacyCenter() {
                   )}
                 </li>
               </ul>
-              <Link to={SCREENS.BACKUP}>{t("Recovery & Backup")}</Link>
+              <Link to={SCREENS.BACKUP} state={{ returnTo: SCREENS.PRIVACY }}>
+                {t("Recovery & Backup")}
+              </Link>
             </>
           ) : (
             <p>
