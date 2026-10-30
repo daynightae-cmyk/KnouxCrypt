@@ -41,6 +41,7 @@ import com.knoux.crypt.AppContainer
 import com.knoux.crypt.data.SecretKinds
 import com.knoux.crypt.data.SecretRecord
 import com.knoux.crypt.data.SecretsJson
+import com.knoux.crypt.data.VaultLockedException
 import com.knoux.crypt.data.TotpPayload
 import com.knoux.crypt.design.BackHeader
 import com.knoux.crypt.design.GlassCard
@@ -64,10 +65,24 @@ class AuthenticatorViewModel(application: Application, private val container: Ap
     val error: StateFlow<String?> = _error.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            container.session.unlocked.collect { unlocked ->
+                if (!unlocked) {
+                    // The session capability is gone; drop every decrypted payload
+                    // held by this ViewModel instead of leaving it on screen.
+                    _records.value = emptyList()
+                    _error.value = null
+                }
+            }
+        }
         val access = container.session.currentAccess()
         if (access != null) {
             viewModelScope.launch {
-                container.secrets.observe(access, SecretKinds.TOTP).collect { _records.value = it }
+                try {
+                    container.secrets.observe(access, SecretKinds.TOTP).collect { _records.value = it }
+                } catch (_: VaultLockedException) {
+                    _records.value = emptyList()
+                }
             }
         }
     }

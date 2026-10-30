@@ -18,7 +18,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -27,9 +26,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -56,7 +52,6 @@ fun AccessScreen(
     onUnlocked: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    var showReset by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { viewModel.refresh() }
     LaunchedEffect(state.unlocked) {
@@ -118,7 +113,9 @@ fun AccessScreen(
             LinearProgressIndicator(Modifier.fillMaxWidth(), color = KnouxColors.Violet)
             Spacer(Modifier.height(12.dp))
         }
-        if (state.configured) {
+        if (state.recoveryRequired) {
+            RecoveryNotice(state.recoveryCode)
+        } else if (state.configured) {
             KnouxPrimaryButton(
                 text = tr("Unlock with biometrics", "فتح بالبصمة"),
                 onClick = { onRequestUnlock(false) },
@@ -146,21 +143,6 @@ fun AccessScreen(
             onClick = onGuest,
             enabled = !state.busy,
         )
-        if (state.invalidated) {
-            Spacer(Modifier.height(12.dp))
-            Text(
-                tr(
-                    "The unlock key was invalidated, for example after a biometric enrollment change. Vault data is not deleted; reset the unlock gate and verify your records.",
-                    "تم إبطال مفتاح الفتح، مثلاً بعد تغيير بصمات الجهاز. لا تُحذف بيانات الخزنة؛ أعد إعداد بوابة الفتح وتحقق من سجلاتك.",
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = KnouxColors.Warn,
-                textAlign = TextAlign.Center,
-            )
-            TextButton(onClick = { showReset = true }) {
-                Text(tr("Reset secure unlock", "إعادة إعداد الفتح الآمن"), color = KnouxColors.Violet)
-            }
-        }
         Spacer(Modifier.height(14.dp))
         Text(
             tr(
@@ -186,27 +168,32 @@ fun AccessScreen(
         Spacer(Modifier.height(28.dp))
     }
 
-    if (showReset) {
-        AlertDialog(
-            onDismissRequest = { showReset = false },
-            title = { Text(tr("Reset secure unlock?", "إعادة إعداد الفتح الآمن؟")) },
-            text = {
-                Text(
-                    tr(
-                        "This deletes only the unlock key and its token. Stored vault records remain encrypted with the device data key.",
-                        "سيؤدي هذا إلى حذف مفتاح الفتح ورمزه فقط. تبقى سجلات الخزنة مشفرة بمفتاح بيانات الجهاز.",
-                    ),
+}
+
+@Composable
+private fun RecoveryNotice(code: String?) {
+    Spacer(Modifier.height(12.dp))
+    GlassCard(Modifier.fillMaxWidth()) {
+        Text(
+            tr("Recovery required", "الاستعادة مطلوبة"),
+            style = MaterialTheme.typography.titleMedium,
+            color = KnouxColors.Warn,
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            if (code == com.knoux.crypt.data.UnlockManager.RECOVERY_BIOMETRIC_INVALIDATED) {
+                tr(
+                    "The unlock key was invalidated by a device biometric change. Vault ciphertext and the data key were preserved, not deleted. Recovery is not implemented in this build, and a locked session cannot reset the gate or enroll a replacement.",
+                    "أُبطل مفتاح الفتح بسبب تغيير في بصمات الجهاز. تم الحفاظ على بيانات الخزنة المشفرة ومفتاح البيانات ولم تُحذف. الاستعادة غير منفذة في هذا البناء، ولا يمكن للجلسة المقفلة إعادة ضبط البوابة أو تسجيل بديل.",
+                )
+            } else {
+                tr(
+                    "A vault exists but no usable unlock gate was found. Vault data is intact. Recovery is not implemented in this build; a locked session cannot enroll a replacement gate and claim the existing vault.",
+                    "توجد خزنة لكن لم يتم العثور على بوابة فتح صالحة. بيانات الخزنة سليمة. الاستعادة غير منفذة في هذا البناء؛ لا يمكن للجلسة المقفلة تسجيل بوابة بديلة وامتلاك الخزنة الحالية.",
                 )
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    showReset = false
-                    viewModel.resetUnlock()
-                }) { Text(tr("Reset", "إعادة"), color = KnouxColors.Alert) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showReset = false }) { Text(tr("Cancel", "إلغاء")) }
-            },
+            style = MaterialTheme.typography.bodySmall,
+            color = KnouxColors.Warn,
         )
     }
 }

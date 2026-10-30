@@ -20,6 +20,7 @@ fun KnouxRoot(
     container: AppContainer,
     accessViewModel: AccessViewModel,
     onRequestUnlock: (Boolean) -> Unit,
+    onRequestGateRotation: () -> Unit,
 ) {
     val settings by container.settings.settings.collectAsStateWithLifecycle(initialValue = AppSettings())
     val unlocked by container.session.unlocked.collectAsStateWithLifecycle()
@@ -49,6 +50,7 @@ fun KnouxRoot(
                         container = container,
                         accessViewModel = accessViewModel,
                         onRequestUnlock = onRequestUnlock,
+                        onRequestGateRotation = onRequestGateRotation,
                     )
                 }
             }

@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -35,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.knoux.crypt.AccessViewModel
 import com.knoux.crypt.AppContainer
 import com.knoux.crypt.BuildConfig
 import com.knoux.crypt.design.GlassCard
@@ -49,13 +51,15 @@ import kotlinx.coroutines.launch
 @Composable
 fun AccountScreen(
     container: AppContainer,
+    accessViewModel: AccessViewModel,
     onTab: (KnouxTab) -> Unit,
     onPrivacy: () -> Unit,
-    onResetUnlock: () -> Unit,
+    onRotateUnlock: () -> Unit,
     onLock: () -> Unit,
 ) {
     val settings by container.settings.settings.collectAsStateWithLifecycle(initialValue = com.knoux.crypt.data.AppSettings())
     val unlocked by container.session.unlocked.collectAsStateWithLifecycle()
+    val accessState by accessViewModel.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     var showReset by remember { mutableStateOf(false) }
     var configured by remember { mutableStateOf<Boolean?>(null) }
@@ -151,10 +155,28 @@ fun AccountScreen(
                 )
                 InfoRow(tr("Biometric strength", "قوة البصمة"), tr("Strong only", "القوية فقط"))
                 InfoRow(tr("Data key binding", "ارتباط مفتاح البيانات"), tr("Session gate · not per-use", "بوابة جلسة · ليست لكل استخدام"))
-                if (unlocked) {
+                if (unlocked && configured == true) {
                     Spacer(Modifier.height(6.dp))
-                    TextButton(onClick = { showReset = true }) {
-                        Text(tr("Reset secure unlock gate", "إعادة إعداد بوابة الفتح"), color = KnouxColors.Warn, fontSize = 12.sp)
+                    TextButton(onClick = { showReset = true }, enabled = !accessState.busy) {
+                        Text(tr("Replace secure unlock gate", "استبدال بوابة الفتح"), color = KnouxColors.Warn, fontSize = 12.sp)
+                    }
+                    Text(
+                        tr(
+                            "Replacement is atomic: the current gate stays active until a new gate is verified with biometrics.",
+                            "الاستبدال ذري: تبقى البوابة الحالية فعالة حتى يتم التحقق من بوابة جديدة بالبصمة.",
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
+                if (accessState.busy) {
+                    Spacer(Modifier.height(8.dp))
+                    LinearProgressIndicator(Modifier.fillMaxWidth(), color = KnouxColors.VioletDeep)
+                }
+                accessState.message?.let { message ->
+                    Spacer(Modifier.height(8.dp))
+                    Text(message, color = KnouxColors.Alert, style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = accessViewModel::clearMessage) {
+                        Text(tr("Dismiss", "إغلاق"), color = KnouxColors.Violet, fontSize = 11.sp)
                     }
                 }
             }
@@ -185,20 +207,20 @@ fun AccountScreen(
     if (showReset) {
         AlertDialog(
             onDismissRequest = { showReset = false },
-            title = { Text(tr("Reset secure unlock gate?", "إعادة إعداد بوابة الفتح؟")) },
+            title = { Text(tr("Replace secure unlock gate?", "استبدال بوابة الفتح؟")) },
             text = {
                 Text(
                     tr(
-                        "Deletes only the unlock key and token. Encrypted vault records are kept. You will re-enroll biometric authorization.",
-                        "يحذف مفتاح الفتح ورمزه فقط. تبقى سجلات الخزنة المشفرة. ستعيد تسجيل تفويض البصمة.",
+                        "You will verify with biometrics. The new gate is written to an inactive slot and only replaces the current gate after verification succeeds. Encrypted vault records and the data key are not changed. If you cancel, the current gate remains usable.",
+                        "سيُطلب التحقق بالبصمة. تُكتب البوابة الجديدة في خانة غير فعالة ولا تستبدل البوابة الحالية إلا بعد نجاح التحقق. لا تتغير سجلات الخزنة المشفرة ولا مفتاح البيانات. إذا ألغيت، تبقى البوابة الحالية صالحة.",
                     ),
                 )
             },
             confirmButton = {
                 TextButton(onClick = {
                     showReset = false
-                    onResetUnlock()
-                }) { Text(tr("Reset", "إعادة"), color = KnouxColors.Alert) }
+                    onRotateUnlock()
+                }) { Text(tr("Verify & replace", "تحقق واستبدل"), color = KnouxColors.Alert) }
             },
             dismissButton = {
                 TextButton(onClick = { showReset = false }) { Text(tr("Cancel", "إلغاء")) }

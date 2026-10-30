@@ -21,7 +21,8 @@ data class AccessUiState(
     val busy: Boolean = false,
     val message: String? = null,
     val unlocked: Boolean = false,
-    val invalidated: Boolean = false,
+    val recoveryRequired: Boolean = false,
+    val recoveryCode: String? = null,
 )
 
 class AccessViewModel(
@@ -35,36 +36,61 @@ class AccessViewModel(
     fun refresh() {
         viewModelScope.launch {
             val configured = runCatching { unlockManager.isConfigured() }.getOrDefault(false)
+            val reason = runCatching { unlockManager.recoveryReason() }.getOrNull()
+            val existingVault = runCatching { unlockManager.hasExistingVault() }.getOrDefault(false)
             val biometric = BiometricManager.from(getApplication())
                 .canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) ==
                 BiometricManager.BIOMETRIC_SUCCESS
+            val recovery = reason != null || (!configured && existingVault)
             _state.update {
                 it.copy(
                     checked = true,
                     configured = configured,
                     strongBiometric = biometric,
                     unlocked = session.isUnlocked,
+                    recoveryRequired = recovery,
+                    recoveryCode = reason
+                        ?: if (!configured && existingVault) UnlockManager.RECOVERY_GATE_MISSING else null,
                 )
             }
         }
     }
 
     fun setBusy(busy: Boolean) = _state.update { it.copy(busy = busy) }
-    fun onUnlocked() = _state.update { it.copy(busy = false, unlocked = true, configured = true, message = null, invalidated = false) }
-    fun onError(message: String) = _state.update { it.copy(busy = false, message = message) }
-    fun onInvalidated() = _state.update {
-        it.copy(busy = false, invalidated = true, message = "Secure unlock was invalidated by a biometric change.")
+
+    fun onUnlocked() = _state.update {
+        it.copy(
+            busy = false,
+            unlocked = true,
+            configured = true,
+            message = null,
+            recoveryRequired = false,
+            recoveryCode = null,
+        )
     }
+
+    fun onGateRotated() = _state.update {
+        it.copy(
+            busy = false,
+            message = "Secure unlock gate replaced after biometric verification. The vault key and records were not changed.",
+            recoveryRequired = false,
+            recoveryCode = null,
+        )
+    }
+
+    fun onError(message: String) = _state.update { it.copy(busy = false, message = message) }
+
+    fun onRecoveryRequired(code: String) = _state.update {
+        it.copy(
+            busy = false,
+            recoveryRequired = true,
+            recoveryCode = code,
+            message = null,
+        )
+    }
+
     fun consumeUnlocked() = _state.update { it.copy(unlocked = false) }
     fun clearMessage() = _state.update { it.copy(message = null) }
-
-    fun resetUnlock() {
-        viewModelScope.launch {
-            unlockManager.reset()
-            _state.update { it.copy(invalidated = false, message = null) }
-            refresh()
-        }
-    }
 }
 
 fun <VM : ViewModel> viewModelFactory(create: () -> VM): ViewModelProvider.Factory =

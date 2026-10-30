@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.knoux.crypt.AppContainer
+import com.knoux.crypt.data.VaultLockedException
 import com.knoux.crypt.viewModelFactory
 import com.knoux.crypt.design.BackHeader
 import com.knoux.crypt.design.GlassCard
@@ -198,6 +199,7 @@ class FileCipherViewModel(application: Application, private val container: AppCo
             } catch (failure: Exception) {
                 runCatching { resolver.delete(outputUri, null, null) }
                 val message = when {
+                    failure is VaultLockedException -> "The vault locked during the operation. No output was kept."
                     failure is GeneralSecurityException -> "Authentication failed: wrong key/passphrase or a corrupted container."
                     failure is IOException -> failure.message ?: "File operation failed."
                     else -> failure.message ?: "Operation failed."

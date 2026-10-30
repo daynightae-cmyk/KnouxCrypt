@@ -39,6 +39,7 @@ import com.knoux.crypt.data.NotePayload
 import com.knoux.crypt.data.SecretKinds
 import com.knoux.crypt.data.SecretRecord
 import com.knoux.crypt.data.SecretsJson
+import com.knoux.crypt.data.VaultLockedException
 import com.knoux.crypt.design.BackHeader
 import com.knoux.crypt.design.GlassCard
 import com.knoux.crypt.design.KnouxColors
@@ -62,10 +63,24 @@ class NotesViewModel(application: Application, private val container: AppContain
     val error: StateFlow<String?> = _error.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            container.session.unlocked.collect { unlocked ->
+                if (!unlocked) {
+                    // The session capability is gone; drop every decrypted payload
+                    // held by this ViewModel instead of leaving it on screen.
+                    _notes.value = emptyList()
+                    _error.value = null
+                }
+            }
+        }
         val access = container.session.currentAccess()
         if (access != null) {
             viewModelScope.launch {
-                container.secrets.observe(access, SecretKinds.NOTE).collect { _notes.value = it }
+                try {
+                    container.secrets.observe(access, SecretKinds.NOTE).collect { _notes.value = it }
+                } catch (_: VaultLockedException) {
+                    _notes.value = emptyList()
+                }
             }
         }
     }

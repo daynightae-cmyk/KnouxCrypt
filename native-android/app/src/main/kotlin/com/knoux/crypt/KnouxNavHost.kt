@@ -30,6 +30,7 @@ fun KnouxNavHost(
     container: AppContainer,
     accessViewModel: AccessViewModel,
     onRequestUnlock: (Boolean) -> Unit,
+    onRequestGateRotation: () -> Unit,
 ) {
     fun openTab(tab: KnouxTab) {
         val route = when (tab) {
@@ -100,9 +101,10 @@ fun KnouxNavHost(
         composable("account") {
             AccountScreen(
                 container = container,
+                accessViewModel = accessViewModel,
                 onTab = ::openTab,
                 onPrivacy = { nav.navigate("privacy") },
-                onResetUnlock = accessViewModel::resetUnlock,
+                onRotateUnlock = onRequestGateRotation,
                 onLock = { container.session.lock() },
             )
         }
