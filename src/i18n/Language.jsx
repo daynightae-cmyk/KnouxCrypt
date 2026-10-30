@@ -4,6 +4,7 @@ import "./language.css";
 export function translate(value, locale) {
   if (typeof value !== 'string' || locale !== 'ar') return value;
   const trimmed = value.trim();
+  if (trimmed === 'demo / preview' || trimmed.startsWith('/') || trimmed.startsWith('archive.pdf') || trimmed === 'AES-256-GCM') return value;
   if (Object.hasOwn(ar, trimmed)) return value.replace(trimmed, ar[trimmed]);
   const t = text => translate(text, locale);
   if (/^(GitHub|Passkey|Fingerprint|Sign In) preview$/.test(trimmed)) return `معاينة ${t(trimmed.slice(0,-8))}`;

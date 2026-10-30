@@ -95,7 +95,7 @@ export function SecureAccess() {
             <label className={`access-field ${errors.password ? "access-invalid" : ""}`}><Icon name="lock"/><span className="access-sr-only">{t("Password (fictional demo only)")}</span><input ref={passwordInput} value={password} onChange={e => { setPassword(e.target.value); setErrors({}); }} type={reveal ? "text" : "password"} dir="ltr" placeholder={t("Password")} autoComplete="off" aria-invalid={!!errors.password} aria-describedby={errors.password ? "password-error" : "access-demo-hint"}/><button type="button" className="access-reveal" onClick={() => setReveal(!reveal)} aria-label={t(reveal ? "Hide password" : "Show password")} aria-pressed={reveal}><Icon name={reveal ? "eye" : "hidden"}/></button></label>
             {errors.password && <p className="access-error" id="password-error" role="alert">{t(errors.password)}</p>}
           </div>
-          <p id="access-demo-hint" className="access-sample">{t("Offline preview · Use ")}<strong>{t("demo / preview")}</strong>{t(" only")}</p>
+          <p id="access-demo-hint" className="access-sample">{t("Offline preview · Use ")}<strong><bdi dir="ltr">demo / preview</bdi></strong>{t(" only")}</p>
           <button type="submit" className="access-submit">{t("Sign In ")}<Icon name="arrow"/></button>
         </form>
         <div className="access-divider"><span>{t("OR CONTINUE WITH")}</span></div>
