@@ -22,6 +22,7 @@ import {
   KeyDetails,
   KeyWorkflowPreview,
 } from "./components/keys/KeyForge";
+import { PrivacyCenter } from "./components/privacy/PrivacyCenter";
 import { SCREENS, SERVICES, KEY_WORKFLOWS } from "./config/screens";
 
 function App() {
@@ -38,6 +39,7 @@ function App() {
                   element={<SecureAccess />}
                 />
                 <Route path={SCREENS.HOME} element={<Home />} />
+                <Route path={SCREENS.PRIVACY} element={<PrivacyCenter />} />
                 <Route path={SCREENS.KEY_FORGE} element={<KeyForge />} />
                 <Route path={SCREENS.KEY_DETAILS} element={<KeyDetails />} />
                 {KEY_WORKFLOWS.map((workflow) => (
@@ -88,6 +90,7 @@ function App() {
                       "PASSWORDS",
                       "AUTHENTICATOR",
                       "KEY_FORGE",
+                      "PRIVACY",
                     ].includes(service.id),
                 ).map((service) => (
                   <Route

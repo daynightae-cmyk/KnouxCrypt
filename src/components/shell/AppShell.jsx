@@ -46,7 +46,7 @@ export function AppShell({ children }) {
   const [guestPreview,setGuestPreview] = useState(false);
   useLayoutEffect(() => { if (state?.guestPreview === true) setGuestPreview(true); },[state]);
   const scroll = useRef(null);
-  const primary = pathname===SCREENS.HOME || pathname===SCREENS.TOOLS || pathname===SCREENS.NOTES || pathname===SCREENS.KEY_FORGE;
+  const primary = pathname===SCREENS.HOME || pathname===SCREENS.TOOLS || pathname===SCREENS.NOTES || pathname===SCREENS.KEY_FORGE || pathname===SCREENS.PRIVACY;
   useLayoutEffect(() => { scroll.current?.scrollTo?.(0,0); },[pathname]);
   return <div data-scene={pathname===SCREENS.SPLASH_ENTRY?"splash":pathname===SCREENS.SECURE_ACCESS_LOGIN?"auth":"content"} className={`crypt-app-shell ${primary?'app-has-navigation':''}`}>
     <CipherAtmosphere/>
