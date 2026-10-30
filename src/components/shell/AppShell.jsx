@@ -32,7 +32,7 @@ export function AppShell({ children }) {
   useLayoutEffect(() => { scroll.current?.scrollTo?.(0,0); },[pathname]);
   return <div className={`crypt-app-shell ${primary?'app-has-navigation':''}`}>
     <CipherAtmosphere/>
-    <div ref={scroll} className="app-scroll-region" id="app-content">{children}</div>
+    <div ref={scroll} className="app-scroll-region" id="app-content" tabIndex={0} role="region" aria-label="Page content">{children}</div>
     {primary && <AppBottomNav/>}
   </div>;
 }
