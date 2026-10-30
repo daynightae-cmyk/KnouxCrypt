@@ -1,0 +1,409 @@
+.authenticator-screen {
+  min-height: 100%;
+  padding: max(28px, env(safe-area-inset-top))
+    max(24px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom))
+    max(24px, env(safe-area-inset-left));
+  font-family: var(--crypt-font);
+  color: var(--crypt-ink);
+}
+.authenticator-shell {
+  width: min(100%, var(--crypt-content-width));
+  margin-inline: auto;
+  container-type: inline-size;
+}
+.authenticator-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.authenticator-header > a {
+  width: 26%;
+  display: block;
+  flex-shrink: 0;
+}
+.authenticator-header h1 {
+  font-size: 6.6cqw;
+  line-height: 1.5;
+  font-weight: 500;
+}
+.authenticator-header p {
+  color: #aa88c0;
+  font-size: 2.9cqw;
+  line-height: 1.7;
+  margin-top: 5px;
+}
+.auth-demo-banner {
+  text-align: center;
+  font-size: 10px;
+  color: #b68fd1;
+  margin: 12px 0 18px;
+  line-height: 1.8;
+}
+.auth-account-list {
+  display: grid;
+  gap: 14px;
+}
+.auth-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 18px 12px;
+  border: 1px solid #9256c4;
+  border-radius: 17px;
+  background:
+    radial-gradient(ellipse at 0 100%, #64229344, transparent 70%),
+    linear-gradient(135deg, #27103988, #0e071b);
+  box-shadow: inset 0 1px 3px #bf81ee22;
+}
+.auth-account-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 44px;
+  flex-shrink: 0;
+  border: 1px solid #7341ad88;
+  border-radius: 12px;
+  background: #3c165e77;
+  color: #c594eb;
+}
+.auth-account-icon svg {
+  width: 23px;
+  height: 23px;
+}
+.auth-account-copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+.auth-account-copy strong {
+  font-size: 4.2cqw;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.auth-account-copy small {
+  font-size: 2.4cqw;
+  color: #a386b7;
+  overflow-wrap: anywhere;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+.auth-masked-code {
+  font-size: 6.3cqw;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+  color: #dfbbff;
+}
+.auth-demo-ring {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+.auth-demo-ring svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: #412455;
+  stroke-width: 2;
+  transform: rotate(-90deg);
+}
+.auth-demo-ring .auth-demo-ring-active {
+  stroke: #b86dff;
+  transition: stroke-dashoffset 900ms linear;
+  stroke-linecap: round;
+}
+.auth-demo-ring small {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #c697eb;
+  font-size: 11px;
+}
+.auth-account-actions {
+  display: grid;
+  gap: 8px;
+}
+.auth-account-actions button {
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: #bb8bdc;
+  width: 24px;
+  height: 26px;
+  cursor: pointer;
+}
+.auth-account-actions button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.auth-account-actions svg {
+  width: 17px;
+  height: 17px;
+}
+.auth-scan {
+  margin-top: 24px;
+}
+.auth-scan-icon {
+  font-size: 26px;
+  line-height: 1;
+}
+.auth-secondary-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.auth-secondary-actions > button,
+.auth-secondary-actions > a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 6px;
+  color: #dab6f1;
+  border: 1px solid #7642a8;
+  border-radius: 12px;
+  background: #26103d77;
+  text-decoration: none;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.auth-secondary-actions svg {
+  width: 20px;
+  height: 20px;
+}
+.auth-demo-caption {
+  font-size: 10px;
+  color: #a888bd;
+  line-height: 1.8;
+  text-align: center;
+  margin: 14px 0;
+}
+.auth-manual-label {
+  display: grid;
+  gap: 8px;
+  color: #ceb0e3;
+  margin-top: 16px;
+  font-size: 12px;
+}
+.auth-manual-label input {
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #8251ab;
+  border-radius: 10px;
+  background: #11061d;
+  color: #ead6f9;
+  font: inherit;
+  font-size: 14px;
+}
+.auth-scan-corners {
+  display: grid;
+  place-items: center;
+  width: 140px;
+  height: 140px;
+  margin: 20px auto;
+  border: 1px dashed #ae67e3;
+  border-radius: 16px;
+  color: #ac6cdd;
+  animation: auth-scan-breathe 4s ease-in-out infinite;
+}
+.auth-scan-corners svg {
+  width: 48px;
+  height: 48px;
+}
+.auth-parent-back {
+  display: inline-block;
+  color: #bd91d9;
+  padding: 6px 0;
+  text-decoration: none;
+  font-size: 12px;
+}
+.auth-import-sources {
+  display: grid;
+  gap: 10px;
+}
+.auth-import-sources button {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 5px 12px;
+  padding: 16px;
+  border: 1px solid #6c3a94;
+  border-radius: 14px;
+  text-align: start;
+  background: #1b0b2b99;
+  color: #cfade8;
+  font: inherit;
+  cursor: pointer;
+}
+.auth-import-sources svg {
+  width: 27px;
+  height: 27px;
+  grid-row: span 2;
+  align-self: center;
+}
+.auth-import-sources strong {
+  font-weight: 400;
+  font-size: 14px;
+}
+.auth-import-sources small {
+  font-size: 11px;
+  color: #9d7bb2;
+  line-height: 1.7;
+}
+.auth-import-sources button[aria-pressed="true"] {
+  border-color: #bf80f2;
+  background: linear-gradient(110deg, #5d1a9677, #1d0a32);
+  box-shadow: inset 0 0 16px #8139b433;
+}
+.auth-import-rail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 22px 0;
+  color: #8e6aa8;
+  font-size: 11px;
+}
+.auth-import-rail .active {
+  color: #dbb0ff;
+  text-shadow: 0 0 8px #a63eef55;
+}
+.auth-import-rail i {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, #8536c4, #382045);
+}
+.auth-backup-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #a983c3;
+  font-size: 10px;
+  line-height: 1.8;
+  margin: 14px 0;
+}
+.auth-backup-hint svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+.auth-import-file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #75439c;
+  border-radius: 14px;
+  background: #23103288;
+  color: #d6b6e9;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.auth-import-file > svg {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+}
+.auth-import-file > svg:last-child {
+  width: 17px;
+  margin-inline-start: auto;
+}
+.auth-import-file span {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.auth-import-file small {
+  display: block;
+  font-size: 10px;
+  color: #ab86bf;
+  margin-top: 4px;
+}
+.auth-import-accounts {
+  padding: 18px 14px;
+  margin: 18px 0;
+  border: 1px solid #8148b1;
+  border-radius: 16px;
+  background: #180b2988;
+}
+.auth-import-accounts h2 {
+  font-size: 16px;
+  font-weight: 400;
+  margin-bottom: 12px;
+}
+.auth-import-accounts label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+}
+.auth-import-accounts label + label {
+  border-top: 1px solid #4f2d6d77;
+}
+.auth-import-accounts label > span:nth-child(2) {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.auth-import-accounts strong {
+  font-size: 13px;
+  font-weight: 400;
+}
+.auth-import-accounts small {
+  font-size: 10px;
+  color: #a183b5;
+  direction: ltr;
+}
+.auth-import-accounts input {
+  margin-inline-start: auto;
+  accent-color: #ab5cdf;
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+}
+.auth-import-screen .security-primary {
+  font-size: 13px;
+}
+.auth-import-screen .security-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.auth-skip {
+  display: block;
+  text-align: center;
+  color: #bb93d3;
+  padding: 10px;
+  font-size: 12px;
+}
+.authenticator-screen :focus-visible {
+  outline: 2px solid #ddb4ff;
+  outline-offset: 3px;
+}
+html[dir="rtl"] .auth-secondary-actions svg:last-child,
+html[dir="rtl"] .auth-import-file > svg:last-child {
+  transform: scaleX(-1);
+}
+@keyframes auth-scan-breathe {
+  0%,
+  100% {
+    box-shadow: inset 0 0 12px #68229511;
+  }
+  50% {
+    box-shadow: inset 0 0 20px #8d3bcf33;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .authenticator-screen *,
+  .authenticator-screen *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
