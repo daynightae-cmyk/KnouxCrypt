@@ -8,18 +8,18 @@
 .access-back svg { width: 20px; height: 20px; }
 .access-hero { text-align: center; }
 .access-valley { display: block; width: 100%; height: auto; mask-image: linear-gradient(to bottom, transparent, black 6%, black 90%, transparent); }
-.access-brand { font-size: 6.2cqw; font-weight: 400; line-height: 1.15; margin-top: 4px; letter-spacing: .01em; }
+.access-brand { font-size: 6.8cqw; font-weight: 400; line-height: 1.15; margin-top: 4px; letter-spacing: .01em; }
 .access-brand span, .access-heading h1 span { color: #b18be9; }
 .access-caption { color: #a299b2; font-size: 2.1cqw; letter-spacing: .28em; margin-top: 8px; }
 .access-content { width: 84%; margin-inline: auto; padding-inline: max(0px, env(safe-area-inset-left)); }
-.access-heading { text-align: center; margin: 32px 0 18px; }
+.access-heading { text-align: center; margin: 26px 0 18px; }
 .access-heading h1 { font-size: 7.1cqw; font-weight: 400; line-height: 1.2; white-space: nowrap; letter-spacing: .005em; }
 .access-heading p { color: #a199ae; font-size: 2.4cqw; letter-spacing: .2em; margin-top: 8px; }
 .access-form { display: grid; gap: 8px; }
 .access-field-group { min-width: 0; }
 .access-field { display: flex; align-items: center; gap: 16px; min-height: 12.5cqw; padding: 0 18px; border: 1px solid #69439d99; border-radius: 13px; background: radial-gradient(ellipse at 100% 0, #50228d44, transparent 60%), linear-gradient(115deg, #19102985, #100d1bea); box-shadow: inset 0 0 14px #8d41ff17, 0 0 14px #5a10b220; position: relative; }
 .access-field > svg { color: #a398b8; width: 20px; height: 20px; flex-shrink: 0; }
-.access-field input { width: 100%; min-width: 0; color: #e6dcf5; background: transparent; border: 0; outline: 0; font: inherit; font-size: max(16px, 2.95cqw); letter-spacing: .02em; padding-block: 14px; scroll-margin-block: 48px; }
+.access-field input { width: 100%; min-width: 0; color: #e6dcf5; background: transparent; border: 0; outline: 0; font: inherit; font-size: max(12px, 2.95cqw); letter-spacing: .02em; padding-block: 14px; scroll-margin-block: 48px; }
 .access-field input::placeholder { color: #a399b4; opacity: 1; }
 .access-field:focus-within { border-color: #b083ee; box-shadow: inset 0 -1px 0 #dcbdff, 0 0 18px #8b38ff30; }
 .access-field:focus-within::after { content: ""; position: absolute; bottom: -1px; left: 15%; width: 70%; height: 1px; background: #d8bcff; box-shadow: 0 0 9px #a356ff; animation: access-horizon 400ms ease-out; }
@@ -29,7 +29,8 @@
 .access-submit svg { width: 20px; height: 20px; }
 .access-submit:hover { filter: brightness(1.12); }
 .access-submit:active, .access-method:active { filter: brightness(.85); }
-.access-sample { font-size: 10px; color: #a59ab9; text-align: center; line-height: 1.5; }
+.access-sample { display: none; font-size: 10px; color: #a59ab9; text-align: center; line-height: 1.5; }
+.access-form:focus-within .access-sample { display: block; }
 .access-sample strong { font-weight: 400; color: #c7afe4; }
 .access-divider { display: flex; gap: 14px; align-items: center; margin: 20px 0 14px; color: #a398b5; font-size: 1.85cqw; letter-spacing: .24em; white-space: nowrap; }
 .access-divider::before, .access-divider::after { content: ""; height: 1px; background: #65517880; flex: 1; }
