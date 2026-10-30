@@ -1,0 +1,6 @@
+PASS asserted browser interactions; visual acceptance still requires comparison [
+  'Archived db55af9 regression baseline reproduced: 27 tools.',
+  'All 34 Tools destinations clicked in AR and EN (68 link navigations); all viewport query/empty/footer assertions passed.',
+  '44 routes opened in each locale; real screenshots, horizontal document checks (88 pages). Not pixel acceptance of all pages.',
+  'Rain moves down, same host across navigation, eye opacity changes with independent delays, image/SVG bounds coincide, reduced-motion disables rain.'
+]

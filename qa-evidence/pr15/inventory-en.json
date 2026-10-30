@@ -1,0 +1,138 @@
+[
+  {
+    "title": "Encrypt Files\nVISUAL DEMO",
+    "href": "/file-cipher"
+  },
+  {
+    "title": "Vault\nVISUAL DEMO",
+    "href": "/vault"
+  },
+  {
+    "title": "Secure Notes\nVISUAL DEMO",
+    "href": "/notes"
+  },
+  {
+    "title": "Passwords\nVISUAL DEMO",
+    "href": "/passwords"
+  },
+  {
+    "title": "Key Forge\nVISUAL DEMO",
+    "href": "/key-forge"
+  },
+  {
+    "title": "Authenticator\nVISUAL DEMO",
+    "href": "/authenticator"
+  },
+  {
+    "title": "Privacy Center\nVISUAL DEMO",
+    "href": "/privacy"
+  },
+  {
+    "title": "Recovery\nVISUAL DEMO",
+    "href": "/backup"
+  },
+  {
+    "title": "Signature Verification\nVISUAL DEMO",
+    "href": "/key-forge/signature"
+  },
+  {
+    "title": "Secure Share\nVISUAL DEMO",
+    "href": "/tools/secure-share"
+  },
+  {
+    "title": "Hash & Integrity\nVISUAL DEMO",
+    "href": "/tools/integrity"
+  },
+  {
+    "title": "Text Cipher\nVISUAL DEMO",
+    "href": "/tools/text-cipher"
+  },
+  {
+    "title": "Certificate Inspector\nVISUAL DEMO",
+    "href": "/tools/certificates"
+  },
+  {
+    "title": "Archive\nVISUAL DEMO",
+    "href": "/tools/archive"
+  },
+  {
+    "title": "Local Transfer\nVISUAL DEMO",
+    "href": "/tools/secure-share/local-transfer"
+  },
+  {
+    "title": "Fingerprint Verify\nVISUAL DEMO",
+    "href": "/key-forge/fingerprint"
+  },
+  {
+    "title": "Metadata Cleaner\nVISUAL DEMO",
+    "href": "/tools/metadata-cleaner"
+  },
+  {
+    "title": "Clipboard Guard\nVISUAL DEMO",
+    "href": "/tools/clipboard-guard"
+  },
+  {
+    "title": "Secure Random Studio\nVISUAL DEMO",
+    "href": "/tools/random"
+  },
+  {
+    "title": "HMAC Authenticity Lab\nVISUAL DEMO",
+    "href": "/tools/hmac"
+  },
+  {
+    "title": "Public Key QR\nVISUAL DEMO",
+    "href": "/key-forge/public-qr"
+  },
+  {
+    "title": "Collections\nVISUAL DEMO",
+    "href": "/vault/collections"
+  },
+  {
+    "title": "Document viewer\nVISUAL DEMO",
+    "href": "/vault/documents"
+  },
+  {
+    "title": "Package Inspector\nVISUAL DEMO",
+    "href": "/tools/package-inspector"
+  },
+  {
+    "title": "Autofill\nVISUAL DEMO",
+    "href": "/passwords/autofill"
+  },
+  {
+    "title": "Offline Security Advisor\nVISUAL DEMO",
+    "href": "/tools/security-advisor"
+  },
+  {
+    "title": "Key Derivation\nVISUAL DEMO",
+    "href": "/key-forge/derivation"
+  },
+  {
+    "title": "Security Activity\nVISUAL DEMO",
+    "href": "/privacy/activity"
+  },
+  {
+    "title": "Expiring Secret Capsule\nVISUAL DEMO",
+    "href": "/tools/secure-share/capsule"
+  },
+  {
+    "title": "Session Privacy\nVISUAL DEMO",
+    "href": "/privacy/session"
+  },
+  {
+    "title": "File integrity\nVISUAL DEMO",
+    "href": "/tools/file-integrity"
+  },
+  {
+    "title": "Secure Clipboard\nVISUAL DEMO",
+    "href": "/tools/secure-clipboard"
+  },
+  {
+    "title": "Device Pairing\nVISUAL DEMO",
+    "href": "/tools/secure-share/pairing"
+  },
+  {
+    "title": "Password audit\nVISUAL DEMO",
+    "href": "/passwords/audit"
+  }
+]

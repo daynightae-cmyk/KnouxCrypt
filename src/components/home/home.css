@@ -95,3 +95,71 @@
 @keyframes hub-haze-breathe {0%,100%{opacity:.65;}50%{opacity:1;}}
 @keyframes hub-energy-drift {from{transform:rotate(-12deg);opacity:.55;}to{transform:rotate(-7deg);opacity:.85;}}
 @media(prefers-reduced-motion:reduce){.hub-hero-haze,.hub-hero-energy{animation:none!important;}}
+
+/* Visual correction: scalable hero and bounded, searchable Tools content. */
+.hub-final-stag {width:min(58cqw,220px);}
+.hub-stag-hero {padding-block:8px;}
+.hub-service-copy {min-width:0;overflow-wrap:anywhere;}
+.hub-service-copy>span {white-space:normal;line-height:1.5;}
+.hub-tools-heading {padding:20px 0 12px;}
+.hub-tools-search {display:grid;gap:8px;color:#c5a4db;font-size:12px;margin:12px 0;}
+.hub-tools-search input {width:100%;min-width:0;padding:12px;border:1px solid #8051ac;border-radius:12px;background:#13091f;color:#e5cef6;font:inherit;font-size:16px;}
+.hub-extra-tools {grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px 0 24px;}
+.hub-extra-tools a {min-width:0;min-height:64px;display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:12px;line-height:1.7;overflow-wrap:anywhere;background:linear-gradient(130deg,#2d123b77,#11091d);text-decoration:none;}
+@media(min-width:900px){.crypt-hub[data-screen="TOOLS"] .hub-shell{width:min(100%,720px);}.hub-extra-tools{grid-template-columns:repeat(3,minmax(0,1fr));}}
+@media(max-width:360px){.hub-extra-tools{gap:8px;}.hub-extra-tools a{padding:10px;font-size:11px;}}
+
+.hub-results-count {font-size:12px;color:var(--crypt-muted);margin-block:8px;}
+.hub-extra-tools a {flex-direction:column;align-items:flex-start;justify-content:center;}
+.hub-extra-tools a small {font-size:9px;color:var(--crypt-muted);letter-spacing:.04em;}
+.hub-no-results {padding:24px 12px;line-height:1.7;color:var(--crypt-muted);}
+/* Reference correction: reserve space for all four service rows, not just the hero. */
+.crypt-hub[data-screen="HOME"] {padding-top:10px;}
+.hub-stag-hero {height:clamp(150px,23dvh,190px);padding:0;}
+.hub-final-stag {width:auto;height:100%;max-width:100%;}
+.hub-final-stag img {height:100%;object-fit:contain;}
+.hub-hero-brand {font-size:clamp(22px,6.5cqw,30px);line-height:1.15;margin:0;}
+.hub-brand-divider {height:5px;margin-top:2px;}
+.hub-hero-caption {font-size:max(10px,2.6cqw);line-height:1.4;margin-top:2px;}
+.hub-sealed-horizon {margin:6px auto 9px;}
+.hub-hero h1 {font-size:max(17px,4.4cqw);line-height:1.3;}
+.hub-hero>p {font-size:max(10px,2.7cqw);line-height:1.4;margin-top:4px;}
+.hub-hero {padding-bottom:10px;}
+.hub-service {min-height:68px;padding:7px 7px 7px 5px;box-shadow:inset 0 1px 2px #e8bdff55,inset 0 -12px 20px #1e073f66,0 0 12px #7518bd24;}
+.hub-icon img {height:12cqw;min-height:40px;}
+.hub-service-copy>span {font-size:max(12px,3cqw);line-height:1.35;}
+.hub-service-copy small {font-size:max(10px,2.3cqw);line-height:1.35;letter-spacing:0;}
+.hub-hero-haze {inset:-8% 0 -8%;background:radial-gradient(ellipse,#9d20fa55,transparent 69%);filter:blur(12px);}
+.hub-energy-ribbons {position:absolute;inset:-8% -12%;width:124%;height:116%;overflow:visible;pointer-events:none;z-index:0;transform:rotate(-8deg);animation:hub-ribbon-sway 12s ease-in-out infinite alternate;}
+.hub-energy-ribbons path {stroke:url(#hub-ribbon);stroke-width:5;filter:blur(5px);}
+.hub-energy-ribbons .hub-ribbon-core {stroke-width:1.5;filter:drop-shadow(0 0 5px #bd44ff);}
+.hub-energy-ribbons .hub-ribbon-thread {stroke-width:.6;filter:none;opacity:.6;}
+.hub-hero-sparks {position:absolute;inset:-4% -8%;pointer-events:none;}
+.hub-hero-sparks i {position:absolute;width:2px;height:4px;border-radius:50%;background:#e6b1ff;box-shadow:0 0 6px 1px #9d30ff;animation:hub-spark-drift 6s ease-in-out infinite;}
+.hub-tool-categories {position:sticky;top:58px;z-index:2;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:#0c0619f5;backdrop-filter:blur(12px);padding:10px 0;}
+.hub-tool-categories button {min-height:40px;border:1px solid #75439a;border-radius:10px;padding:5px;color:#cbb2df;background:#21112f;font:inherit;font-size:11px;line-height:1.5;}
+.hub-tool-categories button[aria-pressed=true] {background:linear-gradient(140deg,#7726c4,#3a1264);border-color:#c58aff;color:#fff;box-shadow:inset 0 1px 2px #f1c6ff55;}
+.crypt-hub[data-screen="TOOLS"] .hub-header {position:sticky;top:0;z-index:3;background:#0b0619f5;backdrop-filter:blur(12px);padding-block:6px;}
+@keyframes hub-ribbon-sway {from{transform:rotate(-8deg) translateY(-2px);opacity:.7;}to{transform:rotate(-3deg) translateY(3px);opacity:1;}}
+@keyframes hub-spark-drift {0%,100%{opacity:0;transform:translateY(5px) scale(.7);}40%{opacity:.8;}75%{opacity:.15;transform:translateY(-12px) scale(1);}}
+@media(prefers-reduced-motion:reduce){.hub-energy-ribbons,.hub-hero-sparks i{animation:none!important;}.hub-hero-sparks i{opacity:.25;}}
+.hub-stag-hero {height:clamp(140px,21dvh,176px);}
+.crypt-hub[data-screen="TOOLS"] {padding-top:10px;}
+.crypt-hub[data-screen="TOOLS"] .hub-tools-heading {padding:12px 0 4px;}
+.crypt-hub[data-screen="TOOLS"] .hub-tools-heading h1 {font-size:24px;line-height:1.3;}
+.crypt-hub[data-screen="TOOLS"] .hub-tools-heading p {font-size:12px;line-height:1.5;margin-top:4px;}
+.crypt-hub[data-screen="TOOLS"] .hub-tools-search {margin:8px 0;gap:5px;}
+.crypt-hub[data-screen="TOOLS"] .hub-extra-tools a {min-height:56px;padding:9px 10px;}
+@media(min-height:740px){.hub-stag-hero {height:clamp(140px,calc(21dvh - 8px),168px);}}
+.crypt-hub[data-screen="TOOLS"] .hub-wordmark {font-size:22px;}
+.crypt-hub[data-screen="TOOLS"] .hub-brand small {font-size:10px;}
+.crypt-hub[data-screen="TOOLS"] .hub-header-actions button {width:44px;height:44px;}
+.crypt-hub[data-screen="TOOLS"] .hub-header-actions svg {width:22px;height:22px;}
+.hub-tool-categories {top:60px;}
+/* Explicit dimensions avoid grid's automatic aspect-ratio sizing on cold CSS loads. */
+.hub-stag-hero {--hub-hero-size:clamp(140px,21dvh,176px);height:var(--hub-hero-size);overflow:hidden;}
+.hub-stag-hero > .hub-final-stag {width:var(--hub-hero-size);height:var(--hub-hero-size);min-width:0;max-width:100%;}
+.hub-stag-hero > .hub-final-stag > img {width:100%;height:100%;}
+.hub-energy-ribbons {inset:0;width:100%;height:100%;}
+.hub-hero-sparks {inset:0;}
+@media(min-height:740px){.hub-stag-hero {--hub-hero-size:clamp(140px,calc(21dvh - 8px),168px);}}

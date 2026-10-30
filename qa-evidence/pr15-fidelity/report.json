@@ -1,0 +1,760 @@
+{
+  "browser": "156.0.8078.4",
+  "checks": [
+    "Archived db55af9 regression baseline reproduced: 27 tools.",
+    "All 34 Tools destinations clicked in AR and EN (68 link navigations); all viewport query/empty/footer assertions passed.",
+    "44 routes opened in each locale; real screenshots, horizontal document checks (88 pages). Not pixel acceptance of all pages.",
+    "Rain moves down, same host across navigation, eye opacity changes with independent delays, image/SVG bounds coincide, reduced-motion disables rain."
+  ],
+  "screens": [
+    {
+      "route": "/tools",
+      "locale": "en",
+      "w": 360,
+      "h": 800,
+      "width": 360,
+      "docWidth": 360,
+      "mainWidth": 345,
+      "mainClient": 345,
+      "scroll": 1647,
+      "client": 772
+    },
+    {
+      "route": "/",
+      "locale": "en",
+      "w": 360,
+      "h": 800,
+      "width": 360,
+      "docWidth": 360,
+      "mainWidth": 345,
+      "mainClient": 345,
+      "scroll": 772,
+      "client": 772
+    },
+    {
+      "route": "/secure-access-login",
+      "locale": "en",
+      "w": 360,
+      "h": 800,
+      "width": 360,
+      "docWidth": 360,
+      "mainWidth": 345,
+      "mainClient": 345,
+      "scroll": 772,
+      "client": 772
+    },
+    {
+      "route": "/home",
+      "locale": "en",
+      "w": 360,
+      "h": 800,
+      "width": 360,
+      "docWidth": 360,
+      "mainWidth": 345,
+      "mainClient": 345,
+      "scroll": 836,
+      "client": 772,
+      "logo": {
+        "x": 107.5,
+        "y": 76.015625,
+        "width": 160,
+        "height": 160,
+        "top": 76.015625,
+        "right": 267.5,
+        "bottom": 236.015625,
+        "left": 107.5
+      }
+    },
+    {
+      "route": "/tools",
+      "locale": "ar",
+      "w": 360,
+      "h": 800,
+      "width": 360,
+      "docWidth": 360,
+      "mainWidth": 345,
+      "mainClient": 345,
+      "scroll": 1652,
+      "client": 772
+    },
+    {
+      "route": "/",
+      "locale": "ar",
+      "w": 360,
+      "h": 800,
+      "width": 360,
+      "docWidth": 360,
+      "mainWidth": 345,
+      "mainClient": 345,
+      "scroll": 772,
+      "client": 772
+    },
+    {
+      "route": "/secure-access-login",
+      "locale": "ar",
+      "w": 360,
+      "h": 800,
+      "width": 360,
+      "docWidth": 360,
+      "mainWidth": 345,
+      "mainClient": 345,
+      "scroll": 772,
+      "client": 772
+    },
+    {
+      "route": "/home",
+      "locale": "ar",
+      "w": 360,
+      "h": 800,
+      "width": 360,
+      "docWidth": 360,
+      "mainWidth": 345,
+      "mainClient": 345,
+      "scroll": 772,
+      "client": 772,
+      "logo": {
+        "x": 107.5,
+        "y": 77.34375,
+        "width": 160,
+        "height": 160,
+        "top": 77.34375,
+        "right": 267.5,
+        "bottom": 237.34375,
+        "left": 107.5
+      }
+    },
+    {
+      "route": "/tools",
+      "locale": "en",
+      "w": 390,
+      "h": 844,
+      "width": 390,
+      "docWidth": 390,
+      "mainWidth": 375,
+      "mainClient": 375,
+      "scroll": 1708,
+      "client": 816
+    },
+    {
+      "route": "/",
+      "locale": "en",
+      "w": 390,
+      "h": 844,
+      "width": 390,
+      "docWidth": 390,
+      "mainWidth": 375,
+      "mainClient": 375,
+      "scroll": 816,
+      "client": 816
+    },
+    {
+      "route": "/secure-access-login",
+      "locale": "en",
+      "w": 390,
+      "h": 844,
+      "width": 390,
+      "docWidth": 390,
+      "mainWidth": 375,
+      "mainClient": 375,
+      "scroll": 816,
+      "client": 816
+    },
+    {
+      "route": "/home",
+      "locale": "en",
+      "w": 390,
+      "h": 844,
+      "width": 390,
+      "docWidth": 390,
+      "mainWidth": 375,
+      "mainClient": 375,
+      "scroll": 816,
+      "client": 816,
+      "logo": {
+        "x": 118.5,
+        "y": 77.96875,
+        "width": 168,
+        "height": 168,
+        "top": 77.96875,
+        "right": 286.5,
+        "bottom": 245.96875,
+        "left": 118.5
+      }
+    },
+    {
+      "route": "/tools",
+      "locale": "ar",
+      "w": 390,
+      "h": 844,
+      "width": 390,
+      "docWidth": 390,
+      "mainWidth": 375,
+      "mainClient": 375,
+      "scroll": 1708,
+      "client": 816
+    },
+    {
+      "route": "/",
+      "locale": "ar",
+      "w": 390,
+      "h": 844,
+      "width": 390,
+      "docWidth": 390,
+      "mainWidth": 375,
+      "mainClient": 375,
+      "scroll": 816,
+      "client": 816
+    },
+    {
+      "route": "/secure-access-login",
+      "locale": "ar",
+      "w": 390,
+      "h": 844,
+      "width": 390,
+      "docWidth": 390,
+      "mainWidth": 375,
+      "mainClient": 375,
+      "scroll": 816,
+      "client": 816
+    },
+    {
+      "route": "/home",
+      "locale": "ar",
+      "w": 390,
+      "h": 844,
+      "width": 390,
+      "docWidth": 390,
+      "mainWidth": 375,
+      "mainClient": 375,
+      "scroll": 816,
+      "client": 816,
+      "logo": {
+        "x": 118.5,
+        "y": 78.28125,
+        "width": 168,
+        "height": 168,
+        "top": 78.28125,
+        "right": 286.5,
+        "bottom": 246.28125,
+        "left": 118.5
+      }
+    },
+    {
+      "route": "/tools",
+      "locale": "en",
+      "w": 412,
+      "h": 915,
+      "width": 412,
+      "docWidth": 412,
+      "mainWidth": 397,
+      "mainClient": 397,
+      "scroll": 1708,
+      "client": 887
+    },
+    {
+      "route": "/",
+      "locale": "en",
+      "w": 412,
+      "h": 915,
+      "width": 412,
+      "docWidth": 412,
+      "mainWidth": 397,
+      "mainClient": 397,
+      "scroll": 887,
+      "client": 887
+    },
+    {
+      "route": "/secure-access-login",
+      "locale": "en",
+      "w": 412,
+      "h": 915,
+      "width": 412,
+      "docWidth": 412,
+      "mainWidth": 397,
+      "mainClient": 397,
+      "scroll": 887,
+      "client": 887
+    },
+    {
+      "route": "/home",
+      "locale": "en",
+      "w": 412,
+      "h": 915,
+      "width": 412,
+      "docWidth": 412,
+      "mainWidth": 397,
+      "mainClient": 397,
+      "scroll": 887,
+      "client": 887,
+      "logo": {
+        "x": 129.5,
+        "y": 80.375,
+        "width": 168,
+        "height": 168,
+        "top": 80.375,
+        "right": 297.5,
+        "bottom": 248.375,
+        "left": 129.5
+      }
+    },
+    {
+      "route": "/tools",
+      "locale": "ar",
+      "w": 412,
+      "h": 915,
+      "width": 412,
+      "docWidth": 412,
+      "mainWidth": 397,
+      "mainClient": 397,
+      "scroll": 1708,
+      "client": 887
+    },
+    {
+      "route": "/",
+      "locale": "ar",
+      "w": 412,
+      "h": 915,
+      "width": 412,
+      "docWidth": 412,
+      "mainWidth": 397,
+      "mainClient": 397,
+      "scroll": 887,
+      "client": 887
+    },
+    {
+      "route": "/secure-access-login",
+      "locale": "ar",
+      "w": 412,
+      "h": 915,
+      "width": 412,
+      "docWidth": 412,
+      "mainWidth": 397,
+      "mainClient": 397,
+      "scroll": 887,
+      "client": 887
+    },
+    {
+      "route": "/home",
+      "locale": "ar",
+      "w": 412,
+      "h": 915,
+      "width": 412,
+      "docWidth": 412,
+      "mainWidth": 397,
+      "mainClient": 397,
+      "scroll": 887,
+      "client": 887,
+      "logo": {
+        "x": 129.5,
+        "y": 80.375,
+        "width": 168,
+        "height": 168,
+        "top": 80.375,
+        "right": 297.5,
+        "bottom": 248.375,
+        "left": 129.5
+      }
+    },
+    {
+      "route": "/tools",
+      "locale": "en",
+      "w": 768,
+      "h": 1024,
+      "width": 768,
+      "docWidth": 768,
+      "mainWidth": 753,
+      "mainClient": 753,
+      "scroll": 1708,
+      "client": 996
+    },
+    {
+      "route": "/",
+      "locale": "en",
+      "w": 768,
+      "h": 1024,
+      "width": 768,
+      "docWidth": 768,
+      "mainWidth": 753,
+      "mainClient": 753,
+      "scroll": 1011,
+      "client": 996
+    },
+    {
+      "route": "/secure-access-login",
+      "locale": "en",
+      "w": 768,
+      "h": 1024,
+      "width": 768,
+      "docWidth": 768,
+      "mainWidth": 753,
+      "mainClient": 753,
+      "scroll": 996,
+      "client": 996
+    },
+    {
+      "route": "/home",
+      "locale": "en",
+      "w": 768,
+      "h": 1024,
+      "width": 768,
+      "docWidth": 768,
+      "mainWidth": 753,
+      "mainClient": 753,
+      "scroll": 996,
+      "client": 996,
+      "logo": {
+        "x": 307.5,
+        "y": 94.796875,
+        "width": 168,
+        "height": 168,
+        "top": 94.796875,
+        "right": 475.5,
+        "bottom": 262.796875,
+        "left": 307.5
+      }
+    },
+    {
+      "route": "/tools",
+      "locale": "ar",
+      "w": 768,
+      "h": 1024,
+      "width": 768,
+      "docWidth": 768,
+      "mainWidth": 753,
+      "mainClient": 753,
+      "scroll": 1708,
+      "client": 996
+    },
+    {
+      "route": "/",
+      "locale": "ar",
+      "w": 768,
+      "h": 1024,
+      "width": 768,
+      "docWidth": 768,
+      "mainWidth": 753,
+      "mainClient": 753,
+      "scroll": 1011,
+      "client": 996
+    },
+    {
+      "route": "/secure-access-login",
+      "locale": "ar",
+      "w": 768,
+      "h": 1024,
+      "width": 768,
+      "docWidth": 768,
+      "mainWidth": 753,
+      "mainClient": 753,
+      "scroll": 996,
+      "client": 996
+    },
+    {
+      "route": "/home",
+      "locale": "ar",
+      "w": 768,
+      "h": 1024,
+      "width": 768,
+      "docWidth": 768,
+      "mainWidth": 753,
+      "mainClient": 753,
+      "scroll": 996,
+      "client": 996,
+      "logo": {
+        "x": 307.5,
+        "y": 94.796875,
+        "width": 168,
+        "height": 168,
+        "top": 94.796875,
+        "right": 475.5,
+        "bottom": 262.796875,
+        "left": 307.5
+      }
+    },
+    {
+      "route": "/tools",
+      "locale": "en",
+      "w": 1440,
+      "h": 900,
+      "width": 1440,
+      "docWidth": 1440,
+      "mainWidth": 1425,
+      "mainClient": 1425,
+      "scroll": 1359,
+      "client": 872
+    },
+    {
+      "route": "/",
+      "locale": "en",
+      "w": 1440,
+      "h": 900,
+      "width": 1440,
+      "docWidth": 1440,
+      "mainWidth": 1425,
+      "mainClient": 1425,
+      "scroll": 872,
+      "client": 872
+    },
+    {
+      "route": "/secure-access-login",
+      "locale": "en",
+      "w": 1440,
+      "h": 900,
+      "width": 1440,
+      "docWidth": 1440,
+      "mainWidth": 1425,
+      "mainClient": 1425,
+      "scroll": 872,
+      "client": 872
+    },
+    {
+      "route": "/home",
+      "locale": "en",
+      "w": 1440,
+      "h": 900,
+      "width": 1440,
+      "docWidth": 1440,
+      "mainWidth": 1425,
+      "mainClient": 1425,
+      "scroll": 872,
+      "client": 872,
+      "logo": {
+        "x": 643.5,
+        "y": 94.796875,
+        "width": 168,
+        "height": 168,
+        "top": 94.796875,
+        "right": 811.5,
+        "bottom": 262.796875,
+        "left": 643.5
+      }
+    },
+    {
+      "route": "/tools",
+      "locale": "ar",
+      "w": 1440,
+      "h": 900,
+      "width": 1440,
+      "docWidth": 1440,
+      "mainWidth": 1425,
+      "mainClient": 1425,
+      "scroll": 1359,
+      "client": 872
+    },
+    {
+      "route": "/",
+      "locale": "ar",
+      "w": 1440,
+      "h": 900,
+      "width": 1440,
+      "docWidth": 1440,
+      "mainWidth": 1425,
+      "mainClient": 1425,
+      "scroll": 872,
+      "client": 872
+    },
+    {
+      "route": "/secure-access-login",
+      "locale": "ar",
+      "w": 1440,
+      "h": 900,
+      "width": 1440,
+      "docWidth": 1440,
+      "mainWidth": 1425,
+      "mainClient": 1425,
+      "scroll": 872,
+      "client": 872
+    },
+    {
+      "route": "/home",
+      "locale": "ar",
+      "w": 1440,
+      "h": 900,
+      "width": 1440,
+      "docWidth": 1440,
+      "mainWidth": 1425,
+      "mainClient": 1425,
+      "scroll": 890,
+      "client": 872,
+      "logo": {
+        "x": 643.5,
+        "y": 94.796875,
+        "width": 168,
+        "height": 168,
+        "top": 94.796875,
+        "right": 811.5,
+        "bottom": 262.796875,
+        "left": 643.5
+      }
+    }
+  ],
+  "warnings": [],
+  "errors": [],
+  "motion": {
+    "rainFrames": [
+      [
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 167.855)",
+          "y": -84.14474487304688,
+          "opacity": "0.11"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 289.173)",
+          "y": -109.82708740234375,
+          "opacity": "0.16"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 397.031)",
+          "y": -148.96945190429688,
+          "opacity": "0.16"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 645.655)",
+          "y": 267.65484619140625,
+          "opacity": "0.11"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 729.083)",
+          "y": 204.082763671875,
+          "opacity": "0.16"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 643.057)",
+          "y": 286.0565185546875,
+          "opacity": "0.16"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 1154.78)",
+          "y": 650.7841796875,
+          "opacity": "0.075681"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 946.04)",
+          "y": 610.0404663085938,
+          "opacity": "0.152272"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 1013.18)",
+          "y": 530.1820068359375,
+          "opacity": "0.16"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 121.324)",
+          "y": -193.6763458251953,
+          "opacity": "0.092118"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 3.8736)",
+          "y": -458.12640380859375,
+          "opacity": "0.00379649"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 646.532)",
+          "y": 352.53204345703125,
+          "opacity": "0.16"
+        }
+      ],
+      [
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 214.738)",
+          "y": -37.26155090332031,
+          "opacity": "0.11"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 331.71)",
+          "y": -67.28997802734375,
+          "opacity": "0.16"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 436.67)",
+          "y": -109.32977294921875,
+          "opacity": "0.16"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 694.443)",
+          "y": 316.4429931640625,
+          "opacity": "0.11"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 773.399)",
+          "y": 248.39935302734375,
+          "opacity": "0.16"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 675.75)",
+          "y": 318.74951171875,
+          "opacity": "0.16"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 1205.24)",
+          "y": 701.2391357421875,
+          "opacity": "0.0559182"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 982.28)",
+          "y": 646.2799682617188,
+          "opacity": "0.128686"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 1047.73)",
+          "y": 564.734375,
+          "opacity": "0.16"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 162.153)",
+          "y": -152.84730529785156,
+          "opacity": "0.11"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 42.0262)",
+          "y": -419.97381591796875,
+          "opacity": "0.0411895"
+        },
+        {
+          "transform": "matrix(1, 0, 0, 1, 0, 693.533)",
+          "y": 399.53326416015625,
+          "opacity": "0.16"
+        }
+      ]
+    ],
+    "persistentAcrossNavigation": true,
+    "eyes": {
+      "image": {
+        "x": 50.40625,
+        "y": 170.40625,
+        "width": 304.1875,
+        "height": 304.1875,
+        "top": 170.40625,
+        "right": 354.59375,
+        "bottom": 474.59375,
+        "left": 50.40625
+      },
+      "overlay": {
+        "x": 50.40625,
+        "y": 170.40625,
+        "width": 304.1875,
+        "height": 304.1875,
+        "top": 170.40625,
+        "right": 354.59375,
+        "bottom": 474.59375,
+        "left": 50.40625
+      },
+      "paths": [
+        {
+          "d": "M303 596 Q378 611 438 680 Q385 658 341 635Z",
+          "delay": "0s, 2.8s"
+        },
+        {
+          "d": "M951 596 Q876 611 816 680 Q869 658 913 635Z",
+          "delay": "0.22s, 3.02s"
+        }
+      ],
+      "opacityFrames": [
+        "0.04",
+        "0.813676"
+      ],
+      "note": "overlay bounds and timing verified, exact contour-to-art alignment requires image review"
+    }
+  },
+  "status": "PASS asserted browser interactions; visual acceptance still requires comparison"
+}

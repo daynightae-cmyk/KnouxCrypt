@@ -1,4 +1,4 @@
-import { useLanguage } from "../../i18n/Language";
+import { useLanguage, translate } from "../../i18n/Language";
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { SCREENS, SERVICES } from "../../config/screens";
@@ -6,6 +6,36 @@ import { StagEmblem } from "../entry/StagEmblem";
 import "./home.css";
 
 const artwork = import.meta.glob("../../assets/service-*.webp", { eager: true, import: "default" });
+
+// The existing route registry remains authoritative. Home services come first;
+// aliases in the additional Tools shortcuts must not hide or duplicate them.
+const EXTRA_TOOLS = [['KEY_FORGE','Key Forge'],['SIGNATURE','Signature Verification'],['SECURE_SHARE','Secure Share'],['INTEGRITY','Hash & Integrity'],['TEXT_CIPHER','Text Cipher'],['CERTIFICATE_INSPECTOR','Certificate Inspector'],['ARCHIVE','Archive'],['LOCAL_TRANSFER','Local Transfer'],['FINGERPRINT_VERIFY','Fingerprint Verify'],['METADATA_CLEANER','Metadata Cleaner'],['CLIPBOARD_GUARD','Clipboard Guard'],['SECURE_RANDOM','Secure Random Studio'],['HMAC_AUTHENTICITY','HMAC Authenticity Lab'],['PUBLIC_KEY_QR','Public Key QR'],['COLLECTIONS','Collections'],['DOCUMENT_VIEWER','Document viewer'],['PACKAGE_INSPECTOR','Package Inspector'],['AUTOFILL','Autofill'],['OFFLINE_ADVISOR','Offline Security Advisor'],['KEY_DERIVATION','Key Derivation'],['SECURITY_ACTIVITY','Security Activity'],['SECRET_CAPSULE','Expiring Secret Capsule'],['SESSION_PRIVACY','Session Privacy'],['FILE_INTEGRITY','File integrity'],['SECURE_CLIPBOARD','Secure Clipboard'],['DEVICE_PAIRING','Device Pairing'],['PASSWORD_AUDIT','Password audit']];
+export const TOOL_SERVICES = Object.freeze(
+  [...SERVICES, ...EXTRA_TOOLS.map(([id, title]) => ({ id, title }))]
+    .filter((service, index, all) => all.findIndex(entry => SCREENS[entry.id] === SCREENS[service.id]) === index)
+);
+function searchText(value) {
+  return value.normalize("NFKD").replace(/[\u0300-\u036f\u064B-\u065F\u0670\u0640]/g, "").toLocaleLowerCase().trim();
+}
+export const TOOL_CATEGORIES = Object.freeze([
+  {id:"primary", title:"Essentials", ids:SERVICES.map(service=>service.id)},
+  {id:"files", title:"Files & Vault", ids:["INTEGRITY","TEXT_CIPHER","ARCHIVE","METADATA_CLEANER","COLLECTIONS","DOCUMENT_VIEWER","PACKAGE_INSPECTOR","FILE_INTEGRITY"]},
+  {id:"keys", title:"Keys & Identity", ids:["SIGNATURE","CERTIFICATE_INSPECTOR","FINGERPRINT_VERIFY","SECURE_RANDOM","HMAC_AUTHENTICITY","PUBLIC_KEY_QR","KEY_DERIVATION","AUTOFILL","PASSWORD_AUDIT"]},
+  {id:"privacy", title:"Privacy & Sharing", ids:["SECURE_SHARE","LOCAL_TRANSFER","CLIPBOARD_GUARD","OFFLINE_ADVISOR","SECURITY_ACTIVITY","SECRET_CAPSULE","SESSION_PRIVACY","SECURE_CLIPBOARD","DEVICE_PAIRING"]},
+  {id:"all", title:"All tools", ids:TOOL_SERVICES.map(service=>service.id)},
+]);
+export function ToolsDirectory({ query = "", resultsId = "hub-tools-results" }) {
+  const { t } = useLanguage();
+  const [category,setCategory] = useState("primary");
+  const activeCategory = TOOL_CATEGORIES.find(item=>item.id===category);
+  const filtered = TOOL_SERVICES.filter(service => (searchText(query) || activeCategory.ids.includes(service.id)) && searchText(`${service.title} ${translate(service.title, "ar")} ${service.description || ""} ${translate(service.description || "", "ar")} ${service.id === "BACKUP" ? "Backup نسخ احتياطي" : ""}`).includes(searchText(query)));
+  return <section aria-label={t("Tools")}>
+    <div className="hub-tool-categories" role="group" aria-label={t("Tool categories")}>{TOOL_CATEGORIES.map(item=><button key={item.id} type="button" data-tool-category={item.id} aria-pressed={category===item.id} onClick={()=>setCategory(item.id)}>{t(item.title)}</button>)}</div>
+    <p className="hub-results-count" role="status" aria-live="polite" aria-atomic="true">{t("Matching services")}: {filtered.length}</p>
+    {filtered.length ? <div id={resultsId} className="hub-extra-tools" data-tools-results>{filtered.map(service => <Link key={service.id} to={SCREENS[service.id]}><span>{t(service.title)}</span><small>{t("VISUAL DEMO")}</small></Link>)}</div> : <p id={resultsId} className="hub-no-results">{t("No matching tools.")}</p>}
+  </section>;
+}
+
 function Glyph({ name }) {
   const { t, locale, dir } = useLanguage();
 
@@ -42,29 +72,31 @@ function HubDialog({ kind, onClose }) {
   const ref = useRef(null);
   const [filter, setFilter] = useState("");
   useEffect(() => { const previous = document.activeElement;ref.current.showModal();return () => previous?.focus(); }, []);
-  return <dialog ref={ref} className="hub-dialog" onCancel={onClose} onClick={e => { if (e.target === e.currentTarget) onClose(); }} aria-labelledby="hub-dialog-title">
+  return <dialog ref={ref} className="hub-dialog" onKeyDown={e => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); onClose(); } }} onCancel={onClose} onClick={e => { if (e.target === e.currentTarget) onClose(); }} aria-labelledby="hub-dialog-title">
     <button className="hub-close" type="button" aria-label={t("Close")} onClick={onClose}>{t("×")}</button>
     <h2 id="hub-dialog-title">{t(kind === "search" ? "Search tools" : "Settings · VISUAL DEMO")}</h2>
-    {kind === "search" ? <><label className="hub-search-label">{t("Find a service")}<input autoFocus type="search" value={filter} onChange={e => setFilter(e.target.value)} placeholder={t("Vault, notes, keys…")}/></label><ServiceGrid filter={filter}/></> : <><p>{t("This is an offline interface preview. The protection text on Home is reference demo copy, not a verified security status. No encryption or account settings are active.")}</p><Link to={SCREENS.SECURE_ACCESS_LOGIN} state={{returnTo: SCREENS.HOME}}>{t("Open Account preview")}</Link><button type="button" onClick={onClose}>{t("Return to Home")}</button></>}
+    {kind === "search" ? <><label className="hub-search-label">{t("Find a service")}<input autoFocus type="search" aria-controls="hub-dialog-tools-results" value={filter} onChange={e => setFilter(e.target.value)} placeholder={t("Vault, notes, keys…")}/></label><ToolsDirectory query={filter} resultsId="hub-dialog-tools-results"/></> : <><p>{t("This is an offline interface preview. The protection text on Home is reference demo copy, not a verified security status. No encryption or account settings are active.")}</p><Link to={SCREENS.SECURE_ACCESS_LOGIN} state={{returnTo: SCREENS.HOME}}>{t("Open Account preview")}</Link><button type="button" onClick={onClose}>{t("Return to Home")}</button></>}
   </dialog>;
 }
 export function Home({ tools = false }) {
   const { t, locale, dir } = useLanguage();
 
   const [dialog, setDialog] = useState(null);
+  const [toolQuery,setToolQuery] = useState("");
   return <main className="crypt-hub" dir={dir} lang={locale} data-screen={tools ? "TOOLS" : "HOME"}>
     <div className="hub-shell">
       <Header onSearch={() => setDialog("search")} onSettings={() => setDialog("settings")}/>
       {!tools ? <section className="hub-hero" aria-labelledby="hub-status" aria-describedby="hub-demo-context">
-        <div className="hub-stag-hero"><div className="hub-hero-haze" aria-hidden="true"/><span className="hub-hero-energy" aria-hidden="true"/><StagEmblem className="hub-final-stag" ignite/></div>
+        <div className="hub-stag-hero"><div className="hub-hero-haze" aria-hidden="true"/><svg className="hub-energy-ribbons" viewBox="0 0 480 240" fill="none" aria-hidden="true"><defs><linearGradient id="hub-ribbon"><stop stopColor="#8b16ff" stopOpacity="0"/><stop offset=".45" stopColor="#bc54ff"/><stop offset=".6" stopColor="#f2c6ff"/><stop offset="1" stopColor="#681cff" stopOpacity="0"/></linearGradient></defs><path d="M12 186C-3 105 467 57 449 123S55 221 91 148 451 53 464 84"/><path d="M12 186C-3 105 467 57 449 123S55 221 91 148 451 53 464 84" className="hub-ribbon-core"/><path d="M48 90C115 224 434 157 454 74" className="hub-ribbon-thread"/></svg><div className="hub-hero-sparks" aria-hidden="true">{Array.from({length:12},(_,i)=><i key={i} style={{left:`${8+(i*31)%84}%`,top:`${5+(i*19)%85}%`,animationDelay:`${-i*.7}s`}}/>)}</div><StagEmblem className="hub-final-stag" ignite/></div>
         <div className="hub-hero-brand" dir="ltr">Knoux <span>Crypt</span></div>
         <div className="hub-brand-divider" aria-hidden="true"><i/></div>
         <div className="hub-hero-caption">{t("Private Encryption Suite")}</div>
         <div className="hub-sealed-horizon" aria-hidden="true"/>
         <h1 id="hub-status">{t("Your Vault is Protected")}</h1><p>{t("End-to-End Encrypted")}</p><span id="hub-demo-context" className="hub-sr-only">{t("Visual demo reference text only. No vault protection or encryption has been verified.")}</span>
       </section> : <div className="hub-tools-heading"><h1>{t("Tools")}</h1><p>{t("Choose a service to preview")}</p></div>}
-      <ServiceGrid/>
-      {tools && <div className="hub-extra-tools">{[['KEY_FORGE','Key Forge'],['SIGNATURE','Signature Verification'],['SECURE_SHARE','Secure Share'],['INTEGRITY','Hash & Integrity'],['TEXT_CIPHER','Text Cipher'],['CERTIFICATE_INSPECTOR','Certificate Inspector'],['ARCHIVE','Archive'],['LOCAL_TRANSFER','Local Transfer'],['FINGERPRINT_VERIFY','Fingerprint Verify'],['METADATA_CLEANER','Metadata Cleaner'],['CLIPBOARD_GUARD','Clipboard Guard'],['SECURE_RANDOM','Secure Random Studio'],['HMAC_AUTHENTICITY','HMAC Authenticity Lab'],['PUBLIC_KEY_QR','Public Key QR'],['COLLECTIONS','Collections'],['DOCUMENT_VIEWER','Document viewer'],['PACKAGE_INSPECTOR','Package Inspector'],['AUTOFILL','Autofill'],['OFFLINE_ADVISOR','Offline Security Advisor'],['KEY_DERIVATION','Key Derivation'],['SECURITY_ACTIVITY','Security Activity'],['SECRET_CAPSULE','Expiring Secret Capsule'],['SESSION_PRIVACY','Session Privacy'],['FILE_INTEGRITY','File integrity'],['SECURE_CLIPBOARD','Secure Clipboard'],['DEVICE_PAIRING','Device Pairing'],['PASSWORD_AUDIT','Password audit']].map(([id,title])=><Link key={id} to={SCREENS[id]}>{t(title)}{t(" preview")}</Link>)}</div>}
+      {tools && <label className="hub-tools-search"><span>{t("Search tools")}</span><input type="search" aria-controls="hub-tools-results" value={toolQuery} onChange={e=>setToolQuery(e.target.value)} placeholder={t("Vault, notes, keys…")}/></label>}
+      {!tools && <ServiceGrid/>}
+      {tools && <ToolsDirectory query={toolQuery}/>}
     </div>
     {dialog && <HubDialog kind={dialog} onClose={() => setDialog(null)}/>}
   </main>;
