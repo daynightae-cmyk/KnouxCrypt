@@ -18,6 +18,10 @@ export const SCREENS = Object.freeze({
   AUTOFILL: "/passwords/autofill",
   PASSWORD_AUDIT: "/passwords/audit",
   KEY_FORGE: "/key-forge",
+  KEY_DETAILS: "/key-forge/device-keys",
+  SIGNATURE: "/key-forge/signature",
+  SECURE_SHARE: "/tools/secure-share",
+  VAULT_KEY_ROTATION: "/vault/key-rotation",
   AUTHENTICATOR: "/authenticator",
   AUTH_IMPORT: "/authenticator/import",
   PRIVACY: "/privacy",
@@ -73,4 +77,10 @@ export const SERVICES = Object.freeze([
     description: "Back up and restore access",
     art: "recovery",
   },
+]);
+
+export const KEY_WORKFLOWS = Object.freeze([
+  { id: "SIGNATURE", title: "Signature Verification" },
+  { id: "SECURE_SHARE", title: "Secure Share" },
+  { id: "VAULT_KEY_ROTATION", title: "Key Rotation" },
 ]);
