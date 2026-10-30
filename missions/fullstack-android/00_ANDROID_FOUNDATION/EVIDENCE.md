@@ -38,3 +38,37 @@ Instrumentation: diagnostic entry -> access -> explicitly debug guest -> Back. N
 On hosted CI or owner machine with JDK17, Gradle8.11.1 and API36: run tests/compile/lint, fix real failures, generate official checksummed wrapper, then device install/negative auth/lifecycle/navigation evidence. Verify Gradle dependencies/lock/repository checksums, add detekt/ktlint. Implement authenticated capability + encrypted repository/Room fields/DataStore, real BiometricPrompt/Keystore lifecycle and capability probe, atomic writes/chunked file package and independently tested restore before handling real secrets. WorkManager only where real work requires it. Native visual port begins after foundation compiles and gate tests, not a screenshot of React.
 
 GitHub publisher rejected the executable workflow: `workflow_file_not_allowed` (403, workflows permission unavailable). Nothing was published by that attempt. Template preserved outside `.github/workflows`; no automatic native CI is installed. Owner/local tooling must place the reviewed template in `.github/workflows/native-foundation.yml` and push with their own supported access; do not alter app installation permissions. Do not label TESTED/AUDITED/RELEASED from this source or green React build. No Play release/signing/provider credentials, billing changes or premature main merge.
+
+
+---
+
+# EVIDENCE — TASK 00 real Windows implementation (2026-10-31)
+
+Branch: `android/native-implementation-20261031`; implementation commit `2975ec6`; PR14 reconciliation merge `b4fe65c`; baseline `integration/knoux-crypt-android-ready-20261030` @ `8f6f992`.
+
+## Toolchain established
+- Android cmdline-tools installed to `D:\Android\sdk`; licenses accepted; platform-tools, platform 36, build-tools 36.
+- Gradle 8.14.6 wrapper generated from the verified local distribution and pinned with the official SHA-256 (`7988ed…7bd24`).
+- JDK 21 used; Kotlin/Java target 17. No JDK 17 toolchain download.
+- Gradle heap reduced to 1.5 GB after one native JVM OOM caused by unrelated machine memory pressure; subsequent builds stable.
+
+## Actual commands and results
+- `./gradlew :core:security:test :core:data:test` → **BUILD SUCCESSFUL**, 40 tests, 0 failures.
+- `./gradlew :app:testDebugUnitTest` → **BUILD SUCCESSFUL**, 4 tests, 0 failures.
+- `./gradlew :app:assembleDebug` → **BUILD SUCCESSFUL**, `app-debug.apk` 14.4 MB.
+- `./gradlew :app:lintDebug` → **BUILD SUCCESSFUL**, 0 errors, 12 warnings (dependency-update notices and API-33 attribute note).
+- `./gradlew :app:compileDebugAndroidTestKotlin` → **BUILD SUCCESSFUL**; instrumented tests compile.
+- `adb devices` → empty; `HypervisorPresent` → False. **No install/launch/device tests were possible.**
+
+## What exists now
+- Modules `:app`, `:core:designsystem`, `:core:security`, `:core:data`.
+- Splash → Access → Home → Tools/Account; 8 cards, 34 destinations, AR/EN search + RTL, reduced motion, lock/reset.
+- KNC1 (PR14 envelope), KNF1 chunked files, KNP1 passphrase text, RFC 6238 TOTP, SHA-256/HMAC, SecureRandom.
+- Android Keystore master key + auth-per-use unlock key + check token; session capability; Room ciphertext rows; DataStore nonsecret settings; SAF streaming file cipher.
+- Honest BLOCKED recovery; 24 design-only destinations with explicit placeholders.
+
+## Still not met for TASK 00 acceptance
+- Device/emulator install, launch, lifecycle, predictive Back, rotation, permission/SAF and biometric runtime tests.
+- Detekt/ktlint, dependency locking/vulnerability scan, CI workflow installation (PR14 template remains unrun).
+- Security review/audit; per-use auth binding of the data key; recovery/rotation; large-file soak tests.
+- Visual parity screenshots at target sizes and both locales.
