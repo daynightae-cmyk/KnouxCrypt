@@ -1,0 +1,137 @@
+[
+  {
+    "id": "KEY_FORGE",
+    "title": "Key Forge",
+    "href": "/key-forge"
+  },
+  {
+    "id": "SIGNATURE",
+    "title": "Signature Verification",
+    "href": "/key-forge/signature"
+  },
+  {
+    "id": "SECURE_SHARE",
+    "title": "Secure Share",
+    "href": "/tools/secure-share"
+  },
+  {
+    "id": "INTEGRITY",
+    "title": "Hash & Integrity",
+    "href": "/tools/integrity"
+  },
+  {
+    "id": "TEXT_CIPHER",
+    "title": "Text Cipher",
+    "href": "/tools/text-cipher"
+  },
+  {
+    "id": "CERTIFICATE_INSPECTOR",
+    "title": "Certificate Inspector",
+    "href": "/tools/certificates"
+  },
+  {
+    "id": "ARCHIVE",
+    "title": "Archive",
+    "href": "/tools/archive"
+  },
+  {
+    "id": "LOCAL_TRANSFER",
+    "title": "Local Transfer",
+    "href": "/tools/secure-share/local-transfer"
+  },
+  {
+    "id": "FINGERPRINT_VERIFY",
+    "title": "Fingerprint Verify",
+    "href": "/key-forge/fingerprint"
+  },
+  {
+    "id": "METADATA_CLEANER",
+    "title": "Metadata Cleaner",
+    "href": "/tools/metadata-cleaner"
+  },
+  {
+    "id": "CLIPBOARD_GUARD",
+    "title": "Clipboard Guard",
+    "href": "/tools/clipboard-guard"
+  },
+  {
+    "id": "SECURE_RANDOM",
+    "title": "Secure Random Studio",
+    "href": "/tools/random"
+  },
+  {
+    "id": "HMAC_AUTHENTICITY",
+    "title": "HMAC Authenticity Lab",
+    "href": "/tools/hmac"
+  },
+  {
+    "id": "PUBLIC_KEY_QR",
+    "title": "Public Key QR",
+    "href": "/key-forge/public-qr"
+  },
+  {
+    "id": "COLLECTIONS",
+    "title": "Collections",
+    "href": "/vault/collections"
+  },
+  {
+    "id": "DOCUMENT_VIEWER",
+    "title": "Document viewer",
+    "href": "/vault/documents"
+  },
+  {
+    "id": "PACKAGE_INSPECTOR",
+    "title": "Package Inspector",
+    "href": "/tools/package-inspector"
+  },
+  {
+    "id": "AUTOFILL",
+    "title": "Autofill",
+    "href": "/passwords/autofill"
+  },
+  {
+    "id": "OFFLINE_ADVISOR",
+    "title": "Offline Security Advisor",
+    "href": "/tools/security-advisor"
+  },
+  {
+    "id": "KEY_DERIVATION",
+    "title": "Key Derivation",
+    "href": "/key-forge/derivation"
+  },
+  {
+    "id": "SECURITY_ACTIVITY",
+    "title": "Security Activity",
+    "href": "/privacy/activity"
+  },
+  {
+    "id": "SECRET_CAPSULE",
+    "title": "Expiring Secret Capsule",
+    "href": "/tools/secure-share/capsule"
+  },
+  {
+    "id": "SESSION_PRIVACY",
+    "title": "Session Privacy",
+    "href": "/privacy/session"
+  },
+  {
+    "id": "FILE_INTEGRITY",
+    "title": "File integrity",
+    "href": "/tools/file-integrity"
+  },
+  {
+    "id": "SECURE_CLIPBOARD",
+    "title": "Secure Clipboard",
+    "href": "/tools/secure-clipboard"
+  },
+  {
+    "id": "DEVICE_PAIRING",
+    "title": "Device Pairing",
+    "href": "/tools/secure-share/pairing"
+  },
+  {
+    "id": "PASSWORD_AUDIT",
+    "title": "Password audit",
+    "href": "/passwords/audit"
+  }
+]

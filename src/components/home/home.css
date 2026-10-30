@@ -108,3 +108,8 @@
 .hub-extra-tools a {min-width:0;min-height:64px;display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:12px;line-height:1.7;overflow-wrap:anywhere;background:linear-gradient(130deg,#2d123b77,#11091d);text-decoration:none;}
 @media(min-width:900px){.crypt-hub[data-screen="TOOLS"] .hub-shell{width:min(100%,720px);}.hub-extra-tools{grid-template-columns:repeat(3,minmax(0,1fr));}}
 @media(max-width:360px){.hub-extra-tools{gap:8px;}.hub-extra-tools a{padding:10px;font-size:11px;}}
+
+.hub-results-count {font-size:12px;color:var(--crypt-muted);margin-block:8px;}
+.hub-extra-tools a {flex-direction:column;align-items:flex-start;justify-content:center;}
+.hub-extra-tools a small {font-size:9px;color:var(--crypt-muted);letter-spacing:.04em;}
+.hub-no-results {padding:24px 12px;line-height:1.7;color:var(--crypt-muted);}

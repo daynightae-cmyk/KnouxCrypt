@@ -15,3 +15,16 @@
 @keyframes stag-antler-energize {0%{opacity:0;stroke-dashoffset:0;}35%{opacity:.35;}100%{opacity:0;stroke-dashoffset:-1350;}}
 @keyframes stag-art-arrive {from{opacity:.75;filter:brightness(.8);}to{opacity:1;filter:brightness(1);}}
 @media(prefers-reduced-motion:reduce){.stag-entrance img{animation:none!important;}}
+
+/* Exact existing eye contours receive independent light; no logo pixels change. */
+.stag-eye-light :is(.stag-light-left,.stag-light-right) {
+  filter:drop-shadow(0 0 5px #fff0ff) drop-shadow(0 0 15px #d59aff) drop-shadow(0 0 28px #942aff);
+  animation:stag-eye-idle 7.6s cubic-bezier(.4,0,.2,1) infinite;
+}
+.stag-eye-light .stag-light-right {animation-delay:.22s;}
+.stag-entrance .stag-eye-light .stag-light-left {animation:stag-eye-ignite 2.8s ease-out both,stag-eye-idle 7.6s 2.8s cubic-bezier(.4,0,.2,1) infinite;}
+.stag-entrance .stag-eye-light .stag-light-right {animation:stag-eye-ignite 2.8s .22s ease-out both,stag-eye-idle 7.6s 3.02s cubic-bezier(.4,0,.2,1) infinite;}
+.stag-eye-light .stag-eye-ray {animation:stag-eye-ray-breathe 7.6s ease-in-out infinite;}
+@keyframes stag-eye-ignite {0%,12%{opacity:.04;}52%{opacity:.95;}75%{opacity:.7;}100%{opacity:.24;}}
+@keyframes stag-eye-idle {0%,100%{opacity:.24;}42%{opacity:.82;}65%{opacity:.6;}}
+@keyframes stag-eye-ray-breathe {0%,100%{opacity:.025;}45%{opacity:.18;}}
