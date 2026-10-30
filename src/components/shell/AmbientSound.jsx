@@ -14,7 +14,14 @@ export function AmbientSound({ splash }) {
     mounted.current = true;
     const visibility = () => engine.current?.setVisible(!document.hidden);
     document.addEventListener('visibilitychange', visibility);
-    return () => { mounted.current = false; document.removeEventListener('visibilitychange', visibility); engine.current?.dispose(); engine.current = null; };
+    const interaction = event => {
+      if (!event.isTrusted || document.hidden) return;
+      const control = event.target instanceof Element ? event.target.closest('button, a, input[type="checkbox"], input[type="radio"]') : null;
+      if (!control || !control.closest('.crypt-app-shell') || control.closest('.app-sound-strip') || control.matches(':disabled, [aria-disabled="true"]')) return;
+      engine.current?.cue(control.matches('a') ? 'navigate' : control.matches('input, [role="switch"], [aria-pressed]') ? 'toggle' : 'tap');
+    };
+    document.addEventListener('click', interaction);
+    return () => { mounted.current = false; document.removeEventListener('visibilitychange', visibility); document.removeEventListener('click', interaction); engine.current?.dispose(); engine.current = null; };
   }, []);
   useEffect(() => { engine.current?.setScene(splash); }, [splash]);
   async function toggle() {

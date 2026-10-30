@@ -1,0 +1,14 @@
+/* Additive feedback only: no global transform scaling or animation on text inputs. */
+.crypt-app-shell :where(button,a,input,select,textarea) { -webkit-tap-highlight-color:transparent; }
+.crypt-app-shell :where(button,a) { touch-action:manipulation; }
+.crypt-app-shell :where(button:not(:disabled),a[href]):focus-visible { outline:2px solid #e4c3ff; outline-offset:3px; }
+.crypt-app-shell :where(button:not(:disabled),a[href]):active { filter:brightness(.94); }
+.crypt-app-shell :where(button:disabled,[aria-disabled="true"]) { cursor:not-allowed; }
+.crypt-app-shell :where(input,textarea) { caret-color:#d5a2ff; scroll-margin-block:80px; }
+.crypt-app-shell :where(input[type="checkbox"],input[type="radio"],input[type="range"]) { accent-color:#b374e7; }
+.crypt-app-shell dialog { max-height:85dvh; overscroll-behavior:contain; }
+.app-skip-link {position:absolute;inset-block-start:4px;inset-inline-start:12px;z-index:100;padding:10px 16px;border:1px solid #c08ae9;border-radius:10px;background:#1a0b2b;color:#ecd5ff;transform:translateY(-180%);font:12px var(--crypt-font);}
+.app-skip-link:focus {transform:none;}
+@media(hover:hover){.crypt-app-shell :where(.hub-service,.keys-service,.vt-card,.notes-card,.password-record) {transition:border-color 180ms ease,box-shadow 220ms ease;} .crypt-app-shell :where(.hub-service,.keys-service,.vt-card,.notes-card,.password-record):hover {border-color:#bd86e5;}}
+@media(prefers-reduced-motion:reduce){.crypt-app-shell *, .crypt-app-shell *::before, .crypt-app-shell *::after {animation:none!important;transition:none!important;scroll-behavior:auto!important;}}
+@media(forced-colors:active){.crypt-app-shell :where(button,a,input,textarea,select) {border-color:ButtonText;} .crypt-app-shell :focus-visible {outline:2px solid Highlight!important;}}

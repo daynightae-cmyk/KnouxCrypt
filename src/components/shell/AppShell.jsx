@@ -3,6 +3,7 @@ import React, { memo, useLayoutEffect, useRef, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { SCREENS } from "../../config/screens";
 import "./shell.css";
+import "./interaction.css";
 import { AmbientSound } from "./AmbientSound";
 
 // Fixed deterministic columns: never randomize/reseed on route changes.
@@ -49,6 +50,7 @@ export function AppShell({ children }) {
   const primary = pathname===SCREENS.HOME || pathname===SCREENS.TOOLS || pathname===SCREENS.NOTES || pathname===SCREENS.KEY_FORGE || pathname===SCREENS.PRIVACY;
   useLayoutEffect(() => { scroll.current?.scrollTo?.(0,0); },[pathname]);
   return <div data-scene={pathname===SCREENS.SPLASH_ENTRY?"splash":pathname===SCREENS.SECURE_ACCESS_LOGIN?"auth":"content"} className={`crypt-app-shell ${primary?'app-has-navigation':''}`}>
+    <a className="app-skip-link" href="#app-content">{t("Skip to page content")}</a>
     <CipherAtmosphere/>
     <div className="app-utility-bar"><LanguageToggle/>{guestPreview && <span className="app-guest-session">{t("Guest · visual demo")}</span>}<AmbientSound splash={pathname===SCREENS.SPLASH_ENTRY}/></div>
     <div ref={scroll} className="app-scroll-region" id="app-content" tabIndex={0} role="region" aria-label={t("Page content")}>{children}</div>
