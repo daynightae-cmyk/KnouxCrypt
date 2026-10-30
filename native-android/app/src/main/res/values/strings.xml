@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Knoux Crypt</string>
+    <string name="foundation_title">Native foundation — not a vault</string>
+    <string name="foundation_notice">Authentication, storage and recovery are not ready. No real secrets may be entered.</string>
+    <string name="enter">Continue to access setup</string>
+    <string name="auth_title">Secure Access</string>
+    <string name="auth_unavailable">Local authentication is not implemented. Unlock is unavailable.</string>
+    <string name="preview">Open visual preview (debug only)</string>
+    <string name="home_preview">Guest visual preview — no secret access</string>
+    <string name="back">Back to entry</string>
+</resources>
