@@ -1,45 +1,77 @@
-# Native Android — TASK 00 initial code slice
+# KNOUX Crypt — Native Android
 
-Status: **IMPLEMENTED_UNVERIFIED / PRESENT_UNMERGED**. Not a functional vault, not an APK delivery, not TASK 00 acceptance.
+Status: **BUILD_VERIFIED / UNIT_TESTED (local Windows machine, 2026-10-31)**.
+**NOT device-verified, NOT security-audited, NOT released, NOT pixel-certified.**
+The PR #15 Chromium visuals are the accepted design baseline; they are not native runtime evidence.
 
-Isolated sibling to React/Electron. No React source, existing 46 missions, artwork, references or Windows worktree was replaced. Two initial modules with real code, not empty 44-feature shells:
-- `:app`: Compose/Material3 dark foundation diagnostics, Navigation Compose, constructor DI, ViewModel/StateFlow, lifecycle lock, platform Arabic resources, RTL, safe/IME insets. Debug visual-preview route cannot read secrets, release has no preview action. Foundation diagnostics are **not** the approved Splash/Auth/Home port yet.
-- `:core:security`: platform-JCA small-record AES-256-GCM envelope and fail-closed session policy. JVM source separate from Android adapters.
+## Toolchain actually used
 
-## Toolchain (not installed here)
-Pinned development baseline: JDK 17, Gradle 8.11.1, AGP 8.10.1, Kotlin/Compose compiler 2.1.20, API 36, minSdk 26. This is not a Play-release policy claim. AGP compatibility: https://developer.android.com/build/releases/agp-8-10-0-release-notes
+| Item | Value |
+|---|---|
+| JDK | Microsoft OpenJDK 21.0.12 (bytecode target 17) |
+| Gradle | 8.14.6 wrapper with official SHA-256 pin |
+| AGP / Kotlin | 8.10.1 / 2.1.20 |
+| compileSdk / targetSdk / minSdk | 36 / 36 / 26 |
+| Compose BOM | 2025.04.01, Material 3 |
+| Storage | Room 2.7.1 (KSP) + Preferences DataStore 1.1.4 |
+| Auth | androidx.biometric 1.1.0 (BIOMETRIC_STRONG + CryptoObject) |
+| Android SDK | `D:\Android\sdk` (cmdline-tools, platform-tools, platform 36, build-tools 36) |
 
-No Gradle wrapper JAR was fabricated or copied from unknown source. On an equipped machine, generate/review the official wrapper (including distribution SHA-256) before CI:
+## Modules
+
+- `:app` — Compose UI, navigation, ViewModels, BiometricPrompt activity wiring.
+- `:core:designsystem` — KNOUX colors/typography, ambience, glass cards, bottom bar, logo + service art.
+- `:core:security` — JVM-only crypto and TOTP/hash primitives with unit tests.
+- `:core:data` — Keystore boundary, session capability, Room ciphertext storage, DataStore settings, device-key file cipher.
+
+## Implemented in this branch
+
+- Entry flow `SPLASH_ENTRY → SECURE_ACCESS_LOGIN → HOME` (real Compose screens).
+- Home with the eight accepted cards; Tools with all **34** destinations, categories, AR/EN search, empty state.
+- Account: language (EN/AR + RTL), reduced motion (persisted), session lock, unlock-gate reset, actual key-protection class.
+- File Cipher: SAF input/output, KNF1 chunked AES-256-GCM, device-key or passphrase mode, progress, cancellation, temp-file atomic output, original preserved.
+- Text Cipher: KNP1 (PBKDF2-HMAC-SHA256 310k + AES-256-GCM), Base64 envelope.
+- Hash & Integrity: SHA-256 over SAF with live progress and comparison.
+- Secure Random Studio: SecureRandom hex/Base64/word values.
+- Secure Notes and Passwords: Room rows whose payloads are KNC1 envelopes with identity-bound AAD.
+- Authenticator: RFC 6238 TOTP (SHA1/256/512 supported) with encrypted Base32 seeds and one-second refresh.
+- Key Forge: ephemeral 256-bit key + SHA-256 fingerprint.
+- Privacy Center: truthful session/key/backup limits.
+- Recovery: **BLOCKED** honest screen; no fake export, no backup file.
+
+Design-only (no route, explicit placeholder): Vault, Signature, Secure Share, Certificate Inspector, Archive, Local Transfer, Fingerprint Verify, Metadata Cleaner, Clipboard Guard, HMAC, Public Key QR, Collections, Document Viewer, Package Inspector, Autofill, Offline Advisor, Key Derivation, Security Activity, Secret Capsule, Session Privacy, File Integrity, Secure Clipboard, Device Pairing, Password Audit.
+
+## Verified commands and results
+
+```
+./gradlew :core:security:test :core:data:test      # 40 tests, 0 failures
+./gradlew :app:testDebugUnitTest                   # 4 tests, 0 failures
+./gradlew :app:assembleDebug                       # app-debug.apk (14.4 MB)
+./gradlew :app:lintDebug                           # 0 errors, 12 warnings
+./gradlew :app:compileDebugAndroidTestKotlin        # instrumented sources compile
+```
+
+Test breakdown: FileEnvelope 13, PassphraseEnvelope 6, TOTP/hash/random 7, PR14 Foundation 10, SecretCodec 4, Catalog/search 4.
+
+## Not verified — hard boundaries
+
+- `adb devices` was empty and `HypervisorPresent` is **False**: no emulator/device. APK was not installed or launched. No Compose screenshot, lifecycle, Back, biometric, Keystore, SAF or rotation evidence exists.
+- The two instrumented test classes compile but were **NOT RUN**.
+- Security review/audit, fuzzing, dependency-vulnerability review: **NOT DONE**.
+- PBKDF2 is used instead of Argon2id (mission 37 open). Recovery export, key rotation, cross-device restore, secure clipboard, autofill and pairing are not implemented.
+- The master data key is Keystore-protected but **not auth-bound per use**; the in-app session capability gates use. If the device is compromised while unlocked, this boundary is not hardware-proof. Documentation says so in-app.
+- Visual parity is not certified; PR #15 is the accepted implementation baseline. The Preview artifact is a design preview, not the APK.
+
+## Build
+
 ```
 cd native-android
-gradle wrapper --gradle-version 8.11.1 --distribution-type bin
-# Set ANDROID_HOME or create untracked local.properties with sdk.dir.
-./gradlew :core:security:test :app:assembleDebug :app:lintDebug
-./gradlew :app:connectedDebugAndroidTest
+# local.properties: sdk.dir=D\:/Android/sdk
+./gradlew :app:assembleDebug
 ```
-Windows: `gradlew.bat` after wrapper generation. No SDK license acceptance, signing configuration or release authorized by these commands. Do not run release publication.
 
-Current sandbox: java/javac/gradle/SDK absent, JDK lookup/download and Gradle distribution hosts fail DNS. SDK download host reachable, but SDK cannot function without JVM; no large unused SDK downloaded. This prevents native compilation, actual unit test execution, APK install, instrumentation and screenshots.
+## Preserved PR #14 work
 
-## Crypto scope and important limits
-- AES/GCM/NoPadding from platform JCA, caller-provided AES-256 key, fresh random 96-bit nonce; authenticated fixed version/algorithm/length header plus required 1–4096-byte caller context. Max plaintext 1MiB, strict framing/no trailing bytes. No plaintext returned before `doFinal` authentication. Caller must bind AAD to record identity/type; this alone does not prevent replay of a valid old record.
-- No streaming format, KDF, recovery, key rotation or portable backup. Do not use small-record envelope for large files. Random nonce collision risk/key usage limits and parser design need review before production. No security audit performed.
-- DeviceWrappingKey prepares an auth-required Android Keystore encryption cipher. **Not wired to authentication or persistence**; no successful-key-use capability implemented. BiometricPrompt CryptoObject, invalidation/recovery, alias concurrency/lifecycle, hardware-capability probe and real-device tests are pending. No StrongBox guarantee. Never delete/regenerate a key automatically on an error.
-- `canReadSecrets()` is always false, intentionally. No unlock stub can grant authorization; guest is not a credential. Release preview denied by policy and compiled UI guard. Protected repositories do not exist yet; do not store real user data.
-- Platform FLAG_SECURE reduces screen capture on supporting devices; not a universal capture guarantee. Native activity backgrounding clears preview, no audio/analytics/network. No permissions claimed yet.
-
-## Tests written (NOT executed as Kotlin here)
-JUnit source includes zero-key NIST AES-256-GCM provider vector, envelope boundary sizes, random-nonce variation, each-byte tampering, wrong key/AAD, truncation/trailing data, oversize/non256-bit key/context rejection, debug/release guest gates. Instrumentation source exercises diagnostic entry/access/debug preview/back. Tests are source, **not PASS evidence** until Gradle runs.
-
-Static only:
-```
-python3 scripts/check-source.py
-sh scripts/check-prerequisites.sh
-```
-First checks manifest/XML/source invariants, not type/runtime correctness. Second returns nonzero when tools absent; no installs/removal.
-
-## Pending TASK 00 acceptance
-Gradle wrapper/verified dependency resolution and locks, native compilation/lint/detekt/format, Room encrypted-field repository with authenticated access capability, nonsecret DataStore, BiometricPrompt/Keystore key lifecycle, atomic encrypted writes/restore, chunked format/negative vectors, device/emulator install/lifecycle/Back/security tests, CI, capability/evidence registry and screenshots. WorkManager only when a real operation needs it. All 01–44 native features remain PLANNED; React is not embedded in WebView.
-
-## CI publication limitation
-The publisher cannot create GitHub Actions workflows (403 workflows permission). The proposed workflow is preserved at `ci/native-foundation.yml.example`, not executable and not run. Review/add it locally under `.github/workflows/native-foundation.yml` when authorized. No remote native build/test result exists yet.
+- Reused: `AuthenticatedEnvelope.kt` (KNC1), `SessionPolicy.kt` and its 10 JVM tests, `DeviceWrappingKey.kt` (kept as reference; superseded by `KeystoreManager`), the original evidence record.
+- Superseded/removed: PR14 diagnostic `MainActivity` and `FoundationViewModel` (replaced by the real navigation/entry flow); its debug-only navigation test (replaced by `AccessFlowTest` + `KeystoreDeviceTest`, not run).
+- PR #14 remains unmerged and its review branch untouched. This branch is `android/native-implementation-20261031`, derived from `integration/knoux-crypt-android-ready-20261030`.
