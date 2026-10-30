@@ -29,9 +29,9 @@
 .vault-gallery:not(.vault-filtered) .vault-tile { position:absolute; }
 .vault-gallery:not(.vault-filtered) .vault-tile-0 { left:0;top:0;width:48.5%;height:29%; }
 .vault-gallery:not(.vault-filtered) .vault-tile-1 { left:50%;top:0;width:50%;height:24%; }
-.vault-gallery:not(.vault-filtered) .vault-tile-2 { left:0;top:30.5%;width:36%;height:38%; }
-.vault-gallery:not(.vault-filtered) .vault-tile-3 { left:37.5%;top:25.5%;width:34%;height:28.5%; }
+.vault-gallery:not(.vault-filtered) .vault-tile-2 { left:0;top:30.5%;width:36%;height:47%; }
+.vault-gallery:not(.vault-filtered) .vault-tile-3 { left:37.5%;top:30.5%;width:34%;height:28%; }
 .vault-gallery:not(.vault-filtered) .vault-tile-4 { left:73%;top:25.5%;width:27%;height:52%; }
-.vault-gallery:not(.vault-filtered) .vault-tile-5 { left:37.5%;top:55.5%;width:34%;height:22%; }
-.vault-gallery:not(.vault-filtered) .vault-tile-6 { left:0;top:70%;width:50%;height:30%; }
+.vault-gallery:not(.vault-filtered) .vault-tile-5 { left:37.5%;top:60%;width:34%;height:17.5%; }
+.vault-gallery:not(.vault-filtered) .vault-tile-6 { left:0;top:79%;width:50%;height:21%; }
 .vault-gallery:not(.vault-filtered) .vault-tile-7 { left:51.5%;top:79%;width:48.5%;height:21%; }
