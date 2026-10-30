@@ -19,8 +19,8 @@ html,body,#root { background: var(--crypt-obsidian); }
 .app-has-navigation .app-scroll-region { padding-bottom:calc(var(--crypt-nav-height) + var(--crypt-safe-bottom) + 24px); }
 .app-atmosphere { position:absolute; inset:0; z-index:0; overflow:hidden; pointer-events:none; background:radial-gradient(ellipse at -15% 8%,#4d187b25,transparent 40%),radial-gradient(ellipse at 110% 90%,#54148225,transparent 40%); contain:strict; }
 .app-code-rain { position:absolute; inset:-50% 0; }
-.app-code-rain span { position:absolute; top:0; white-space:pre; line-height:1.8; font:11px/1.9 ui-monospace,monospace; color:#b777f5; opacity:.075; text-shadow:0 0 6px #9f45e8; animation:crypt-code-fall 35s linear infinite; user-select:none; }
-.app-code-rain span:nth-child(3n) { opacity:.045; font-size:9px; }
+.app-code-rain span { position:absolute; top:0; white-space:pre; line-height:1.8; font:11px/1.9 ui-monospace,monospace; color:#b777f5; opacity:.035; text-shadow:0 0 6px #9f45e8; animation:crypt-code-fall 35s linear infinite; user-select:none; }
+.app-code-rain span:nth-child(3n) { opacity:.02; font-size:9px; }
 .app-energy { position:absolute; width:90%; height:26%; border-radius:50%; border-bottom:1px solid #ab54ec25; box-shadow:0 12px 25px -20px #a344ee; transform:rotate(-33deg); }
 .app-energy-one { top:-12%;left:-24%; }.app-energy-two { bottom:2%;right:-42%; }
 .app-global-ember { position:absolute; left:9%; bottom:10%; width:2px; height:2px; border-radius:50%; background:#be83ff; box-shadow:0 0 6px #a05aff; animation:crypt-global-ember 13s ease-in-out infinite; opacity:0; }
@@ -39,4 +39,4 @@ html,body,#root { background: var(--crypt-obsidian); }
 .crypt-app-shell .crypt-hub {min-height:100%;}
 @keyframes crypt-code-fall { from {transform:translateY(-10%);}to {transform:translateY(180%);} }
 @keyframes crypt-global-ember {0%,100%{opacity:0;transform:translate(0,0);}40%{opacity:.3;}85%{opacity:0;transform:translate(12px,-90px);}}
-@media(prefers-reduced-motion:reduce){.app-atmosphere *{animation:none!important;}.app-code-rain span{transform:translateY(35%);opacity:.035;}.app-global-ember{display:none;}}
+@media(prefers-reduced-motion:reduce){.app-atmosphere *{animation:none!important;}.app-code-rain span{transform:translateY(35%);opacity:.018;}.app-global-ember{display:none;}}
