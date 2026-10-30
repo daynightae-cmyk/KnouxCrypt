@@ -1,5 +1,6 @@
 // English source keys keep UI state/route IDs independent from translations.
 export const ar = {
+"Essentials":"الأساسية", "Files & Vault":"الملفات والخزنة", "Keys & Identity":"المفاتيح والهوية", "Privacy & Sharing":"الخصوصية والمشاركة", "All tools":"كل الأدوات", "Tool categories":"فئات الأدوات",
 "Matching services":"الخدمات المطابقة",
 "Skip to page content":"تجاوز إلى محتوى الصفحة",
 "Screen unavailable. Reload to try again; in-memory demo edits will reset.":"الشاشة غير متاحة. أعد التحميل للمحاولة؛ ستُمسح تعديلات المعاينة الموجودة في الذاكرة.",

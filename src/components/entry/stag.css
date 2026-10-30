@@ -28,3 +28,6 @@
 @keyframes stag-eye-ignite {0%,12%{opacity:.04;}52%{opacity:.95;}75%{opacity:.7;}100%{opacity:.24;}}
 @keyframes stag-eye-idle {0%,100%{opacity:.24;}42%{opacity:.82;}65%{opacity:.6;}}
 @keyframes stag-eye-ray-breathe {0%,100%{opacity:.025;}45%{opacity:.18;}}
+.stag-eye-glint {filter:drop-shadow(0 0 7px #ebc7ff);animation:stag-glint-ignite 3s ease-out both,stag-eye-idle 7.6s 3s ease-in-out infinite;}
+.stag-glint-right {animation-delay:.22s,3.22s;}
+@keyframes stag-glint-ignite {0%,15%{opacity:0;}49%{opacity:1;}70%{opacity:.65;}100%{opacity:.3;}}

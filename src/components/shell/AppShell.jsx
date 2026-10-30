@@ -17,7 +17,7 @@ export const CIPHER_COLUMNS = Object.freeze(Array.from({ length: 12 }, (_, index
     delay: `${-(index * 3.7 + 4).toFixed(1)}s`,
     duration: `${28 + (index * 7) % 19}s`,
     height: `${length * 21}px`,
-    opacity: String(index % 3 === 0 ? .045 : .075),
+    opacity: String(index % 3 === 0 ? .11 : .16),
     fontSize: `${index % 3 === 0 ? 9 : 11}px`,
     glyphs: Array.from({length}, (_, row) => row % 5 === 0 ? CYBER_TERMS[(index + row) % CYBER_TERMS.length] : "01A7FΞC9λ3BΣ8D4"[(index * 5 + row * 7) % 15]).join("\n"),
   });
