@@ -1,0 +1,271 @@
+{
+    "date":  "2026-10-30",
+    "screen_count":  44,
+    "branch":  "feat/splash-entry",
+    "entries":  [
+                    {
+                        "ID":  "01_SPLASH_ENTRY",
+                        "Task":  "01_SPLASH_ENTRY/TASK.md",
+                        "Image":  "01_SPLASH_ENTRY/REFERENCE.png",
+                        "Sha256":  "C2E1EB40FD6CB4FDB8092FD981F0EEE0EE67F56ECE3D92A3DC08587EAF6BA034"
+                    },
+                    {
+                        "ID":  "02_SECURE_ACCESS_LOGIN",
+                        "Task":  "02_SECURE_ACCESS_LOGIN/TASK.md",
+                        "Image":  "02_SECURE_ACCESS_LOGIN/REFERENCE.png",
+                        "Sha256":  "DF03829D7ED45D3F631547412E23B77B3B020C493BB8333D9BCE61F5286028DE"
+                    },
+                    {
+                        "ID":  "03_HOME",
+                        "Task":  "03_HOME/TASK.md",
+                        "Image":  "03_HOME/REFERENCE.png",
+                        "Sha256":  "47E28EE14ADA810B061FF887D4E220C741A66BFB2AF3135CF92D430071E33F31"
+                    },
+                    {
+                        "ID":  "04_FILE_CIPHER",
+                        "Task":  "03_HOME/01_ENCRYPT_FILES/TASK.md",
+                        "Image":  "03_HOME/01_ENCRYPT_FILES/REFERENCE.png",
+                        "Sha256":  "B6A56544FE6C3669AB4184BA7C353C7ACAFFFE79007FF8B075238BC9A6EA71FC"
+                    },
+                    {
+                        "ID":  "17_HASH_INTEGRITY",
+                        "Task":  "03_HOME/01_ENCRYPT_FILES/SERVICES/17_HASH_INTEGRITY/TASK.md",
+                        "Image":  "03_HOME/01_ENCRYPT_FILES/SERVICES/17_HASH_INTEGRITY/REFERENCE.png",
+                        "Sha256":  "4F91DD21035D57E1B117117B9A541ECADE99CD4599C5AFBEED618F9CC50483F2"
+                    },
+                    {
+                        "ID":  "18_TEXT_CIPHER",
+                        "Task":  "03_HOME/01_ENCRYPT_FILES/SERVICES/18_TEXT_CIPHER/TASK.md",
+                        "Image":  "03_HOME/01_ENCRYPT_FILES/SERVICES/18_TEXT_CIPHER/REFERENCE.png",
+                        "Sha256":  "710450F593FAD3EB24E6DE022E81944CCCB6CDD7551BAE8E4D55DDDC7CB2E37E"
+                    },
+                    {
+                        "ID":  "21_ENCRYPTED_ARCHIVE",
+                        "Task":  "03_HOME/01_ENCRYPT_FILES/SERVICES/21_ENCRYPTED_ARCHIVE/TASK.md",
+                        "Image":  "03_HOME/01_ENCRYPT_FILES/SERVICES/21_ENCRYPTED_ARCHIVE/REFERENCE.png",
+                        "Sha256":  "B2332E455073CE6477CD2F1C0FE0E6C9A11B325F0D0020A5A04B2AD72B5578A9"
+                    },
+                    {
+                        "ID":  "32_CIPHERTEXT_PACKAGE_INSPECTOR",
+                        "Task":  "03_HOME/01_ENCRYPT_FILES/SERVICES/32_CIPHERTEXT_PACKAGE_INSPECTOR/TASK.md",
+                        "Image":  "03_HOME/01_ENCRYPT_FILES/SERVICES/32_CIPHERTEXT_PACKAGE_INSPECTOR/REFERENCE.png",
+                        "Sha256":  "C0596761DD91DA8BDF7B29A03235F8A8435887708C27BF3246D1FCF30B20B4F9"
+                    },
+                    {
+                        "ID":  "43_FILE_INTEGRITY_TOOL",
+                        "Task":  "03_HOME/01_ENCRYPT_FILES/SERVICES/43_FILE_INTEGRITY_TOOL/TASK.md",
+                        "Image":  "03_HOME/01_ENCRYPT_FILES/SERVICES/43_FILE_INTEGRITY_TOOL/REFERENCE.png",
+                        "Sha256":  "52D675172DCD98FF8E972B299683D984CA29BC7556FBD7F9B8A47E7EFAFC20CA"
+                    },
+                    {
+                        "ID":  "05_SHADOW_VAULT",
+                        "Task":  "03_HOME/02_VAULT/TASK.md",
+                        "Image":  "03_HOME/02_VAULT/REFERENCE.png",
+                        "Sha256":  "42FAA0D78391F5D13A7D3E84A44A0628FB7967BC159849776BA53897B52C0880"
+                    },
+                    {
+                        "ID":  "29_VAULT_COLLECTIONS",
+                        "Task":  "03_HOME/02_VAULT/SERVICES/29_VAULT_COLLECTIONS/TASK.md",
+                        "Image":  "03_HOME/02_VAULT/SERVICES/29_VAULT_COLLECTIONS/REFERENCE.png",
+                        "Sha256":  "4A3BB143D81FBAF9C87BE888D2A61C417FF45FDFDE106874EB745C4750FBA105"
+                    },
+                    {
+                        "ID":  "30_DOCUMENT_VIEWER",
+                        "Task":  "03_HOME/02_VAULT/SERVICES/30_DOCUMENT_VIEWER/TASK.md",
+                        "Image":  "03_HOME/02_VAULT/SERVICES/30_DOCUMENT_VIEWER/REFERENCE.png",
+                        "Sha256":  "2A01BEFEE13521A0A895E0149E7FE55B3033E84E7FE4106F7B204CE70904D8F0"
+                    },
+                    {
+                        "ID":  "31_VAULT_KEY_ROTATION",
+                        "Task":  "03_HOME/02_VAULT/SERVICES/31_VAULT_KEY_ROTATION/TASK.md",
+                        "Image":  "03_HOME/02_VAULT/SERVICES/31_VAULT_KEY_ROTATION/REFERENCE.png",
+                        "Sha256":  "8054DF8C133A8216340AE292498F73B2D36210A7728557B0148459500DCC8ECE"
+                    },
+                    {
+                        "ID":  "06_SECURE_NOTES",
+                        "Task":  "03_HOME/03_SECURE_NOTES/TASK.md",
+                        "Image":  "03_HOME/03_SECURE_NOTES/REFERENCE.png",
+                        "Sha256":  "50150D2F4BF01C24E9627DFBFF3A23F3B7CCFF11F7A8A4588F8BF89A43DFC608"
+                    },
+                    {
+                        "ID":  "07_NOTES_EDITOR",
+                        "Task":  "03_HOME/03_SECURE_NOTES/SERVICES/07_NOTES_EDITOR/TASK.md",
+                        "Image":  "03_HOME/03_SECURE_NOTES/SERVICES/07_NOTES_EDITOR/REFERENCE.png",
+                        "Sha256":  "E1A91E8173D188A7EC66F41B718DF9DE0C10B07F5AF7A3D3371559037BA3359C"
+                    },
+                    {
+                        "ID":  "08_PASSWORDS",
+                        "Task":  "03_HOME/04_PASSWORDS/TASK.md",
+                        "Image":  "03_HOME/04_PASSWORDS/REFERENCE.png",
+                        "Sha256":  "BD2C8FBCE6EF287898EE317A0BC8BB8314E70275FE8B8C328A3AE1748AF4EAE0"
+                    },
+                    {
+                        "ID":  "09_PASSWORD_DETAIL",
+                        "Task":  "03_HOME/04_PASSWORDS/SERVICES/09_PASSWORD_DETAIL/TASK.md",
+                        "Image":  "03_HOME/04_PASSWORDS/SERVICES/09_PASSWORD_DETAIL/REFERENCE.png",
+                        "Sha256":  "4D38F9335349337D7137FEB3FCF24544260FBCCD1DBEADFD4389718500F28E35"
+                    },
+                    {
+                        "ID":  "33_ANDROID_AUTOFILL",
+                        "Task":  "03_HOME/04_PASSWORDS/SERVICES/33_ANDROID_AUTOFILL/TASK.md",
+                        "Image":  "03_HOME/04_PASSWORDS/SERVICES/33_ANDROID_AUTOFILL/REFERENCE.png",
+                        "Sha256":  "F5C8B498999C9FB645F890414376349C6D8AED11C1FE638FF1F2BC0DC0D1D18D"
+                    },
+                    {
+                        "ID":  "36_PASSWORD_STRENGTH_AUDIT",
+                        "Task":  "03_HOME/04_PASSWORDS/SERVICES/36_PASSWORD_STRENGTH_AUDIT/TASK.md",
+                        "Image":  "03_HOME/04_PASSWORDS/SERVICES/36_PASSWORD_STRENGTH_AUDIT/REFERENCE.png",
+                        "Sha256":  "544B4F6D28A2D0536D9AADD3416BB3071EE6F94A3712E9C442F6A7A12404EE0E"
+                    },
+                    {
+                        "ID":  "12_KEY_FORGE",
+                        "Task":  "03_HOME/05_KEY_FORGE/TASK.md",
+                        "Image":  "03_HOME/05_KEY_FORGE/REFERENCE.png",
+                        "Sha256":  "4769FAB09E242C1138480C04D06CAE56B66905FA46527A13AA7E0E497857910C"
+                    },
+                    {
+                        "ID":  "13_KEY_DETAILS",
+                        "Task":  "03_HOME/05_KEY_FORGE/SERVICES/13_KEY_DETAILS/TASK.md",
+                        "Image":  "03_HOME/05_KEY_FORGE/SERVICES/13_KEY_DETAILS/REFERENCE.png",
+                        "Sha256":  "D2A74C78B7C4221C24CA47A852EC8A956E1FFC5C93EC31F86A31C0D0AB3FF9F4"
+                    },
+                    {
+                        "ID":  "19_DIGITAL_SIGNATURE",
+                        "Task":  "03_HOME/05_KEY_FORGE/SERVICES/19_DIGITAL_SIGNATURE/TASK.md",
+                        "Image":  "03_HOME/05_KEY_FORGE/SERVICES/19_DIGITAL_SIGNATURE/REFERENCE.png",
+                        "Sha256":  "0DA5604D55B4581EBCD07DB3DA7F643057143C4BFD1A20AB3B260F78A2E830D4"
+                    },
+                    {
+                        "ID":  "20_CERTIFICATE_INSPECTOR",
+                        "Task":  "03_HOME/05_KEY_FORGE/SERVICES/20_CERTIFICATE_INSPECTOR/TASK.md",
+                        "Image":  "03_HOME/05_KEY_FORGE/SERVICES/20_CERTIFICATE_INSPECTOR/REFERENCE.png",
+                        "Sha256":  "DF810BDF51160E5318DD327D66F8A098CFCB139393B3E79761FE2DBA61090B76"
+                    },
+                    {
+                        "ID":  "23_FINGERPRINT_VERIFY",
+                        "Task":  "03_HOME/05_KEY_FORGE/SERVICES/23_FINGERPRINT_VERIFY/TASK.md",
+                        "Image":  "03_HOME/05_KEY_FORGE/SERVICES/23_FINGERPRINT_VERIFY/REFERENCE.png",
+                        "Sha256":  "580AAFA15D343BC1F9EE1347CB7C9DF7CEC696377A071EA4EAB4077388B2008C"
+                    },
+                    {
+                        "ID":  "26_SECURE_RANDOM",
+                        "Task":  "03_HOME/05_KEY_FORGE/SERVICES/26_SECURE_RANDOM/TASK.md",
+                        "Image":  "03_HOME/05_KEY_FORGE/SERVICES/26_SECURE_RANDOM/REFERENCE.png",
+                        "Sha256":  "5A87306D3EE36FA6B7F9E0B63B089ACA6A163DA935EFF5246A0ACD4BC622667F"
+                    },
+                    {
+                        "ID":  "27_HMAC_AUTHENTICITY",
+                        "Task":  "03_HOME/05_KEY_FORGE/SERVICES/27_HMAC_AUTHENTICITY/TASK.md",
+                        "Image":  "03_HOME/05_KEY_FORGE/SERVICES/27_HMAC_AUTHENTICITY/REFERENCE.png",
+                        "Sha256":  "1C81131DD3482347033F557E9CE81EB5A7F8A649545C88B62A6A3145C7CE022E"
+                    },
+                    {
+                        "ID":  "28_PUBLIC_KEY_QR",
+                        "Task":  "03_HOME/05_KEY_FORGE/SERVICES/28_PUBLIC_KEY_QR/TASK.md",
+                        "Image":  "03_HOME/05_KEY_FORGE/SERVICES/28_PUBLIC_KEY_QR/REFERENCE.png",
+                        "Sha256":  "26661626F3CC61B9F66DEBF8A673C04633825583D6A42DF6DEAEBF35E18C12D0"
+                    },
+                    {
+                        "ID":  "37_ARGON2ID_KEY_DERIVATION",
+                        "Task":  "03_HOME/05_KEY_FORGE/SERVICES/37_ARGON2ID_KEY_DERIVATION/TASK.md",
+                        "Image":  "03_HOME/05_KEY_FORGE/SERVICES/37_ARGON2ID_KEY_DERIVATION/REFERENCE.png",
+                        "Sha256":  "986321D35A0982D9DB3B824C6F76955C1CF80E51A5A37B9EC0B1E73178B20D18"
+                    },
+                    {
+                        "ID":  "38_SIGNATURE_STUDIO",
+                        "Task":  "03_HOME/05_KEY_FORGE/SERVICES/38_SIGNATURE_STUDIO/TASK.md",
+                        "Image":  "03_HOME/05_KEY_FORGE/SERVICES/38_SIGNATURE_STUDIO/REFERENCE.png",
+                        "Sha256":  "8F13B7E0315AB9BCCBF1C5F152CF215672D650FBB22942D4CE4343E88317C055"
+                    },
+                    {
+                        "ID":  "10_AUTHENTICATOR",
+                        "Task":  "03_HOME/06_AUTHENTICATOR/TASK.md",
+                        "Image":  "03_HOME/06_AUTHENTICATOR/REFERENCE.png",
+                        "Sha256":  "051584E8C77D7C75277439AA044BC59CDCDB922C108A7C5463565DF78E2829F5"
+                    },
+                    {
+                        "ID":  "11_AUTH_IMPORT",
+                        "Task":  "03_HOME/06_AUTHENTICATOR/SERVICES/11_AUTH_IMPORT/TASK.md",
+                        "Image":  "03_HOME/06_AUTHENTICATOR/SERVICES/11_AUTH_IMPORT/REFERENCE.png",
+                        "Sha256":  "A8D567B96C3007F7A4FB0FE6E7776EE880DEAC9B1BD92A1C2D07BE19701959EE"
+                    },
+                    {
+                        "ID":  "14_PRIVACY",
+                        "Task":  "03_HOME/07_PRIVACY_CENTER/TASK.md",
+                        "Image":  "03_HOME/07_PRIVACY_CENTER/REFERENCE.png",
+                        "Sha256":  "E1E617B2BAEB43C02C620534E1E26942A2DB23502B794A3C1C4B21FA680A2590"
+                    },
+                    {
+                        "ID":  "24_METADATA_CLEANER",
+                        "Task":  "03_HOME/07_PRIVACY_CENTER/SERVICES/24_METADATA_CLEANER/TASK.md",
+                        "Image":  "03_HOME/07_PRIVACY_CENTER/SERVICES/24_METADATA_CLEANER/REFERENCE.png",
+                        "Sha256":  "C9268D3A37FC59639E9DF2F9CC1B94B48087AED4B6554CEC65FB136EAD95E510"
+                    },
+                    {
+                        "ID":  "25_CLIPBOARD_GUARD",
+                        "Task":  "03_HOME/07_PRIVACY_CENTER/SERVICES/25_CLIPBOARD_GUARD/TASK.md",
+                        "Image":  "03_HOME/07_PRIVACY_CENTER/SERVICES/25_CLIPBOARD_GUARD/REFERENCE.png",
+                        "Sha256":  "B5C7466E0428D1AA993832ABA56034A61289BE8E6F797FA0790536B836FCE06C"
+                    },
+                    {
+                        "ID":  "34_OFFLINE_SECURITY_ADVISOR",
+                        "Task":  "03_HOME/07_PRIVACY_CENTER/SERVICES/34_OFFLINE_SECURITY_ADVISOR/TASK.md",
+                        "Image":  "03_HOME/07_PRIVACY_CENTER/SERVICES/34_OFFLINE_SECURITY_ADVISOR/REFERENCE.png",
+                        "Sha256":  "D48076917797E486196A841F43B47D7813E72C3F169AEC4500C68A4274A0B731"
+                    },
+                    {
+                        "ID":  "39_LOCAL_SECURITY_ACTIVITY",
+                        "Task":  "03_HOME/07_PRIVACY_CENTER/SERVICES/39_LOCAL_SECURITY_ACTIVITY/TASK.md",
+                        "Image":  "03_HOME/07_PRIVACY_CENTER/SERVICES/39_LOCAL_SECURITY_ACTIVITY/REFERENCE.png",
+                        "Sha256":  "1E0099CD3AE5BEA9BA56DD1C8DA85FDF4F803C82A485225BFA849AF1CB77F675"
+                    },
+                    {
+                        "ID":  "42_SESSION_PRIVACY_CONTROLS",
+                        "Task":  "03_HOME/07_PRIVACY_CENTER/SERVICES/42_SESSION_PRIVACY_CONTROLS/TASK.md",
+                        "Image":  "03_HOME/07_PRIVACY_CENTER/SERVICES/42_SESSION_PRIVACY_CONTROLS/REFERENCE.png",
+                        "Sha256":  "D438CC84D521CC21072D8DE94267A3B22664EAFA32E17A4A334759931E53114F"
+                    },
+                    {
+                        "ID":  "44_SECURE_CLIPBOARD",
+                        "Task":  "03_HOME/07_PRIVACY_CENTER/SERVICES/44_SECURE_CLIPBOARD/TASK.md",
+                        "Image":  "03_HOME/07_PRIVACY_CENTER/SERVICES/44_SECURE_CLIPBOARD/REFERENCE.png",
+                        "Sha256":  "7BAC23084A1FEA6BBCCB10F7EAC37BD27226EFDBD0C7060D9A42BC6E041CCB4D"
+                    },
+                    {
+                        "ID":  "15_BACKUP",
+                        "Task":  "03_HOME/08_RECOVERY/TASK.md",
+                        "Image":  "03_HOME/08_RECOVERY/REFERENCE.png",
+                        "Sha256":  "7C1554206B3B6699A6F128AF400E174B5B8654130E70A87BF8D79646FCBB12DB"
+                    },
+                    {
+                        "ID":  "16_SECURE_SHARE",
+                        "Task":  "03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/TASK.md",
+                        "Image":  "03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/REFERENCE.png",
+                        "Sha256":  "1CDABDFD44FA1235B3BEBFD2E61CDFC0587B17484E7FBD5D435D94B6803A48A7"
+                    },
+                    {
+                        "ID":  "22_LOCAL_TRANSFER",
+                        "Task":  "03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/22_LOCAL_TRANSFER/TASK.md",
+                        "Image":  "03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/22_LOCAL_TRANSFER/REFERENCE.png",
+                        "Sha256":  "ECACAB4C3D953D48F863DD57B8B4C048AA71BE7BCA6F72CD7791775BF266BC7B"
+                    },
+                    {
+                        "ID":  "35_MULTI_DEVICE_PAIRING",
+                        "Task":  "03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/35_MULTI_DEVICE_PAIRING/TASK.md",
+                        "Image":  "03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/35_MULTI_DEVICE_PAIRING/REFERENCE.png",
+                        "Sha256":  "E2F4B8AD43483FF6765A9B548783CFC500A2CAF1444841D66C1D2BCDDA710E9A"
+                    },
+                    {
+                        "ID":  "40_TRANSFER_WIZARD",
+                        "Task":  "03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/40_TRANSFER_WIZARD/TASK.md",
+                        "Image":  "03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/40_TRANSFER_WIZARD/REFERENCE.png",
+                        "Sha256":  "BEAA93D502CE28B3D842E3266A7048D08C6D1B052EAAE2C9ED6E4F110BB03852"
+                    },
+                    {
+                        "ID":  "41_EXPIRING_SECRET_CAPSULE",
+                        "Task":  "03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/41_EXPIRING_SECRET_CAPSULE/TASK.md",
+                        "Image":  "03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/41_EXPIRING_SECRET_CAPSULE/REFERENCE.png",
+                        "Sha256":  "57600A43793B921B33451DB2179A188412F44C9CFE5D4763BA36E3824A400362"
+                    }
+                ]
+}

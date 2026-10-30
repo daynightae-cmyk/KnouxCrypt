@@ -1,0 +1,75 @@
+/* Entrance-only styles: leave the existing desktop app and screens intact. */
+.crypt-entry {
+  --crypt-gutter: 24px;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: max(48px, env(safe-area-inset-top)) max(var(--crypt-gutter), env(safe-area-inset-right)) max(48px, env(safe-area-inset-bottom)) max(var(--crypt-gutter), env(safe-area-inset-left));
+  background: #07050e;
+  color: #f3edff;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+.crypt-entry-group {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(78vw, 620px);
+  max-width: 100%;
+  container-type: inline-size;
+  gap: 32px;
+}
+.crypt-emblem { position: relative; width: 100%; }
+.crypt-emblem img { display: block; width: 100%; height: auto; }
+.crypt-ignition { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.crypt-ignition path { stroke: #e9d8ff; stroke-width: 3; opacity: 0; filter: drop-shadow(0 0 8px #b16dff); }
+.crypt-ignite .crypt-eye { animation: crypt-eye-ignite 2.8s ease-out 0.4s both; }
+.crypt-ignite .crypt-eye-right { animation-delay: 0.75s; }
+.crypt-ignite .crypt-antler { stroke-dasharray: 70 1000; animation: crypt-antler-sweep 2.8s ease-out 1s both; }
+.crypt-branding { text-align: center; width: 100%; }
+.crypt-branding h1 { margin: 0; font-size: clamp(32px, 14.7cqw, 92px); font-weight: 400; line-height: 1.12; letter-spacing: 0; white-space: nowrap; }
+.crypt-branding h1 span { color: #b393eb; background: linear-gradient(140deg, #ddc8fa, #9b72e5 75%); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.crypt-branding p { margin: 24px 0 0; color: #9992a7; font-size: clamp(10px, 3.6cqw, 24px); font-weight: 300; letter-spacing: 0.28em; white-space: nowrap; }
+.crypt-gate { display: flex; align-items: center; flex-direction: column; gap: 8px; padding: 8px 24px; border: 0; border-radius: 32px; background: transparent; color: #aaa0be; font: inherit; font-size: 11px; letter-spacing: 0.13em; cursor: pointer; transition: color 180ms, opacity 180ms; -webkit-tap-highlight-color: transparent; }
+.crypt-fingerprint { display: grid; place-items: center; position: relative; width: 56px; height: 56px; border-radius: 50%; }
+.crypt-fingerprint svg { width: 40px; height: 40px; }
+.crypt-fingerprint::after { content: ""; position: absolute; inset: 0; border: 1px solid #b790ff; border-radius: 50%; opacity: 0; }
+.crypt-gate:hover, .crypt-gate:focus-visible { color: #e3ceff; }
+.crypt-gate:focus-visible { outline: 2px solid #a785d1; outline-offset: 6px; }
+.crypt-gate:active { opacity: 0.6; }
+.crypt-gate.crypt-entering { color: #f8eeff; cursor: wait; }
+.crypt-entering .crypt-fingerprint { box-shadow: 0 0 24px #ae76ff80; }
+.crypt-entering .crypt-fingerprint::after { animation: crypt-gate-ripple 480ms ease-out; }
+.crypt-atmosphere { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; background: radial-gradient(ellipse at -8% 0%, #55228b42, transparent 38%), radial-gradient(ellipse at 110% 92%, #411c7430, transparent 36%); }
+.crypt-horizon { position: absolute; display: block; width: 85%; height: 25%; border-radius: 50%; border-bottom: 1px solid #7636cc60; box-shadow: 0 12px 22px -17px #a35aff, inset 0 -18px 30px -30px #b070ff; transform: rotate(-31deg); }
+.crypt-horizon-top { top: -14%; left: -37%; }
+.crypt-horizon-bottom { bottom: 15%; right: -37%; }
+.crypt-ember { position: absolute; bottom: 22%; left: 15%; width: 2px; height: 2px; border-radius: 50%; background: #ac79ff; opacity: 0; box-shadow: 0 0 8px #a168ff; animation: crypt-ember-drift 9s ease-in-out infinite; }
+.crypt-ember:nth-of-type(4) { left: 84%; bottom: 32%; animation-delay: 3s; }
+.crypt-ember:nth-of-type(5) { left: 69%; bottom: 13%; animation-delay: 6s; }
+.crypt-demo-sheet { width: min(100%, 440px); padding: 32px; display: grid; gap: 24px; border: 1px solid #9f78d140; border-radius: 24px; background: #140e21; }
+.crypt-demo-label { color: #bd9ae5; font-size: 11px; letter-spacing: 0.14em; }
+.crypt-demo-sheet h1 { font-size: 32px; font-weight: 400; }
+.crypt-demo-sheet h1:focus { outline: none; }
+.crypt-demo-sheet p { line-height: 1.7; }
+.crypt-demo-sheet a { color: #d2b4ff; padding: 8px; border-radius: 8px; }
+.crypt-demo-sheet a:focus-visible { outline: 2px solid #c8a4ff; }
+@keyframes crypt-eye-ignite { 0%, 100% { opacity: 0; } 35% { opacity: 0.5; } }
+@keyframes crypt-antler-sweep { 0% { opacity: 0; stroke-dashoffset: 0; } 30% { opacity: 0.3; } 100% { opacity: 0; stroke-dashoffset: -800; } }
+@keyframes crypt-gate-ripple { from { opacity: 0.7; transform: scale(0.8); } to { opacity: 0; transform: scale(1.7); } }
+@keyframes crypt-ember-drift { 0%, 100% { opacity: 0; transform: translate(0, 0); } 35% { opacity: 0.35; } 80% { opacity: 0; transform: translate(12px, -64px); } }
+@media (max-width: 480px) {
+  .crypt-entry-group { gap: 24px; }
+  .crypt-branding p { margin-top: 16px; }
+}
+@media (min-aspect-ratio: 1/1) {
+  .crypt-entry-group { width: min(40vw, 320px); gap: 24px; }
+  .crypt-branding p { margin-top: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .crypt-entry *, .crypt-entry *::after { animation: none !important; transition: none !important; }
+  .crypt-ignition { display: none; }
+}

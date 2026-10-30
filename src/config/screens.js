@@ -1,0 +1,31 @@
+// Approved screen IDs and sequential visual-demo destinations share one registry.
+export const SCREENS = Object.freeze({
+  SPLASH_ENTRY: "/",
+  SECURE_ACCESS_LOGIN: "/secure-access-login",
+  HOME: "/home",
+  ENCRYPT: "/file-cipher",
+  FILE_CIPHER: "/file-cipher",
+  SHADOW_VAULT: "/vault",
+  INTEGRITY: "/tools/integrity",
+  ARCHIVE: "/tools/archive",
+  COLLECTIONS: "/vault/collections",
+  DOCUMENT_VIEWER: "/vault/documents",
+  VAULT: "/vault",
+  NOTES: "/notes",
+  PASSWORDS: "/passwords",
+  KEY_FORGE: "/key-forge",
+  AUTHENTICATOR: "/authenticator",
+  PRIVACY: "/privacy",
+  BACKUP: "/backup",
+  TOOLS: "/tools",
+});
+export const SERVICES = Object.freeze([
+  { id: "ENCRYPT", title: "Encrypt Files", description: "Keep your files private and secure", art: "encrypt" },
+  { id: "VAULT", title: "Vault", description: "Access your encrypted vault", art: "vault" },
+  { id: "NOTES", title: "Secure Notes", description: "Write. Encrypt. Keep it yours.", art: "notes" },
+  { id: "PASSWORDS", title: "Passwords", description: "Store and manage your passwords", art: "passwords" },
+  { id: "KEY_FORGE", title: "Key Forge", description: "Generate and manage encryption keys", art: "key" },
+  { id: "AUTHENTICATOR", title: "Authenticator", description: "2FA codes, always with you", art: "authenticator" },
+  { id: "PRIVACY", title: "Privacy Center", description: "Control your privacy & security", art: "privacy" },
+  { id: "BACKUP", title: "Recovery", description: "Back up and restore access", art: "recovery" },
+]);

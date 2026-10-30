@@ -1,0 +1,48 @@
+@font-face {font-family:"Knoux Arabic";font-style:normal;font-weight:400;font-display:swap;src:url('../assets/fonts/noto-sans-arabic-arabic-400-normal.woff2') format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-089F,U+08A0-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FEFC;}
+@font-face {font-family:"Knoux Arabic";font-style:normal;font-weight:600 900;font-display:swap;src:url('../assets/fonts/noto-sans-arabic-arabic-600-normal.woff2') format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-089F,U+08A0-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FEFC;}
+html[lang=ar] {--crypt-font:"Knoux Arabic","Segoe UI",Arial,sans-serif;}
+html[lang=ar] .crypt-app-shell {--crypt-font:"Knoux Arabic","Segoe UI",Arial,sans-serif;}
+html[lang=ar] .crypt-app-shell * {letter-spacing:normal;}
+html[lang=ar] .crypt-app-shell button,html[lang=ar] .crypt-app-shell input,html[lang=ar] .crypt-app-shell dialog {font-family:var(--crypt-font);}
+.app-utility-bar {display:flex;align-items:center;justify-content:space-between;flex-shrink:0;min-height:28px;width:min(100%,var(--crypt-shell-width));margin-inline:auto;padding-inline:16px;position:relative;z-index:3;}
+.app-utility-bar .app-sound-strip {margin:0;width:auto;padding:0;}
+.app-language-toggle {font:11px var(--crypt-font);background:#190b2680;border:1px solid #75459b66;color:#dbc1ef;border-radius:99px;padding:2px 10px;min-height:24px;cursor:pointer;}
+.app-language-toggle:focus-visible {outline:2px solid #dec0ff;outline-offset:2px;}
+html[dir=rtl] .app-bottom-nav {direction:rtl;}
+html[dir=rtl] .access-back {left:auto;right:max(16px,env(safe-area-inset-right));}
+html[dir=rtl] .access-back svg,html[dir=rtl] .access-guest svg,html[dir=rtl] .access-submit svg {transform:scaleX(-1);}
+html[dir=rtl] .access-field {direction:rtl;}
+html[dir=rtl] .access-brand,html[dir=rtl] .hub-wordmark,html[dir=rtl] .crypt-branding h1 {direction:ltr;unicode-bidi:isolate;}
+html[dir=rtl] .access-heading h1 {font-size:7cqw;line-height:1.6;}
+html[dir=rtl] .access-caption,html[dir=rtl] .access-heading p,html[dir=rtl] .access-footer {line-height:1.8;}
+html[dir=rtl] .access-method {font-size:3cqw;}
+html[dir=rtl] .access-method small {white-space:normal;font-size:2.3cqw;}
+html[dir=rtl] .access-divider {font-size:2.5cqw;}
+html[dir=rtl] .access-dialog,html[dir=rtl] .hub-dialog,html[dir=rtl] .security-dialog {direction:rtl;text-align:start;}
+html[dir=rtl] .hub-brand {direction:rtl;}
+html[dir=rtl] .hub-brand small {font-size:2.1cqw;}
+html[dir=rtl] .hub-service {direction:rtl;}
+html[dir=rtl] .hub-service-copy > span {white-space:normal;font-size:3.3cqw;line-height:1.65;}
+html[dir=rtl] .hub-service-copy small {font-size:2.55cqw;line-height:1.7;}
+html[dir=rtl] .hub-chevron {transform:scaleX(-1);}
+html[dir=rtl] .hub-hero h1 {font-size:4.4cqw;line-height:1.8;}
+html[dir=rtl] .hub-hero > p {font-size:2.9cqw;}
+html[dir=rtl] .security-title h1 {font-size:6cqw;line-height:1.6;}
+html[dir=rtl] .security-title p {font-size:3.1cqw;line-height:1.8;}
+html[dir=rtl] .vault-screen .security-title h1 {font-size:5.4cqw;}
+html[dir=rtl] .cipher-option,html[dir=rtl] .cipher-help button {text-align:start;}
+html[dir=rtl] .cipher-remove {margin-left:0;margin-right:auto;}
+html[dir=rtl] .cipher-option-next svg,html[dir=rtl] .cipher-help svg:last-child,html[dir=rtl] .security-primary>svg:last-child {transform:scaleX(-1);}
+html[dir=rtl] .cipher-help svg:last-child {margin-left:0;margin-right:auto;}
+html[dir=rtl] .security-primary svg:last-child {margin-left:0;margin-right:auto;}
+html[dir=rtl] .security-primary svg:first-child {margin-left:0;margin-right:auto;}
+html[dir=rtl] .cipher-option-copy small {font-size:3.1cqw;}
+html[dir=rtl] .cipher-option-copy strong {font-size:3.3cqw;unicode-bidi:isolate;}
+html[dir=rtl] .cipher-option-copy > span {font-size:2.8cqw;line-height:1.8;}
+html[dir=rtl] .cipher-help span {white-space:normal;line-height:1.8;}
+html[dir=rtl] .cipher-help small {font-size:2.5cqw;}
+html[dir=rtl] .vault-meter {margin-left:0;margin-right:auto;}
+html[dir=rtl] .vault-meter small {text-align:end;}
+html[dir=rtl] .vault-disclaimer {line-height:1.8;}
+html[dir=rtl] .security-close,html[dir=rtl] .access-close,html[dir=rtl] .hub-close {right:auto;left:12px;}
+html[dir=rtl] .app-sound-error {margin-left:0;margin-right:8px;}
