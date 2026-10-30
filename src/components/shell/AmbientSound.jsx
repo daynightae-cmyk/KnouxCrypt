@@ -1,7 +1,10 @@
+import { useLanguage } from "../../i18n/Language";
 import React, { useEffect, useRef, useState } from "react";
 import { createAmbientAudio } from "./ambientAudio";
 
 export function AmbientSound({ splash }) {
+  const { t, locale, dir } = useLanguage();
+
   const engine = useRef(null);
   const mounted = useRef(true);
   const [enabled, setEnabled] = useState(false);
@@ -32,8 +35,8 @@ export function AmbientSound({ splash }) {
       if (mounted.current) setError(true);
     } finally { if (mounted.current) setBusy(false); }
   }
-  return <div className="app-sound-strip" dir="ltr"><button type="button" className="app-sound-toggle" aria-pressed={enabled} disabled={busy} aria-label={enabled ? 'Mute ambient sound' : 'Enable ambient sound'} onClick={toggle}>
+  return <div className="app-sound-strip" dir={dir}><button type="button" className="app-sound-toggle" aria-pressed={enabled} disabled={busy} aria-label={t(enabled ? 'Mute ambient sound' : 'Enable ambient sound')} onClick={toggle}>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M3 9h4l5-5v16l-5-5H3Z"/>{enabled?<path d="M16 7a7 7 0 0 1 0 10m3-13a11 11 0 0 1 0 16"/>:<path d="m16 9 6 6m0-6-6 6"/>}</svg>
-    {busy ? 'Starting…' : enabled ? 'Sound on' : 'Sound off'}
-  </button>{error && <span role="status" className="app-sound-error">Audio unavailable in this browser</span>}</div>;
+    {t(busy ? 'Starting…' : enabled ? 'Sound on' : 'Sound off')}
+  </button>{error && <span role="status" className="app-sound-error">{t("Audio unavailable in this browser")}</span>}</div>;
 }

@@ -1,4 +1,5 @@
 import React from "react";
+import { LanguageProvider } from "./i18n/Language";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ModernApp } from "./components/modern/ModernApp";
 import { SplashEntry } from "./components/entry/SplashEntry";
@@ -11,6 +12,7 @@ import { SCREENS, SERVICES } from "./config/screens";
 
 function App() {
   return (
+    <LanguageProvider>
     <BrowserRouter>
       <AppShell>
       <Routes>
@@ -26,6 +28,7 @@ function App() {
       </Routes>
       </AppShell>
     </BrowserRouter>
+    </LanguageProvider>
   );
 }
 

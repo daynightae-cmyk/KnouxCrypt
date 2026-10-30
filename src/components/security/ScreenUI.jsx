@@ -1,3 +1,4 @@
+import { useLanguage } from "../../i18n/Language";
 import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { StagEmblem } from "../entry/StagEmblem";
@@ -5,6 +6,8 @@ import { SCREENS } from "../../config/screens";
 import "./security.css";
 
 export function Mark({ name = "shield", ...props }) {
+  const { t, locale, dir } = useLanguage();
+
  const paths = {
   shield:<><path d="m12 2 9 4v6c0 5-6 9-9 11-3-2-9-6-9-11V6Z"/><path d="m8 12 3 3 5-6"/></>,
   lock:<><rect x="5" y="10" width="14" height="12" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4M12 15v3"/></>,
@@ -29,14 +32,22 @@ export function Mark({ name = "shield", ...props }) {
  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>{paths[name]}</svg>;
 }
 export function ScreenFrame({ children, type = "" }) {
- return <main className={`security-screen ${type}`} dir="ltr" lang="en"><div className="security-atmosphere" aria-hidden="true"/><div className="security-shell">{children}</div></main>;
+  const { t, locale, dir } = useLanguage();
+
+ return <main className={`security-screen ${type}`} dir={dir} lang={locale}><div className="security-atmosphere" aria-hidden="true"/><div className="security-shell">{children}</div></main>;
 }
 export function ScreenHeader({ title, accent, caption, children }) {
- return <header className="security-header"><Link to={SCREENS.HOME} className="security-logo" aria-label="Back to Home"><StagEmblem/></Link><div className="security-title"><h1>{title} <span>{accent}</span></h1><p>{caption}</p></div><div className="security-header-actions">{children}</div></header>;
+  const { t, locale, dir } = useLanguage();
+
+ return <header className="security-header"><Link to={SCREENS.HOME} className="security-logo" aria-label={t("Back to Home")}><StagEmblem/></Link><div className="security-title"><h1>{t(title)} <span>{t(accent)}</span></h1><p>{t(caption)}</p></div><div className="security-header-actions">{children}</div></header>;
 }
 export function PreviewSheet({ title, children, onClose }) {
+  const { t, locale, dir } = useLanguage();
+
  const ref=useRef(null);
  useEffect(()=>{const prior=document.activeElement; ref.current.showModal();return()=>prior?.focus();},[]);
- return <dialog className="security-dialog" ref={ref} onCancel={onClose} onClick={e=>{if(e.target===e.currentTarget)onClose();}} aria-labelledby="security-sheet-title"><button autoFocus className="security-close" aria-label="Close visual demo" onClick={onClose}>×</button><p className="security-demo-label">VISUAL DEMO</p><h2 id="security-sheet-title">{title}</h2>{children}<button className="security-sheet-dismiss" onClick={onClose}>Back to preview</button></dialog>;
+ return <dialog className="security-dialog" ref={ref} onCancel={onClose} onClick={e=>{if(e.target===e.currentTarget)onClose();}} aria-labelledby="security-sheet-title"><button autoFocus className="security-close" aria-label={t("Close visual demo")} onClick={onClose}>{t("×")}</button><p className="security-demo-label">{t("VISUAL DEMO")}</p><h2 id="security-sheet-title">{t(title)}</h2>{children}<button className="security-sheet-dismiss" onClick={onClose}>{t("Back to preview")}</button></dialog>;
 }
-export function IconButton({ icon, label, ...props }) {return <button type="button" className="security-icon-button" aria-label={label} {...props}><Mark name={icon}/></button>;}
+export function IconButton({ icon, label, ...props }) {
+  const { t, locale, dir } = useLanguage();
+return <button type="button" className="security-icon-button" aria-label={t(label)} {...props}><Mark name={icon}/></button>;}

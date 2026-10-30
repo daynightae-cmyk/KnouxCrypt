@@ -1,3 +1,4 @@
+import { useLanguage } from "../../i18n/Language";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SCREENS } from "../../config/screens";
@@ -16,6 +17,8 @@ export function Fingerprint() {
 }
 
 export function SplashEntry() {
+  const { t, locale, dir } = useLanguage();
+
   const navigate = useNavigate();
   const [playIntro] = useState(() => !introPlayed);
   const [entering, setEntering] = useState(false);
@@ -34,7 +37,7 @@ export function SplashEntry() {
   }
 
   return (
-    <main className={`crypt-entry ${playIntro ? "crypt-ignite" : ""}`} dir="ltr" lang="en" data-screen="SPLASH_ENTRY" aria-labelledby="crypt-brand">
+    <main className={`crypt-entry ${playIntro ? "crypt-ignite" : ""}`} dir={dir} lang={locale} data-screen="SPLASH_ENTRY" aria-labelledby="crypt-brand">
       <div className="crypt-atmosphere" aria-hidden="true">
         <i className="crypt-horizon crypt-horizon-top" /><i className="crypt-horizon crypt-horizon-bottom" />
         <i className="crypt-ember" /><i className="crypt-ember" /><i className="crypt-ember" />
@@ -44,12 +47,12 @@ export function SplashEntry() {
           <StagEmblem ignite={playIntro}/>
         </div>
         <div className="crypt-branding">
-          <h1 id="crypt-brand">Knoux <span>Crypt</span></h1>
-          <p>Private Encryption Suite</p>
+          <h1 id="crypt-brand">{t("Knoux ")}<span>{t("Crypt")}</span></h1>
+          <p>{t("Private Encryption Suite")}</p>
         </div>
-        <button className={`crypt-gate ${entering ? "crypt-entering" : ""}`} type="button" onClick={enter} disabled={entering} aria-label="Touch to Enter — open Secure Access" aria-busy={entering}>
+        <button className={`crypt-gate ${entering ? "crypt-entering" : ""}`} type="button" onClick={enter} disabled={entering} aria-label={t("Touch to Enter — open Secure Access")} aria-busy={entering}>
           <span className="crypt-fingerprint"><Fingerprint /></span>
-          <span>Touch to Enter</span>
+          <span>{t("Touch to Enter")}</span>
         </button>
       </div>
     </main>

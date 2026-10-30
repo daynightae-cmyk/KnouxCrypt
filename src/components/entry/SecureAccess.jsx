@@ -1,3 +1,4 @@
+import { useLanguage } from "../../i18n/Language";
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { SCREENS } from "../../config/screens";
@@ -7,6 +8,8 @@ import { StagEmblem } from "./StagEmblem";
 import "./access.css";
 
 function Icon({ name }) {
+  const { t, locale, dir } = useLanguage();
+
   const paths = {
     mail: <><rect x="3" y="5" width="18" height="14" rx="1"/><path d="m3 6 9 7 9-7"/></>,
     lock: <><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4M12 15v2"/></>,
@@ -21,6 +24,8 @@ function Icon({ name }) {
 }
 
 function DemoSheet({ method, onClose, onContinue }) {
+  const { t, locale, dir } = useLanguage();
+
   const dialog = useRef(null);
   const close = useRef(null);
   useEffect(() => {
@@ -31,17 +36,19 @@ function DemoSheet({ method, onClose, onContinue }) {
   }, []);
   return <dialog ref={dialog} className="access-dialog" onCancel={onClose} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} aria-labelledby="demo-title" aria-describedby="demo-description">
     <div className="access-sheet">
-      <button ref={close} type="button" className="access-close" onClick={onClose} aria-label="Close visual demo">×</button>
-      <p className="access-demo-label">VISUAL DEMO</p>
-      <h2 id="demo-title">{method} preview</h2>
-      <p id="demo-description">{method === "Sign In" ? "This is an offline interface preview. Nothing has been authenticated. Continue to explore the existing Home demo." : `${method} is a visual preview only. No provider connection, device scan, or authentication is running.`}</p>
-      {method === "Sign In" && <button className="access-submit" type="button" onClick={onContinue}>Continue to Home demo <Icon name="arrow"/></button>}
-      <button className="access-dismiss" type="button" onClick={onClose}>Back to Secure Access</button>
+      <button ref={close} type="button" className="access-close" onClick={onClose} aria-label={t("Close visual demo")}>{t("×")}</button>
+      <p className="access-demo-label">{t("VISUAL DEMO")}</p>
+      <h2 id="demo-title">{t(`${method} preview`)}</h2>
+      <p id="demo-description">{t(method === "Sign In" ? "This is an offline interface preview. Nothing has been authenticated. Continue to explore the existing Home demo." : `${method} is a visual preview only. No provider connection, device scan, or authentication is running.`)}</p>
+      {method === "Sign In" && <button className="access-submit" type="button" onClick={onContinue}>{t("Continue to Home demo ")}<Icon name="arrow"/></button>}
+      <button className="access-dismiss" type="button" onClick={onClose}>{t("Back to Secure Access")}</button>
     </div>
   </dialog>;
 }
 
 export function SecureAccess() {
+  const { t, locale, dir } = useLanguage();
+
   const navigate = useNavigate();
   const location = useLocation();
   const [username, setUsername] = useState("");
@@ -68,38 +75,38 @@ export function SecureAccess() {
     setMethod("Sign In");
   }
 
-  return <main className="crypt-entry crypt-auth" dir="ltr" lang="en" data-screen="SECURE_ACCESS_LOGIN" aria-labelledby="access-title">
+  return <main className="crypt-entry crypt-auth" dir={dir} lang={locale} data-screen="SECURE_ACCESS_LOGIN" aria-labelledby="access-title">
     <div className="crypt-atmosphere" aria-hidden="true"><i className="crypt-horizon crypt-horizon-top"/><i className="crypt-horizon crypt-horizon-bottom"/><i className="crypt-ember"/><i className="crypt-ember"/></div>
     <div className="access-composition">
-      <Link className="access-back" to={backTo} aria-label={backTo === SCREENS.HOME ? "Back to Home" : "Back to Splash"}><Icon name="back"/></Link>
+      <Link className="access-back" to={backTo} aria-label={t(backTo === SCREENS.HOME ? "Back to Home" : "Back to Splash")}><Icon name="back"/></Link>
       <header className="access-hero">
         <div className="access-art"><img className="access-valley" src={valley} width="882" height="373" alt=""/><StagEmblem className="access-new-stag"/></div>
-        <div className="access-brand">Knoux <span>Crypt</span></div>
-        <p className="access-caption">Private Encryption Suite</p>
+        <div className="access-brand">{t("Knoux ")}<span>{t("Crypt")}</span></div>
+        <p className="access-caption">{t("Private Encryption Suite")}</p>
       </header>
       <section className="access-content">
-        <div className="access-heading"><h1 id="access-title">Secure <span>Access</span></h1><p>Your keys stay protected.</p></div>
-        <form className="access-form" onSubmit={submit} noValidate autoComplete="off" aria-label="Offline sign-in visual demo">
+        <div className="access-heading"><h1 id="access-title">{t("Secure ")}<span>{t("Access")}</span></h1><p>{t("Your keys stay protected.")}</p></div>
+        <form className="access-form" onSubmit={submit} noValidate autoComplete="off" aria-label={t("Offline sign-in visual demo")}>
           <div className="access-field-group">
-            <label className={`access-field ${errors.username ? "access-invalid" : ""}`}><Icon name="mail"/><span className="access-sr-only">Email or username (fictional demo only)</span><input ref={userInput} value={username} onChange={e => { setUsername(e.target.value); setErrors({}); }} placeholder="Email or username" autoComplete="off" autoCapitalize="none" spellCheck="false" aria-invalid={!!errors.username} aria-describedby={errors.username ? "username-error" : "access-demo-hint"}/></label>
-            {errors.username && <p className="access-error" id="username-error" role="alert">{errors.username}</p>}
+            <label className={`access-field ${errors.username ? "access-invalid" : ""}`}><Icon name="mail"/><span className="access-sr-only">{t("Email or username (fictional demo only)")}</span><input ref={userInput} value={username} onChange={e => { setUsername(e.target.value); setErrors({}); }} dir="auto" placeholder={t("Email or username")} autoComplete="off" autoCapitalize="none" spellCheck="false" aria-invalid={!!errors.username} aria-describedby={errors.username ? "username-error" : "access-demo-hint"}/></label>
+            {errors.username && <p className="access-error" id="username-error" role="alert">{t(errors.username)}</p>}
           </div>
           <div className="access-field-group">
-            <label className={`access-field ${errors.password ? "access-invalid" : ""}`}><Icon name="lock"/><span className="access-sr-only">Password (fictional demo only)</span><input ref={passwordInput} value={password} onChange={e => { setPassword(e.target.value); setErrors({}); }} type={reveal ? "text" : "password"} placeholder="Password" autoComplete="off" aria-invalid={!!errors.password} aria-describedby={errors.password ? "password-error" : "access-demo-hint"}/><button type="button" className="access-reveal" onClick={() => setReveal(!reveal)} aria-label={reveal ? "Hide password" : "Show password"} aria-pressed={reveal}><Icon name={reveal ? "eye" : "hidden"}/></button></label>
-            {errors.password && <p className="access-error" id="password-error" role="alert">{errors.password}</p>}
+            <label className={`access-field ${errors.password ? "access-invalid" : ""}`}><Icon name="lock"/><span className="access-sr-only">{t("Password (fictional demo only)")}</span><input ref={passwordInput} value={password} onChange={e => { setPassword(e.target.value); setErrors({}); }} type={reveal ? "text" : "password"} dir="ltr" placeholder={t("Password")} autoComplete="off" aria-invalid={!!errors.password} aria-describedby={errors.password ? "password-error" : "access-demo-hint"}/><button type="button" className="access-reveal" onClick={() => setReveal(!reveal)} aria-label={t(reveal ? "Hide password" : "Show password")} aria-pressed={reveal}><Icon name={reveal ? "eye" : "hidden"}/></button></label>
+            {errors.password && <p className="access-error" id="password-error" role="alert">{t(errors.password)}</p>}
           </div>
-          <p id="access-demo-hint" className="access-sample">Offline preview · Use <strong>demo / preview</strong> only</p>
-          <button type="submit" className="access-submit">Sign In <Icon name="arrow"/></button>
+          <p id="access-demo-hint" className="access-sample">{t("Offline preview · Use ")}<strong>{t("demo / preview")}</strong>{t(" only")}</p>
+          <button type="submit" className="access-submit">{t("Sign In ")}<Icon name="arrow"/></button>
         </form>
-        <div className="access-divider"><span>OR CONTINUE WITH</span></div>
-        <div className="access-methods" aria-label="Visual preview methods">
+        <div className="access-divider"><span>{t("OR CONTINUE WITH")}</span></div>
+        <div className="access-methods" aria-label={t("Visual preview methods")}>
           {[['GitHub', 'Continue securely', 'github'], ['Passkey', 'Use your device', 'key'], ['Fingerprint', 'Quick unlock', 'fingerprint']].map(([name, description, icon]) => <button key={name} type="button" className={`access-method ${selected === name ? "access-selected" : ""}`} aria-pressed={selected === name} onClick={() => { setSelected(name); setMethod(name); }}>
-            <span className={icon === "fingerprint" ? "access-biometric" : ""}>{icon === "fingerprint" ? <Fingerprint/> : <Icon name={icon}/>}</span><span>{name}</span><small>{description}</small>
+            <span className={icon === "fingerprint" ? "access-biometric" : ""}>{icon === "fingerprint" ? <Fingerprint/> : <Icon name={icon}/>}</span><span>{t(name)}</span><small>{t(description)}</small>
           </button>)}
         </div>
-        <button type="button" className="access-guest" onClick={() => { setUsername(""); setPassword(""); navigate(SCREENS.HOME, { state: { guestPreview: true } }); }}>Continue as Guest <Icon name="arrow"/></button>
-        <p className="access-guest-caption">Explore the offline visual demo</p>
-        <footer className="access-footer">Privacy by design. Always yours.</footer>
+        <button type="button" className="access-guest" onClick={() => { setUsername(""); setPassword(""); navigate(SCREENS.HOME, { state: { guestPreview: true } }); }}>{t("Continue as Guest ")}<Icon name="arrow"/></button>
+        <p className="access-guest-caption">{t("Explore the offline visual demo")}</p>
+        <footer className="access-footer">{t("Privacy by design. Always yours.")}</footer>
       </section>
     </div>
     {method && <DemoSheet method={method} onClose={() => setMethod(null)} onContinue={() => { setUsername(""); setPassword(""); navigate(SCREENS.HOME); }}/ >}
