@@ -1,3 +1,5 @@
+# LATEST DESIGN OVERRIDE
+FIRST read 00_LATEST_OWNER_OVERRIDES.md. Reverify Splash and Auth; Home uses newer image, not old sphere reference; all routes inherit continuous TOP-TO-BOTTOM falling cipher code background. See 03_HOME/LATEST_HOME_REFERENCE.md.
 # SEQUENTIAL EXECUTION QUEUE
 
 Follow numeric screen order. Verify any previously built screen rather than recreating it. After each completed screen: real screenshot, visual comparison, build/routing tests, safe integration and move to next item.

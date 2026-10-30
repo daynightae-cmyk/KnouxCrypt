@@ -1,3 +1,5 @@
+# PRIORITY UPDATE 2026-10-30
+READ 00_LATEST_OWNER_OVERRIDES.md FIRST. Existing Home reference is superseded by newly supplied final Home image. Falling cybersecurity cipher glyphs MUST flow TOP TO BOTTOM continuously across all pages. Refine Splash, Login, Home first, then services. See 03_HOME/LATEST_HOME_REFERENCE.md.
 # KNOUX CRYPT - GITHUB / VERCEL REPOSITORY AGENT: START HERE
 
 This is a COMPLETE repository-side image/task handoff for the ACTIVE feat/splash-entry PR. No new app, no new branch, no replacement of working src files. 44 uniquely named screen TASK.md files each have exactly one REFERENCE.png.
