@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { SCREENS, SERVICES } from "../../config/screens";
 import { StagEmblem } from "../entry/StagEmblem";
-import core from "../../assets/home-core.webp";
 import "./home.css";
 
 const artwork = import.meta.glob("../../assets/service-*.webp", { eager: true, import: "default" });
@@ -24,7 +23,7 @@ function Header({ onSearch, onSettings }) {
   const { t, locale, dir } = useLanguage();
 
   return <header className="hub-header">
-    <Link to={SCREENS.HOME} className="hub-brand" aria-label={t("Knoux Crypt Home")}><StagEmblem/><span><span className="hub-wordmark">{t("Knoux ")}<em>{t("Crypt")}</em></span><small>{t("Private Encryption Suite")}</small></span></Link>
+    <Link to={SCREENS.HOME} className="hub-brand" aria-label={t("Knoux Crypt Home")}><span><span className="hub-wordmark">{t("Knoux ")}<em>{t("Crypt")}</em></span><small>{t("Private Encryption Suite")}</small></span></Link>
     <div className="hub-header-actions"><button type="button" aria-label={t("Search tools")} onClick={onSearch}><Glyph name="search"/></button><button type="button" aria-label={t("Settings visual demo")} onClick={onSettings}><Glyph name="settings"/></button></div>
   </header>;
 }
@@ -57,7 +56,11 @@ export function Home({ tools = false }) {
     <div className="hub-shell">
       <Header onSearch={() => setDialog("search")} onSettings={() => setDialog("settings")}/>
       {!tools ? <section className="hub-hero" aria-labelledby="hub-status" aria-describedby="hub-demo-context">
-        <div className="hub-core-art"><img src={core} width="714" height="418" alt=""/><span className="hub-orbit" aria-hidden="true"/><svg className="hub-core-eyes" viewBox="0 0 714 418" aria-hidden="true"><ellipse cx="306" cy="190" rx="13" ry="8"/><ellipse cx="408" cy="190" rx="13" ry="8"/></svg></div>
+        <div className="hub-stag-hero"><div className="hub-hero-haze" aria-hidden="true"/><span className="hub-hero-energy" aria-hidden="true"/><StagEmblem className="hub-final-stag" ignite/></div>
+        <div className="hub-hero-brand" dir="ltr">Knoux <span>Crypt</span></div>
+        <div className="hub-brand-divider" aria-hidden="true"><i/></div>
+        <div className="hub-hero-caption">{t("Private Encryption Suite")}</div>
+        <div className="hub-sealed-horizon" aria-hidden="true"/>
         <h1 id="hub-status">{t("Your Vault is Protected")}</h1><p>{t("End-to-End Encrypted")}</p><span id="hub-demo-context" className="hub-sr-only">{t("Visual demo reference text only. No vault protection or encryption has been verified.")}</span>
       </section> : <div className="hub-tools-heading"><h1>{t("Tools")}</h1><p>{t("Choose a service to preview")}</p></div>}
       <ServiceGrid/>

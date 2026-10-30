@@ -14,3 +14,6 @@ Current intended Home:
 REQUIRED HANDOFF ACTION: Add the newly supplied Home screenshot image from the user's current conversation as 03_HOME/REFERENCE.png to REPLACE the superseded file. Until its binary is present, do not assert that the reference image has been replaced in this Git tree; ask for no ordinary permissions but report any genuine missing image blocker truthfully. This note is a design/routing override, not a substitute for the missing PNG pixels.
 
 Next implementation steps: refine Splash -> refine Auth/Guest -> adopt latest Home -> continue Service 04...44 sequentially, preserve consistent shared theme and descending-cipher animation across all of them.
+
+## Binary received and installed
+The owner supplied the final freestanding-stag Home PNG in this session. `REFERENCE.png` now contains those exact bytes (SHA-256 `cf2e23234b19438d8192236739f6264bf2dfdbad7877ebaa1e46692ce4fa7927`). The missing-image blocker above is historical and resolved.
