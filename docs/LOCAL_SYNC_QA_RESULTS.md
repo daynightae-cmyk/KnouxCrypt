@@ -65,3 +65,14 @@ Read missions/fullstack-android/00_READY_TO_START_LOCAL_ANDROID.md, 00_VISUAL_QA
 - The 34 Tools destinations include restored Vault, Secure Notes, Passwords, Encrypt Files, Authenticator, Privacy and Recovery; preserve all eight Home cards. Keep AR/EN searching, grouped Tools UI, continuous cyber rain, original stag and eye light, safe bottom navigation, proper scrolling and motion accessibility.
 - Chromium evidence in qa-evidence/pr15-fidelity/ belongs to PR15; it documents real browser runs, not Compose/runtime security. Vercel account remains blocked. All native APK/Keystore/device/security claims require new independent evidence.
 - Do not touch protected original D:\KnouxCrypt, lose unique planning branches/worktrees, force-push, rewrite history, auto-merge PR #14 or delete references.
+
+## Post-PR15 Windows local merge and verification (2026-10-31)
+- Local authoritative READY path: `D:\KnouxCrypt-Android-Ready` on `integration/knoux-crypt-android-ready-20261030`.
+- Visual source `origin/main` confirmed at `de01b23f9a010cb3743bc117bb3b78c2bb5ee86c` after `git fetch origin`.
+- QA/task refresh committed separately as `256bd983e1e0ce9990732b64199b281e6670f55b`: 44 SCREEN_QA.md, 46 TASK.md, 9 shared handoff docs and canonical PR15 overlay.
+- Non-destructive `git merge --no-ff --no-edit origin/main` completed **without conflicts** at `f963bf8cd8ab5e017051ed783ec9762ffb15ddf6`, with parents `256bd98` and `de01b23`.
+- `node --version`: v24.21.0; `npm.cmd --version`: 11.19.0.
+- **Actual on this Windows READY worktree:** `npm.cmd run check` EXIT **0**: 44 AR/EN SSR mission routes, 45 paths including Tools, 8 Home cards, 166 links, canonical Tools membership; mocked audio tests; Vite build 450 modules, 9.57s. Existing MODULE_TYPELESS_PACKAGE_JSON warning remains; no npm dependency changes.
+- This verification is **source/SSR/mock audio/build only**. PR15 archived real Chromium evidence is present from merged main but was NOT rerun on this Windows machine in this check. Vercel deployment is blocked; no native Android APK, instrumentation, Keystore, real encryption or production release tests occurred.
+- Native TASK 00 partial code remains protected in separate open PR #14 and was NOT merged or modified by this synchronization. The protected original `D:\KnouxCrypt` remains untouched.
+- Local merge and check do not imply remote branch push; confirm remote SHA separately before reporting GitHub sync.
