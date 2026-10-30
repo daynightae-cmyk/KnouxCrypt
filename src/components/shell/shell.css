@@ -65,3 +65,5 @@ html,body,#root { background: var(--crypt-obsidian); }
 .crypt-app-shell .crypt-entry { min-height:calc(100dvh - 28px); }
 
 .app-guest-session { font:10px var(--crypt-font); color:#b8a0cf; padding-inline:8px; text-align:center; }
+
+.app-route-loading { min-height:55dvh;display:grid;place-items:center;color:var(--crypt-muted);font:14px var(--crypt-font);padding:32px; }

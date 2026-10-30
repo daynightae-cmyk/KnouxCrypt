@@ -1,5 +1,8 @@
 // English source keys keep UI state/route IDs independent from translations.
 export const ar = {
+"Screen unavailable. Reload to try again; in-memory demo edits will reset.":"الشاشة غير متاحة. أعد التحميل للمحاولة؛ ستُمسح تعديلات المعاينة الموجودة في الذاكرة.",
+"Reload application":"إعادة تحميل التطبيق",
+"Loading screen…":"جارٍ تحميل الشاشة…",
 "EXPIRING SECRET":"السر المؤقت",
 "Fictional text only. Do not enter private secrets.":"نص وهمي فقط. لا تُدخل أسرارًا خاصة.",
 "Demo capsule text":"نص كبسولة تجريبي",
