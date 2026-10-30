@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SCREENS } from "../../config/screens";
-import stagK from "../../assets/stag-k.webp";
+import { StagEmblem } from "./StagEmblem";
 import "./entry.css";
 
 // In-memory only: Back and route revisits never replay the full ignition.
@@ -41,12 +41,8 @@ export function SplashEntry() {
       </div>
       <div className="crypt-entry-group">
         <div className="crypt-emblem" aria-hidden="true">
-          <img src={stagK} width="680" height="765" alt="" loading="eager" />
-          <svg className="crypt-ignition" viewBox="0 0 680 765" fill="none">
-            <path className="crypt-eye crypt-eye-left" d="M176 362 Q251 381 254 455" />
-            <path className="crypt-eye crypt-eye-right" d="M513 362 Q438 381 435 455" />
-            <path className="crypt-antler" d="M290 415 C280 290 20 370 80 100 M400 415 C415 290 670 370 610 100" />
-          </svg>
+          <StagEmblem ignite={playIntro}/>
+
         </div>
         <div className="crypt-branding">
           <h1 id="crypt-brand">Knoux <span>Crypt</span></h1>

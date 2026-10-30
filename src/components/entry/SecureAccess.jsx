@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { SCREENS } from "../../config/screens";
 import { Fingerprint } from "./SplashEntry";
-import valley from "../../assets/auth-valley.webp";
+import valley from "../../assets/auth-landscape.webp";
+import { StagEmblem } from "./StagEmblem";
 import "./access.css";
 
 function Icon({ name }) {
@@ -72,7 +73,7 @@ export function SecureAccess() {
     <div className="access-composition">
       <Link className="access-back" to={backTo} aria-label={backTo === SCREENS.HOME ? "Back to Home" : "Back to Splash"}><Icon name="back"/></Link>
       <header className="access-hero">
-        <img className="access-valley" src={valley} width="882" height="373" alt=""/>
+        <div className="access-art"><img className="access-valley" src={valley} width="882" height="373" alt=""/><StagEmblem className="access-new-stag"/></div>
         <div className="access-brand">Knoux <span>Crypt</span></div>
         <p className="access-caption">Private Encryption Suite</p>
       </header>

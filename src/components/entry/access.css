@@ -61,3 +61,6 @@
 @keyframes access-breathe { 0%, 100% { opacity: 0; transform: scale(.85); } 50% { opacity: .18; transform: scale(1.12); } }
 @media (max-width: 360px) { .access-field { padding-inline: 12px; gap: 10px; } .access-methods { gap: 8px; } }
 @media (prefers-reduced-motion: reduce) { .crypt-auth *, .crypt-auth *::after { animation: none !important; transition: none !important; } }
+
+.access-art { position: relative; }
+.access-new-stag { position: absolute; width: 41%; top: 2%; left: 29.5%; }
