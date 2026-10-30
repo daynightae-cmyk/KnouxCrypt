@@ -1,5 +1,6 @@
 // English source keys keep UI state/route IDs independent from translations.
 export const ar = {
+'Guest · visual demo':'ضيف · معاينة مرئية',
 'Visual preview methods':'خيارات المعاينة المرئية',
 'Private Encryption Suite':'حزمة التشفير الخاصة',
 'Touch to Enter':'المس للدخول', 'Touch to Enter — open Secure Access':'المس للدخول — فتح الوصول الآمن',
