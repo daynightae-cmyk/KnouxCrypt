@@ -67,3 +67,5 @@ html,body,#root { background: var(--crypt-obsidian); }
 .app-guest-session { font:10px var(--crypt-font); color:#b8a0cf; padding-inline:8px; text-align:center; }
 
 .app-route-loading { min-height:55dvh;display:grid;place-items:center;color:var(--crypt-muted);font:14px var(--crypt-font);padding:32px; }
+
+.app-code-rain span {line-height:21px;max-width:105px;letter-spacing:.06em;mask-image:linear-gradient(transparent,#000 20%,#000 75%,transparent);}

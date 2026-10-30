@@ -1,0 +1,138 @@
+[
+  {
+    "title": "تشفير الملفات\nمعاينة مرئية",
+    "href": "/file-cipher"
+  },
+  {
+    "title": "الخزنة\nمعاينة مرئية",
+    "href": "/vault"
+  },
+  {
+    "title": "الملاحظات الآمنة\nمعاينة مرئية",
+    "href": "/notes"
+  },
+  {
+    "title": "كلمات المرور\nمعاينة مرئية",
+    "href": "/passwords"
+  },
+  {
+    "title": "صناعة المفاتيح\nمعاينة مرئية",
+    "href": "/key-forge"
+  },
+  {
+    "title": "المصادِق\nمعاينة مرئية",
+    "href": "/authenticator"
+  },
+  {
+    "title": "مركز الخصوصية\nمعاينة مرئية",
+    "href": "/privacy"
+  },
+  {
+    "title": "الاسترداد\nمعاينة مرئية",
+    "href": "/backup"
+  },
+  {
+    "title": "التحقق من التوقيع\nمعاينة مرئية",
+    "href": "/key-forge/signature"
+  },
+  {
+    "title": "المشاركة الآمنة\nمعاينة مرئية",
+    "href": "/tools/secure-share"
+  },
+  {
+    "title": "البصمة وسلامة الملفات\nمعاينة مرئية",
+    "href": "/tools/integrity"
+  },
+  {
+    "title": "تشفير النص\nمعاينة مرئية",
+    "href": "/tools/text-cipher"
+  },
+  {
+    "title": "فاحص الشهادات\nمعاينة مرئية",
+    "href": "/tools/certificates"
+  },
+  {
+    "title": "الأرشيف\nمعاينة مرئية",
+    "href": "/tools/archive"
+  },
+  {
+    "title": "النقل المحلي\nمعاينة مرئية",
+    "href": "/tools/secure-share/local-transfer"
+  },
+  {
+    "title": "مقارنة بصمات المفاتيح\nمعاينة مرئية",
+    "href": "/key-forge/fingerprint"
+  },
+  {
+    "title": "تنظيف البيانات الوصفية\nمعاينة مرئية",
+    "href": "/tools/metadata-cleaner"
+  },
+  {
+    "title": "حارس الحافظة\nمعاينة مرئية",
+    "href": "/tools/clipboard-guard"
+  },
+  {
+    "title": "استوديو العينات العشوائية\nمعاينة مرئية",
+    "href": "/tools/random"
+  },
+  {
+    "title": "مختبر أصالة HMAC\nمعاينة مرئية",
+    "href": "/tools/hmac"
+  },
+  {
+    "title": "QR المفتاح العام\nمعاينة مرئية",
+    "href": "/key-forge/public-qr"
+  },
+  {
+    "title": "المجموعات\nمعاينة مرئية",
+    "href": "/vault/collections"
+  },
+  {
+    "title": "عارض المستندات\nمعاينة مرئية",
+    "href": "/vault/documents"
+  },
+  {
+    "title": "فاحص الحزم\nمعاينة مرئية",
+    "href": "/tools/package-inspector"
+  },
+  {
+    "title": "الملء التلقائي\nمعاينة مرئية",
+    "href": "/passwords/autofill"
+  },
+  {
+    "title": "مستشار الأمان دون اتصال\nمعاينة مرئية",
+    "href": "/tools/security-advisor"
+  },
+  {
+    "title": "اشتقاق المفاتيح\nمعاينة مرئية",
+    "href": "/key-forge/derivation"
+  },
+  {
+    "title": "النشاط الأمني\nمعاينة مرئية",
+    "href": "/privacy/activity"
+  },
+  {
+    "title": "كبسولة سر مؤقتة\nمعاينة مرئية",
+    "href": "/tools/secure-share/capsule"
+  },
+  {
+    "title": "خصوصية الجلسة\nمعاينة مرئية",
+    "href": "/privacy/session"
+  },
+  {
+    "title": "سلامة الملفات\nمعاينة مرئية",
+    "href": "/tools/file-integrity"
+  },
+  {
+    "title": "الحافظة الآمنة\nمعاينة مرئية",
+    "href": "/tools/secure-clipboard"
+  },
+  {
+    "title": "إقران الأجهزة\nمعاينة مرئية",
+    "href": "/tools/secure-share/pairing"
+  },
+  {
+    "title": "تدقيق كلمات المرور\nمعاينة مرئية",
+    "href": "/passwords/audit"
+  }
+]
