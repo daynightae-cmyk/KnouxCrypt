@@ -24,7 +24,16 @@ import {
 } from "./components/keys/KeyForge";
 import { PrivacyCenter } from "./components/privacy/PrivacyCenter";
 import { Recovery } from "./components/recovery/Recovery";
-import { SCREENS, SERVICES, KEY_WORKFLOWS } from "./config/screens";
+import {
+  SecureShare,
+  ShareWorkflowPreview,
+} from "./components/share/SecureShare";
+import {
+  SCREENS,
+  SERVICES,
+  KEY_WORKFLOWS,
+  SHARE_WORKFLOWS,
+} from "./config/screens";
 
 function App() {
   return (
@@ -40,11 +49,21 @@ function App() {
                   element={<SecureAccess />}
                 />
                 <Route path={SCREENS.HOME} element={<Home />} />
+                <Route path={SCREENS.SECURE_SHARE} element={<SecureShare />} />
+                {SHARE_WORKFLOWS.map((workflow) => (
+                  <Route
+                    key={workflow.id}
+                    path={SCREENS[workflow.id]}
+                    element={<ShareWorkflowPreview title={workflow.title} />}
+                  />
+                ))}
                 <Route path={SCREENS.BACKUP} element={<Recovery />} />
                 <Route path={SCREENS.PRIVACY} element={<PrivacyCenter />} />
                 <Route path={SCREENS.KEY_FORGE} element={<KeyForge />} />
                 <Route path={SCREENS.KEY_DETAILS} element={<KeyDetails />} />
-                {KEY_WORKFLOWS.map((workflow) => (
+                {KEY_WORKFLOWS.filter(
+                  (workflow) => workflow.id !== "SECURE_SHARE",
+                ).map((workflow) => (
                   <Route
                     key={workflow.id}
                     path={SCREENS[workflow.id]}
