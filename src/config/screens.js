@@ -16,6 +16,7 @@ export const SCREENS = Object.freeze({
   PUBLIC_KEY_QR: "/key-forge/public-qr",
   SECURE_CLIPBOARD: "/tools/secure-clipboard",
   PACKAGE_INSPECTOR: "/tools/package-inspector",
+  OFFLINE_ADVISOR: "/tools/security-advisor",
   TEXT_CIPHER: "/tools/text-cipher",
   CERTIFICATE_INSPECTOR: "/tools/certificates",
   FILE_INTEGRITY: "/tools/file-integrity",

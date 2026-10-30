@@ -1,4 +1,10 @@
 import {
+  AndroidAutofill,
+  OfflineAdvisor,
+  DevicePairing,
+  PasswordAudit,
+} from "./components/devicepreviews/DevicePreviews";
+import {
   VaultCollections,
   DocumentViewer,
   VaultKeyRotation,
@@ -67,10 +73,35 @@ function App() {
           <BrowserRouter>
             <AppShell>
               <Routes>
-                <Route path={SCREENS.COLLECTIONS} element={<VaultCollections />} />
-                <Route path={SCREENS.DOCUMENT_VIEWER} element={<DocumentViewer />} />
-                <Route path={SCREENS.VAULT_KEY_ROTATION} element={<VaultKeyRotation />} />
-                <Route path={SCREENS.PACKAGE_INSPECTOR} element={<PackageInspector />} />
+                <Route path={SCREENS.AUTOFILL} element={<AndroidAutofill />} />
+                <Route
+                  path={SCREENS.OFFLINE_ADVISOR}
+                  element={<OfflineAdvisor />}
+                />
+                <Route
+                  path={SCREENS.DEVICE_PAIRING}
+                  element={<DevicePairing />}
+                />
+                <Route
+                  path={SCREENS.PASSWORD_AUDIT}
+                  element={<PasswordAudit />}
+                />
+                <Route
+                  path={SCREENS.COLLECTIONS}
+                  element={<VaultCollections />}
+                />
+                <Route
+                  path={SCREENS.DOCUMENT_VIEWER}
+                  element={<DocumentViewer />}
+                />
+                <Route
+                  path={SCREENS.VAULT_KEY_ROTATION}
+                  element={<VaultKeyRotation />}
+                />
+                <Route
+                  path={SCREENS.PACKAGE_INSPECTOR}
+                  element={<PackageInspector />}
+                />
                 <Route path={SCREENS.SPLASH_ENTRY} element={<SplashEntry />} />
                 <Route
                   path={SCREENS.SECURE_ACCESS_LOGIN}
@@ -118,7 +149,8 @@ function App() {
                 />
                 <Route path={SCREENS.SECURE_SHARE} element={<SecureShare />} />
                 {SHARE_WORKFLOWS.filter(
-                  (workflow) => workflow.id !== "LOCAL_TRANSFER",
+                  (workflow) =>
+                    !["LOCAL_TRANSFER", "DEVICE_PAIRING"].includes(workflow.id),
                 ).map((workflow) => (
                   <Route
                     key={workflow.id}
@@ -163,8 +195,6 @@ function App() {
                 />
                 <Route path={SCREENS.SHADOW_VAULT} element={<ShadowVault />} />
                 {[
-                  ["AUTOFILL", "Autofill"],
-                  ["PASSWORD_AUDIT", "Password audit"],
                   ["SECURE_CLIPBOARD", "Secure Clipboard"],
                   ["FILE_INTEGRITY", "File integrity"],
                   ["SIGNATURE_STUDIO", "Signature Studio"],
