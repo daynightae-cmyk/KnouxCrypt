@@ -1,0 +1,8 @@
+# Visual-only resumed refinement
+Baseline main dc22d15. Android hold remains active; PR14/integration branch/native files untouched. Separate visual branch to avoid diverged historical clone/other work.
+
+Changes: Home shared-stag hero capped at 220px (58cqw on smaller viewports), service title wrapping; Tools replaces duplicate Home grid + 27-row directory with searchable bilingual 2-column mobile/3-column wide directory; existing primary anchored nav unchanged. No body-scroll lock added: long content retains existing isolated scroll region. Shared downward deterministic trails now carry AES-256, ENCRYPTION, CIPHER, SHA-256, ZERO TRUST, KEY EXCHANGE, HMAC etc interleaved with glyphs at low opacity; same mounted host/positive-Y path/reduced motion retained. Trail line-height fixed to match measured text-height variable. Shared service art capped 220px, long panel wrapping and 44px row minimums.
+
+`npm run check` passes: AR/EN 44 SSR routes, eight Home cards, 166 visible registered links; audio mocks; Vite build. This does not test Tools input events, CSS geometry, eye alignment or real scrolling. Original stag artwork/eye paths unchanged: precise eye remapping not guessed without visual comparison. Code/source audit is not visual completion.
+
+Required next: actual preview screenshots and interaction testing at mobile/desktop/RTL/LTR, compare hero/proportions to PNG, inspect eye glow/video, new terms density, keyboard/footer clearance and lazy CSS. No before/after runtime images yet. Account restriction must be rechecked for this commit. No billing/production mutation or native implementation.

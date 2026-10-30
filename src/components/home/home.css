@@ -95,3 +95,16 @@
 @keyframes hub-haze-breathe {0%,100%{opacity:.65;}50%{opacity:1;}}
 @keyframes hub-energy-drift {from{transform:rotate(-12deg);opacity:.55;}to{transform:rotate(-7deg);opacity:.85;}}
 @media(prefers-reduced-motion:reduce){.hub-hero-haze,.hub-hero-energy{animation:none!important;}}
+
+/* Visual correction: scalable hero and bounded, searchable Tools content. */
+.hub-final-stag {width:min(58cqw,220px);}
+.hub-stag-hero {padding-block:8px;}
+.hub-service-copy {min-width:0;overflow-wrap:anywhere;}
+.hub-service-copy>span {white-space:normal;line-height:1.5;}
+.hub-tools-heading {padding:20px 0 12px;}
+.hub-tools-search {display:grid;gap:8px;color:#c5a4db;font-size:12px;margin:12px 0;}
+.hub-tools-search input {width:100%;min-width:0;padding:12px;border:1px solid #8051ac;border-radius:12px;background:#13091f;color:#e5cef6;font:inherit;font-size:16px;}
+.hub-extra-tools {grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px 0 24px;}
+.hub-extra-tools a {min-width:0;min-height:64px;display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:12px;line-height:1.7;overflow-wrap:anywhere;background:linear-gradient(130deg,#2d123b77,#11091d);text-decoration:none;}
+@media(min-width:900px){.crypt-hub[data-screen="TOOLS"] .hub-shell{width:min(100%,720px);}.hub-extra-tools{grid-template-columns:repeat(3,minmax(0,1fr));}}
+@media(max-width:360px){.hub-extra-tools{gap:8px;}.hub-extra-tools a{padding:10px;font-size:11px;}}

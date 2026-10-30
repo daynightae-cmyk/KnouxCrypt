@@ -18,3 +18,7 @@
 .crypt-app-shell[data-page-hidden="true"] .app-atmosphere *::before,
 .crypt-app-shell[data-page-hidden="true"] .app-atmosphere *::after { animation-play-state:paused!important; }
 .crypt-app-shell main h1[tabindex="-1"]:focus {outline:none;}
+
+.crypt-app-shell :where(.inspection-art,.workflow-hero,.lab-art,.vt-art,.device-hero,.advanced-art,.ft-art) {max-width:220px;margin-inline:auto;}
+.crypt-app-shell :where(.inspection-panel,.workflow-panel,.lab-panel,.vt-panel,.device-panel,.advanced-panel,.ft-panel) {min-width:0;overflow-wrap:anywhere;}
+.crypt-app-shell :where(.inspection-row,.workflow-row,.vt-row,.device-row,.advanced-row) {min-height:44px;}

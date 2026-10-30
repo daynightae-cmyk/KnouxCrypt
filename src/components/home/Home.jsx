@@ -52,6 +52,7 @@ export function Home({ tools = false }) {
   const { t, locale, dir } = useLanguage();
 
   const [dialog, setDialog] = useState(null);
+  const [toolQuery,setToolQuery] = useState("");
   return <main className="crypt-hub" dir={dir} lang={locale} data-screen={tools ? "TOOLS" : "HOME"}>
     <div className="hub-shell">
       <Header onSearch={() => setDialog("search")} onSettings={() => setDialog("settings")}/>
@@ -63,8 +64,9 @@ export function Home({ tools = false }) {
         <div className="hub-sealed-horizon" aria-hidden="true"/>
         <h1 id="hub-status">{t("Your Vault is Protected")}</h1><p>{t("End-to-End Encrypted")}</p><span id="hub-demo-context" className="hub-sr-only">{t("Visual demo reference text only. No vault protection or encryption has been verified.")}</span>
       </section> : <div className="hub-tools-heading"><h1>{t("Tools")}</h1><p>{t("Choose a service to preview")}</p></div>}
-      <ServiceGrid/>
-      {tools && <div className="hub-extra-tools">{[['KEY_FORGE','Key Forge'],['SIGNATURE','Signature Verification'],['SECURE_SHARE','Secure Share'],['INTEGRITY','Hash & Integrity'],['TEXT_CIPHER','Text Cipher'],['CERTIFICATE_INSPECTOR','Certificate Inspector'],['ARCHIVE','Archive'],['LOCAL_TRANSFER','Local Transfer'],['FINGERPRINT_VERIFY','Fingerprint Verify'],['METADATA_CLEANER','Metadata Cleaner'],['CLIPBOARD_GUARD','Clipboard Guard'],['SECURE_RANDOM','Secure Random Studio'],['HMAC_AUTHENTICITY','HMAC Authenticity Lab'],['PUBLIC_KEY_QR','Public Key QR'],['COLLECTIONS','Collections'],['DOCUMENT_VIEWER','Document viewer'],['PACKAGE_INSPECTOR','Package Inspector'],['AUTOFILL','Autofill'],['OFFLINE_ADVISOR','Offline Security Advisor'],['KEY_DERIVATION','Key Derivation'],['SECURITY_ACTIVITY','Security Activity'],['SECRET_CAPSULE','Expiring Secret Capsule'],['SESSION_PRIVACY','Session Privacy'],['FILE_INTEGRITY','File integrity'],['SECURE_CLIPBOARD','Secure Clipboard'],['DEVICE_PAIRING','Device Pairing'],['PASSWORD_AUDIT','Password audit']].map(([id,title])=><Link key={id} to={SCREENS[id]}>{t(title)}{t(" preview")}</Link>)}</div>}
+      {tools && <label className="hub-tools-search"><span>{t("Search tools")}</span><input type="search" value={toolQuery} onChange={e=>setToolQuery(e.target.value)} placeholder={t("Vault, notes, keys…")}/></label>}
+      {!tools && <ServiceGrid/>}
+      {tools && <div className="hub-extra-tools" data-tools-results>{[['KEY_FORGE','Key Forge'],['SIGNATURE','Signature Verification'],['SECURE_SHARE','Secure Share'],['INTEGRITY','Hash & Integrity'],['TEXT_CIPHER','Text Cipher'],['CERTIFICATE_INSPECTOR','Certificate Inspector'],['ARCHIVE','Archive'],['LOCAL_TRANSFER','Local Transfer'],['FINGERPRINT_VERIFY','Fingerprint Verify'],['METADATA_CLEANER','Metadata Cleaner'],['CLIPBOARD_GUARD','Clipboard Guard'],['SECURE_RANDOM','Secure Random Studio'],['HMAC_AUTHENTICITY','HMAC Authenticity Lab'],['PUBLIC_KEY_QR','Public Key QR'],['COLLECTIONS','Collections'],['DOCUMENT_VIEWER','Document viewer'],['PACKAGE_INSPECTOR','Package Inspector'],['AUTOFILL','Autofill'],['OFFLINE_ADVISOR','Offline Security Advisor'],['KEY_DERIVATION','Key Derivation'],['SECURITY_ACTIVITY','Security Activity'],['SECRET_CAPSULE','Expiring Secret Capsule'],['SESSION_PRIVACY','Session Privacy'],['FILE_INTEGRITY','File integrity'],['SECURE_CLIPBOARD','Secure Clipboard'],['DEVICE_PAIRING','Device Pairing'],['PASSWORD_AUDIT','Password audit']].filter(([id,title])=>`${title} ${t(title)}`.toLowerCase().includes(toolQuery.toLowerCase())).map(([id,title])=><Link key={id} to={SCREENS[id]}>{t(title)}{t(" preview")}</Link>)}</div>}
     </div>
     {dialog && <HubDialog kind={dialog} onClose={() => setDialog(null)}/>}
   </main>;
