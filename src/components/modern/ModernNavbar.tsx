@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { SCREENS } from "../../config/screens";
 import { CryptoTestButton } from "../UI/CryptoTestButton";
 
 interface UserProfile {
@@ -19,6 +21,7 @@ interface Notification {
 }
 
 export const ModernNavbar: React.FC = () => {
+  const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -365,6 +368,7 @@ export const ModernNavbar: React.FC = () => {
                 <div className="space-y-2">
                   <motion.button
                     className="w-full glass-button p-2 text-sm text-right"
+                    onClick={() => navigate(SCREENS.SECURE_ACCESS_LOGIN, { state: { returnTo: SCREENS.HOME } })}
                     whileHover={{ scale: 1.02 }}
                   >
                     ⚙️ إعدادات الحساب

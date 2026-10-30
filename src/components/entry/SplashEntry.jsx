@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { SCREENS } from "../../config/screens";
 import stagK from "../../assets/stag-k.webp";
 import "./entry.css";
@@ -7,7 +7,7 @@ import "./entry.css";
 // In-memory only: Back and route revisits never replay the full ignition.
 let introPlayed = false;
 
-function Fingerprint() {
+export function Fingerprint() {
   return (
     <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden="true">
       <path d="M10 23a14 14 0 0 1 28 0M6 23a18 18 0 0 1 36 0M15 41c5-5 5-11 5-18a4 4 0 0 1 8 0c0 10-1 16-4 21M10 36c4-4 6-8 6-13a8 8 0 0 1 16 0c0 9 0 14-3 20M6 30c3-2 4-5 4-7M24 23c0 8-1 15-5 21M37 30c1-2 1-5 1-7M35 40c2-4 3-7 3-10M42 23c0 5 0 8-2 12" />
@@ -57,21 +57,6 @@ export function SplashEntry() {
           <span>Touch to Enter</span>
         </button>
       </div>
-    </main>
-  );
-}
-
-// Screen 02 has not been supplied. This is explicitly a demo route, not authentication.
-export function SecureAccessPlaceholder() {
-  return (
-    <main className="crypt-entry crypt-access" dir="ltr" lang="en" data-screen="SECURE_ACCESS_LOGIN" aria-labelledby="crypt-access-title">
-      <section className="crypt-demo-sheet">
-        <p className="crypt-demo-label">VISUAL DEMO · SCREEN 02</p>
-        <h1 id="crypt-access-title" tabIndex={-1} ref={(node) => node?.focus()}>Secure Access</h1>
-        <p>The login screen is awaiting its approved design. No authentication or biometric scan has been performed.</p>
-        <Link to={SCREENS.SPLASH_ENTRY}>Back to entrance</Link>
-        <Link to={SCREENS.HOME}>Explore existing Home demo</Link>
-      </section>
     </main>
   );
 }
