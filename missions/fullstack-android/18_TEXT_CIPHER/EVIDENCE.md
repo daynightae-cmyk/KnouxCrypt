@@ -13,3 +13,14 @@ install, launch, screenshot, lifecycle, Back, biometric, Keystore or SAF evidenc
 - PBKDF2-HMAC-SHA256 310,000 iterations; Argon2id remains mission 37 and is not claimed.
 - Tests: `PassphraseEnvelopeTest` (6) round-trip incl. Arabic text, wrong passphrase/context, tamper, limits, KDF determinism; PASS.
 - NOT RUN: device UI, clipboard behavior.
+
+---
+
+## Argon2id upgrade — 2026-10-31 (`a2ec4b7`)
+
+- Baseline for this increment: `cc8f2c8`; implementation: `a2ec4b7d2122e40fa5182ade580245b9c26c7c30`.
+- New seals are **KNP2**: Argon2id v1.3 + AES-256-GCM, with memory/iterations/parallelism authenticated in the header. Defaults 64 MiB, t=3, p=2. Existing **KNP1/PBKDF2** ciphertext still opens; new writes never downgrade.
+- UI: wrong passphrase/tamper errors retained; added an OOM path that leaves the ciphertext untouched and tells the user no silent downgrade occurred. Footer now states KNP2/Argon2id and that KNP1 remains readable.
+- Tests (actual): `./gradlew :core:security:test --rerun-tasks` PASS — `PassphraseEnvelopeTest` 8 tests, 0 failures; `Argon2idTest` 3 tests incl. the published reference vector, 0 failures. Full suite 70 tests, 0 failures.
+- Build/lint: `:app:assembleDebug` PASS, APK 17,562,730 bytes; `:app:lintDebug` 0 errors.
+- Device UI, clipboard behavior and low-memory timing remain **DEVICE_UNVERIFIED**. KNP1 generation still exists only as a compatibility helper; KNF1 file containers are unchanged (PBKDF2).

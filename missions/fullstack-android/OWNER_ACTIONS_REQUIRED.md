@@ -31,7 +31,9 @@ Expected proof of activation: both instrumented classes pass on the device
 (`AccessFlowTest`, `KeystoreDeviceTest`), first-run enrollment succeeds, unlock
 only after a real biometric prompt, gate rotation keeps the old gate on cancel,
 biometric-invalidation shows the recovery-required state without deleting data,
-and a 30 s background lock clears decrypted lists.
+and a 30 s background lock clears decrypted lists. Also open `Key Derivation`,
+run the default Argon2id cost, confirm the elapsed time and that a very low-memory
+device shows the OOM error instead of crashing.
 
 **Still unverified until this runs:** same `Cipher` instance returned by
 `BiometricPrompt` (the boundary rejects substitution by identity), Keystore
