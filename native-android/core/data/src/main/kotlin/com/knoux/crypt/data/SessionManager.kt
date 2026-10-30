@@ -23,7 +23,7 @@ class SessionManager(private val keystore: KeystoreManager) {
         @Synchronized get() = access != null
 
     @Synchronized
-    fun unlock() {
+    internal fun unlock() {
         access = VaultAccess()
         _unlocked.value = true
     }

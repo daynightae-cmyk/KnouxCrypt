@@ -151,9 +151,11 @@ fun AccountScreen(
                 )
                 InfoRow(tr("Biometric strength", "قوة البصمة"), tr("Strong only", "القوية فقط"))
                 InfoRow(tr("Data key binding", "ارتباط مفتاح البيانات"), tr("Session gate · not per-use", "بوابة جلسة · ليست لكل استخدام"))
-                Spacer(Modifier.height(6.dp))
-                TextButton(onClick = { showReset = true }) {
-                    Text(tr("Reset secure unlock gate", "إعادة إعداد بوابة الفتح"), color = KnouxColors.Warn, fontSize = 12.sp)
+                if (unlocked) {
+                    Spacer(Modifier.height(6.dp))
+                    TextButton(onClick = { showReset = true }) {
+                        Text(tr("Reset secure unlock gate", "إعادة إعداد بوابة الفتح"), color = KnouxColors.Warn, fontSize = 12.sp)
+                    }
                 }
             }
             Spacer(Modifier.height(10.dp))

@@ -67,7 +67,10 @@ class SecretRepository(
             .map { rows -> rows.map { decode(access, it) } }
             .flowOn(Dispatchers.IO)
 
-    fun count(access: VaultAccess, kind: String): Flow<Int> = dao.count(kind).flowOn(Dispatchers.IO)
+    fun count(access: VaultAccess, kind: String): Flow<Int> {
+        require(session.currentAccess() === access) { "Vault is locked" }
+        return dao.count(kind).flowOn(Dispatchers.IO)
+    }
 
     suspend fun find(access: VaultAccess, id: String): SecretRecord? = withContext(Dispatchers.IO) {
         dao.find(id)?.let { decode(access, it) }
