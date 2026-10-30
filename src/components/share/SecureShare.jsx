@@ -101,7 +101,7 @@ export function SecureShare() {
             </button>
           )}
         </section>
-        <section className="share-recipient"><Link to={SCREENS.FINGERPRINT_VERIFY}>{t("Fingerprint Verify")}</Link>
+        <section className="share-recipient"><Link to={SCREENS.PUBLIC_KEY_QR}>{t("Public Key QR")}</Link><Link to={SCREENS.FINGERPRINT_VERIFY}>{t("Fingerprint Verify")}</Link>
           <div className="share-section-heading">
             <Mark name="key" />
             <h2>{t("Recipient Public Key")}</h2>

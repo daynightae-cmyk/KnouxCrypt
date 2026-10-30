@@ -89,7 +89,7 @@ function Generator() {
       className="password-generator"
       aria-label={t("Visual password generator")}
     >
-      <h2>{t("Generate Password")}</h2>
+      <h2>{t("Generate Password")}</h2><Link to={SCREENS.SECURE_RANDOM}>{t("Secure Random Studio")}</Link>
       <p className="password-demo-label">
         {t("Public visual sample · not for real accounts")}
       </p>
