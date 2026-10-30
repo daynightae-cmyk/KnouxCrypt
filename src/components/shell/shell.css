@@ -40,3 +40,20 @@ html,body,#root { background: var(--crypt-obsidian); }
 @keyframes crypt-code-fall { from {transform:translateY(-10%);}to {transform:translateY(180%);} }
 @keyframes crypt-global-ember {0%,100%{opacity:0;transform:translate(0,0);}40%{opacity:.3;}85%{opacity:0;transform:translate(12px,-90px);}}
 @media(prefers-reduced-motion:reduce){.app-atmosphere *{animation:none!important;}.app-code-rain span{transform:translateY(35%);opacity:.018;}.app-global-ember{display:none;}}
+/* One continuous wave/particle field, never re-seeded by a screen change. */
+.crypt-app-shell { display:flex; flex-direction:column; }
+.app-scroll-region { flex:1; min-height:0; height:auto; }
+.app-sound-strip { position:relative; z-index:3; flex-shrink:0; height:28px; width:min(100%,var(--crypt-shell-width)); margin-inline:auto; display:flex; align-items:center; justify-content:flex-end; padding-inline:16px; }
+.app-sound-toggle { display:flex; align-items:center; gap:5px; font:10px var(--crypt-font); letter-spacing:.05em; color:#bda3d4; background:#12091d80; border:1px solid #75459b44; border-radius:99px; padding:3px 8px; cursor:pointer; }
+.app-sound-toggle svg { width:12px; height:12px; }.app-sound-toggle:focus-visible { outline:2px solid #d9b4ff; outline-offset:2px; }.app-sound-toggle[aria-pressed=true] { color:#ead5ff; border-color:#a466d388; }.app-sound-error { font-size:10px; color:#d4b3e9; margin-left:8px; }
+.app-nebula { position:absolute; width:110%; height:65%; border-radius:50%; filter:blur(38px); opacity:.38; pointer-events:none; will-change:transform; }
+.app-nebula-one { top:-18%; left:-42%; background:radial-gradient(ellipse,#6210a73b,transparent 65%); animation:crypt-wave-one 24s ease-in-out infinite alternate; }
+.app-nebula-two { right:-48%; bottom:-18%; background:radial-gradient(ellipse,#9120c62b,transparent 65%); animation:crypt-wave-two 31s ease-in-out infinite alternate; }
+.app-starfield { position:absolute; inset:0; }.app-starfield i { position:absolute; width:2px; height:2px; border-radius:50%; background:#e1b4ff; box-shadow:0 0 6px #b25aff; animation:crypt-star-twinkle 8s ease-in-out infinite; opacity:0; }
+.app-energy { animation:crypt-energy-wave 22s ease-in-out infinite alternate; }.app-energy-two { animation-delay:-11s; }
+.crypt-app-shell[data-scene=auth] .app-atmosphere { background:radial-gradient(ellipse at 50% 20%,#55118e28,transparent 55%),radial-gradient(ellipse at 110% 80%,#5c138b23,transparent 45%); }
+@keyframes crypt-wave-one {from{transform:translate(-3%,-2%) rotate(-12deg);}to{transform:translate(14%,18%) rotate(8deg);}}
+@keyframes crypt-wave-two {from{transform:translate(0,0) rotate(8deg);}to{transform:translate(-16%,-12%) rotate(-12deg);}}
+@keyframes crypt-energy-wave {from{transform:rotate(-33deg) translateY(0);opacity:.4;}to{transform:rotate(-28deg) translateY(12px);opacity:.8;}}
+@keyframes crypt-star-twinkle {0%,100%{opacity:0;transform:translateY(5px) scale(.7);}45%{opacity:.48;transform:translateY(0) scale(1);}70%{opacity:.1;}}
+@media(prefers-reduced-motion:reduce){.app-atmosphere *{animation:none!important;will-change:auto;}.app-starfield i:nth-child(4n){opacity:.12;}.app-nebula{opacity:.2;}}

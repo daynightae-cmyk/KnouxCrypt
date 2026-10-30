@@ -97,6 +97,8 @@ export function SecureAccess() {
             <span className={icon === "fingerprint" ? "access-biometric" : ""}>{icon === "fingerprint" ? <Fingerprint/> : <Icon name={icon}/>}</span><span>{name}</span><small>{description}</small>
           </button>)}
         </div>
+        <button type="button" className="access-guest" onClick={() => { setUsername(""); setPassword(""); navigate(SCREENS.HOME, { state: { guestPreview: true } }); }}>Continue as Guest <Icon name="arrow"/></button>
+        <p className="access-guest-caption">Explore the offline visual demo</p>
         <footer className="access-footer">Privacy by design. Always yours.</footer>
       </section>
     </div>

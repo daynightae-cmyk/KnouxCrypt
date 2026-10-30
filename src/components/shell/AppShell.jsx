@@ -2,6 +2,7 @@ import React, { memo, useLayoutEffect, useRef } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { SCREENS } from "../../config/screens";
 import "./shell.css";
+import { AmbientSound } from "./AmbientSound";
 
 // Fixed deterministic columns: never randomize/reseed on route changes.
 export const CIPHER_COLUMNS = Object.freeze(Array.from({ length: 12 }, (_, index) => Object.freeze({
@@ -13,6 +14,8 @@ export const CIPHER_COLUMNS = Object.freeze(Array.from({ length: 12 }, (_, index
 export const CipherAtmosphere = memo(function CipherAtmosphere() {
   return <div className="app-atmosphere" data-persistent-atmosphere aria-hidden="true">
     <div className="app-code-rain">{CIPHER_COLUMNS.map((column,index) => <span key={index} style={{left:column.left,animationDelay:column.delay,animationDuration:column.duration}}>{column.glyphs}</span>)}</div>
+    <div className="app-nebula app-nebula-one"/><div className="app-nebula app-nebula-two"/>
+    <div className="app-starfield">{Array.from({length:14},(_,i)=><i key={i} style={{left:`${(i*37+11)%97}%`,top:`${(i*23+7)%94}%`,animationDelay:`${-i*1.7}s`,animationDuration:`${6+(i%5)}s`}}/>)}</div>
     <i className="app-energy app-energy-one"/><i className="app-energy app-energy-two"/>
     <i className="app-global-ember"/><i className="app-global-ember"/><i className="app-global-ember"/>
   </div>;
@@ -30,8 +33,9 @@ export function AppShell({ children }) {
   const scroll = useRef(null);
   const primary = pathname===SCREENS.HOME || pathname===SCREENS.TOOLS;
   useLayoutEffect(() => { scroll.current?.scrollTo?.(0,0); },[pathname]);
-  return <div className={`crypt-app-shell ${primary?'app-has-navigation':''}`}>
+  return <div data-scene={pathname===SCREENS.SPLASH_ENTRY?"splash":pathname===SCREENS.SECURE_ACCESS_LOGIN?"auth":"content"} className={`crypt-app-shell ${primary?'app-has-navigation':''}`}>
     <CipherAtmosphere/>
+    <AmbientSound splash={pathname===SCREENS.SPLASH_ENTRY}/>
     <div ref={scroll} className="app-scroll-region" id="app-content" tabIndex={0} role="region" aria-label="Page content">{children}</div>
     {primary && <AppBottomNav/>}
   </div>;
