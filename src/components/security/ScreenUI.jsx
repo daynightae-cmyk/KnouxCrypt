@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { StagEmblem } from "../entry/StagEmblem";
 import { SCREENS } from "../../config/screens";
 import "./security.css";
+import { capabilityById } from "../../config/desktopCapabilities";
 
 export function Mark({ name = "shield", ...props }) {
   const { t, locale, dir } = useLanguage();
@@ -43,13 +44,34 @@ export function ScreenHeader({ title, accent, caption, children }) {
 
  return <header className="security-header"><Link to={SCREENS.HOME} className="security-logo" aria-label={t("Back to Home")}><StagEmblem/></Link><div className="security-title"><h1>{t(title)} <span>{t(accent)}</span></h1><p>{t(caption)}</p></div><div className="security-header-actions">{children}</div></header>;
 }
-export function PreviewSheet({ title, children, onClose }) {
+export function PreviewSheet({ title, children, onClose, label = "VISUAL DEMO", dismissLabel = "Back to preview" }) {
   const { t, locale, dir } = useLanguage();
 
  const ref=useRef(null);
  useEffect(()=>{const prior=document.activeElement; ref.current.showModal();return()=>prior?.focus();},[]);
- return <dialog className="security-dialog" ref={ref} onCancel={onClose} onClick={e=>{if(e.target===e.currentTarget)onClose();}} aria-labelledby="security-sheet-title"><button autoFocus className="security-close" aria-label={t("Close visual demo")} onClick={onClose}>{t("×")}</button><p className="security-demo-label">{t("VISUAL DEMO")}</p><h2 id="security-sheet-title">{t(title)}</h2>{children}<button className="security-sheet-dismiss" onClick={onClose}>{t("Back to preview")}</button></dialog>;
+ return <dialog className="security-dialog" ref={ref} onCancel={onClose} onClick={e=>{if(e.target===e.currentTarget)onClose();}} aria-labelledby="security-sheet-title"><button autoFocus className="security-close" aria-label={t("Close dialog")} onClick={onClose}>{t("×")}</button><p className="security-demo-label">{t(label)}</p><h2 id="security-sheet-title">{t(title)}</h2>{children}<button className="security-sheet-dismiss" onClick={onClose}>{t(dismissLabel)}</button></dialog>;
 }
 export function IconButton({ icon, label, ...props }) {
   const { t, locale, dir } = useLanguage();
 return <button type="button" className="security-icon-button" aria-label={t(label)} {...props}><Mark name={icon}/></button>;}
+
+/**
+ * Honest capability card. Every field comes from the central capability
+ * registry, so a screen cannot claim a capability the service does not have.
+ */
+export function CapabilityCard({ id, className = "security-capability" }) {
+  const { t } = useLanguage();
+  const card = capabilityById(id);
+  if (!card) return null;
+  return (
+    <section className={className} data-status={card.displayStatus} aria-label={t("Capability")}>
+      <strong>{t(card.title)}</strong>
+      <p>{t(card.platformCapability)}</p>
+      <dl>
+        <div><dt>{t("Status")}</dt><dd>{t(card.displayStatus)}</dd></div>
+        <div><dt>{t("Network")}</dt><dd>{t(card.requiresNetwork ? "Required" : "Not required")}</dd></div>
+        <div><dt>{t("Provider ready")}</dt><dd>{t(card.providerReady ? "Yes" : "No")}</dd></div>
+      </dl>
+    </section>
+  );
+}

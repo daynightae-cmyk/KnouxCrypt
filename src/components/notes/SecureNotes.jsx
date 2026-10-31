@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { SCREENS } from "../../config/screens";
 import { useLanguage } from "../../i18n/Language";
 import { StagEmblem } from "../entry/StagEmblem";
-import { Mark, PreviewSheet, IconButton } from "../security/ScreenUI";
+import { Mark, PreviewSheet, IconButton, CapabilityCard } from "../security/ScreenUI";
 import { NOTE_CATEGORIES, useNotes } from "./NotesContext";
 import "./notes.css";
 
@@ -49,6 +49,7 @@ export function SecureNotes() {
           <h1>{t("Secure Notes")}</h1>
           <p>{t("Your thoughts. Your secrets. Only yours.")}</p>
         </div>
+        <CapabilityCard id="NOTES" />
         <div className="notes-search">
           <Mark name="search" />
           <label className="notes-search-label">

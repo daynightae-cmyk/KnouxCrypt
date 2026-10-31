@@ -1,6 +1,13 @@
 /**
  * KnouxCrypt™ 2025 - Electron Main Process
- * العملية الرئيسية لتطبيق سطح المكتب
+ *
+ * Security posture:
+ *   - context isolation ON, node integration OFF, renderer sandboxed
+ *   - a strict Content-Security-Policy is injected for every document
+ *   - navigation and window.open are denied by default and validated
+ *   - no privilege escalation: the app does not request administrator rights
+ *   - all privileged work (vault crypto, filesystem) happens here and is
+ *     exposed to the renderer only through the validated vault IPC contract
  */
 
 const {
@@ -10,125 +17,229 @@ const {
   Tray,
   dialog,
   shell,
-  ipcMain,
   protocol,
-  nativeTheme,
+  net,
+  nativeImage,
 } = require("electron");
 const { autoUpdater } = require("electron-updater");
 const path = require("path");
-const isDev = require("electron-is-dev");
-const { spawn } = require("child_process");
+const fs = require("fs");
+const { pathToFileURL } = require("url");
 
-// تكوين التطبيق
+const { VaultService } = require("./vault/service");
+const { registerVaultIpc } = require("./vault/ipc");
+
 const APP_CONFIG = {
   name: "KnouxCrypt™ 2025",
   version: "2025.1.0",
   description: "نظام التشفير العسكري المتقدم",
   author: "Knoux Technologies",
-  minWidth: 1200,
-  minHeight: 800,
+  minWidth: 1024,
+  minHeight: 720,
   defaultWidth: 1400,
   defaultHeight: 1000,
 };
 
-// متغيرات ع��مة
+// The renderer source is used in development, the packaged build otherwise.
+// KNOUX_USE_BUILD=1 forces the production path so the packaged entry can be
+// verified without a full electron-builder run.
+const isDev = !app.isPackaged && process.env.KNOUX_USE_BUILD !== "1";
+const RENDERER_DIR = path.join(__dirname, "..", "build");
+const RENDERER_ENTRY = path.join(RENDERER_DIR, "index.html");
+const DEV_SERVER_URL = process.env.KNOUX_DEV_SERVER_URL || "http://localhost:3000";
+
+// Only this origin may be loaded in the app window during development.
+const ALLOWED_ORIGINS = new Set([DEV_SERVER_URL]);
+
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "img-src 'self' data: blob:",
+  "media-src 'self' data: blob:",
+  "connect-src 'self'",
+  "object-src 'none'",
+  "base-uri 'none'",
+  "form-action 'none'",
+  "frame-ancestors 'none'",
+].join("; ");
+
 let mainWindow = null;
 let splashWindow = null;
 let tray = null;
 let isQuitting = false;
-let devServer = null;
+let vaultService = null;
+let unregisterVaultIpc = null;
+
+function assetPath(...parts) {
+  // In development assets live in the source tree; in production they are
+  // copied to resources/assets by electron-builder.
+  const base = app.isPackaged
+    ? path.join(process.resourcesPath, "assets")
+    : path.join(__dirname, "assets");
+  return path.join(base, ...parts);
+}
 
 /**
- * إنشاء نافذة البداية (Splash Screen)
+ * Resolve an icon, tolerating a missing file so a packaging mistake cannot
+ * prevent the app from starting.
  */
+function loadIcon(name) {
+  const file = assetPath(name);
+  if (!fs.existsSync(file)) return undefined;
+  const image = nativeImage.createFromPath(file);
+  return image.isEmpty() ? undefined : image;
+}
+
+function applySecurityHeaders(session) {
+  session.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        "Content-Security-Policy": [CSP],
+        "X-Content-Type-Options": ["nosniff"],
+      },
+    });
+  });
+}
+
+function safeOrigin(url) {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
+}
+
+function isAllowedNavigation(url) {
+  if (url.startsWith("file://")) {
+    return url.startsWith(pathToFileURL(RENDERER_DIR).href);
+  }
+  const origin = safeOrigin(url);
+  return origin !== null && ALLOWED_ORIGINS.has(origin);
+}
+
+function hardenWindow(win) {
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    // External links open in the OS browser; the app never opens new windows.
+    if (safeOrigin(url) && /^https?:$/.test(new URL(url).protocol)) {
+      shell.openExternal(url).catch(() => {});
+    }
+    return { action: "deny" };
+  });
+
+  win.webContents.on("will-navigate", (event, navigationUrl) => {
+    if (!isAllowedNavigation(navigationUrl)) {
+      event.preventDefault();
+      shell.openExternal(navigationUrl).catch(() => {});
+    }
+  });
+
+  win.webContents.on("will-attach-webview", (event) => event.preventDefault());
+
+  // Deny every permission request (camera, microphone, geolocation, ...).
+  win.webContents.session.setPermissionRequestHandler((_wc, _permission, callback) => callback(false));
+  win.webContents.session.setPermissionCheckHandler(() => false);
+}
+
 function createSplashWindow() {
+  const splashFile = path.join(__dirname, "splash.html");
+  if (!fs.existsSync(splashFile)) return createMainWindow();
+
   splashWindow = new BrowserWindow({
     width: 600,
     height: 400,
     frame: false,
     alwaysOnTop: true,
     transparent: true,
+    resizable: false,
+    show: true,
+    skipTaskbar: true,
     webPreferences: {
-      nodeIntegration: false,
       contextIsolation: true,
-      enableRemoteModule: false,
-      preload: path.join(__dirname, "preload.js"),
+      nodeIntegration: false,
+      sandbox: true,
     },
-    icon: path.join(__dirname, "assets", "icon.png"),
+    icon: loadIcon("icon.png"),
   });
 
-  // تحميل صفحة البداية
-  if (isDev) {
-    splashWindow.loadFile(path.join(__dirname, "splash.html"));
-  } else {
-    splashWindow.loadFile(path.join(__dirname, "..", "build", "splash.html"));
-  }
+  splashWindow.loadFile(splashFile);
 
-  // إخفاء النافذة بعد 3 ثوان
-  setTimeout(() => {
-    if (splashWindow) {
+  const splashTimer = setTimeout(() => {
+    if (splashWindow && !splashWindow.isDestroyed()) {
       splashWindow.close();
       splashWindow = null;
-      createMainWindow();
     }
+    createMainWindow();
   }, 3000);
+  splashWindow.on("closed", () => {
+    clearTimeout(splashTimer);
+    splashWindow = null;
+  });
 }
 
-/**
- * إنشاء النافذة الرئيسية
- */
 function createMainWindow() {
+  if (mainWindow && !mainWindow.isDestroyed()) return focusMainWindow();
+
   mainWindow = new BrowserWindow({
     width: APP_CONFIG.defaultWidth,
     height: APP_CONFIG.defaultHeight,
     minWidth: APP_CONFIG.minWidth,
     minHeight: APP_CONFIG.minHeight,
     show: false,
-    frame: false, // إطار مخصص
+    frame: false,
     titleBarStyle: "hidden",
     trafficLightPosition: { x: 20, y: 20 },
     webPreferences: {
-      nodeIntegration: false,
       contextIsolation: true,
-      enableRemoteModule: false,
-      preload: path.join(__dirname, "preload.js"),
-      webSecurity: !isDev,
+      nodeIntegration: false,
+      nodeIntegrationInWorker: false,
+      sandbox: true,
+      webSecurity: true,
       allowRunningInsecureContent: false,
-      experimentalFeatures: false,
+      spellcheck: false,
+      preload: path.join(__dirname, "preload.js"),
     },
-    icon: path.join(__dirname, "assets", "icon.png"),
-    backgroundColor: "#0F172A", // لون الخلفية المظلم
+    icon: loadIcon("icon.png"),
+    backgroundColor: "#0F172A",
   });
 
-  // تحميل التطبيق
-  const startUrl = isDev
-    ? "http://localhost:3000"
-    : `file://${path.join(__dirname, "..", "build", "index.html")}`;
+  hardenWindow(mainWindow);
+  applySecurityHeaders(mainWindow.webContents.session);
 
-  mainWindow.loadURL(startUrl);
-
-  // إظهار النافذة عند الانتهاء من التحميل
-  mainWindow.once("ready-to-show", () => {
-    mainWindow.show();
-
-    // فتح أدوات التطوير في وضع التطوير
-    if (isDev) {
-      mainWindow.webContents.openDevTools();
-    }
-  });
-
-  // معالجة إغلاق النافذة
-  mainWindow.on("close", (event) => {
-    if (!isQuitting && process.platform === "darwin") {
-      event.preventDefault();
-      mainWindow.hide();
-    } else if (!isQuitting) {
-      event.preventDefault();
-      mainWindow.hide();
-      showNotification(
-        "KnouxCrypt™ يعمل في الخلفية",
-        "انقر على أيقونة الصينية للوصول السريع",
+  if (isDev) {
+    mainWindow.loadURL(DEV_SERVER_URL);
+    mainWindow.webContents.openDevTools({ mode: "detach" });
+    // A dev server may not be running (e.g. a source checkout started directly).
+    // Fall back to the built renderer instead of showing a blank error page.
+    mainWindow.webContents.on("did-fail-load", (_event, code, description, url) => {
+      if (code === -102 && url.startsWith(DEV_SERVER_URL) && fs.existsSync(RENDERER_ENTRY)) {
+        console.warn(`[main] dev server unavailable (${description}); loading ${RENDERER_ENTRY}`);
+        mainWindow.loadFile(RENDERER_ENTRY);
+      }
+    });
+  } else {
+    if (!fs.existsSync(RENDERER_ENTRY)) {
+      dialog.showErrorBox(
+        "KnouxCrypt™ — build missing",
+        `The packaged renderer was not found at:\n${RENDERER_ENTRY}\n\nRun "npm run build" before packaging.`,
       );
+      return;
+    }
+    mainWindow.loadFile(RENDERER_ENTRY);
+  }
+
+  mainWindow.once("ready-to-show", () => {
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.show();
+  });
+
+  mainWindow.on("close", (event) => {
+    if (isQuitting) return;
+    event.preventDefault();
+    mainWindow.hide();
+    if (process.platform !== "darwin") {
+      showNotification("KnouxCrypt™ يعمل في الخلفية", "انقر على أيقونة الصينية للوصول السريع");
     }
   });
 
@@ -136,87 +247,34 @@ function createMainWindow() {
     mainWindow = null;
   });
 
-  // منع التنقل الخارجي
-  mainWindow.webContents.on("will-navigate", (event, navigationUrl) => {
-    const parsedUrl = new URL(navigationUrl);
-
-    if (parsedUrl.origin !== startUrl) {
-      event.preventDefault();
-      shell.openExternal(navigationUrl);
-    }
-  });
-
-  // معالجة الروابط الجديدة
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
-    return { action: "deny" };
-  });
-
-  // إعداد القائمة
   setupMenu();
-
-  // إعداد صينية النظام
   setupSystemTray();
-
-  // إعداد اختصارات لوحة المفاتيح العامة
-  setupGlobalShortcuts();
 }
 
-/**
- * إعداد صينية النظام
- */
 function setupSystemTray() {
-  const iconPath = path.join(__dirname, "assets", "tray-icon.png");
-  tray = new Tray(iconPath);
+  // On Linux a Tray requires a display server and a StatusNotifier host; GTK
+  // aborts the whole process (not a catchable exception) when there is none.
+  // Skip the tray in headless/CI runs instead of crashing the app.
+  if (process.platform === "linux" && !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY) return;
+
+  const icon = loadIcon("tray-icon.png") || loadIcon("icon.png");
+  if (!icon) return;
+  try {
+    tray = new Tray(icon);
+  } catch {
+    tray = null;
+    return;
+  }
 
   const contextMenu = Menu.buildFromTemplate([
-    {
-      label: "KnouxCrypt™ 2025",
-      enabled: false,
-      icon: path.join(__dirname, "assets", "menu-icon.png"),
-    },
+    { label: "KnouxCrypt™ 2025", enabled: false },
     { type: "separator" },
+    { label: "🏠 إظهار النافذة الرئيسية", click: () => focusMainWindow() },
     {
-      label: "🏠 إظهار النافذة الرئيسية",
+      label: "🔒 قفل الخزنة الآن",
       click: () => {
-        if (mainWindow) {
-          mainWindow.show();
-          mainWindow.focus();
-        }
-      },
-    },
-    {
-      label: "🔒 تشفير سريع",
-      click: () => {
-        if (mainWindow) {
-          mainWindow.show();
-          mainWindow.webContents.send("quick-encrypt");
-        }
-      },
-    },
-    {
-      label: "🔍 فحص النظام",
-      click: () => {
-        if (mainWindow) {
-          mainWindow.show();
-          mainWindow.webContents.send("system-scan");
-        }
-      },
-    },
-    { type: "separator" },
-    {
-      label: "⚙️ الإعدادات",
-      click: () => {
-        if (mainWindow) {
-          mainWindow.show();
-          mainWindow.webContents.send("open-settings");
-        }
-      },
-    },
-    {
-      label: "ℹ️ حول البرنامج",
-      click: () => {
-        showAboutDialog();
+        if (vaultService) vaultService.lockAll("tray");
+        sendToRenderer("vault-locked");
       },
     },
     { type: "separator" },
@@ -231,19 +289,27 @@ function setupSystemTray() {
 
   tray.setToolTip("KnouxCrypt™ 2025 - نظام التشفير العسكري");
   tray.setContextMenu(contextMenu);
-
-  // نقرة مزدوجة لإظهار النافذة
-  tray.on("double-click", () => {
-    if (mainWindow) {
-      mainWindow.show();
-      mainWindow.focus();
-    }
-  });
+  tray.on("double-click", () => focusMainWindow());
 }
 
-/**
- * إعداد القائمة الرئيسية
- */
+function focusMainWindow() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
+}
+
+function sendToRenderer(channel, ...args) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send(channel, ...args);
+  }
+}
+
+function focusAndSend(channel) {
+  focusMainWindow();
+  sendToRenderer(channel);
+}
+
 function setupMenu() {
   const template = [
     {
@@ -252,18 +318,16 @@ function setupMenu() {
         {
           label: "تشفير ملف جديد",
           accelerator: "CmdOrCtrl+N",
-          click: () => mainWindow?.webContents.send("encrypt-new-file"),
-        },
-        {
-          label: "فتح ملف مشفر",
-          accelerator: "CmdOrCtrl+O",
-          click: () => mainWindow?.webContents.send("open-encrypted-file"),
+          click: () => focusAndSend("encrypt-new-file"),
         },
         { type: "separator" },
         {
-          label: "حفظ",
-          accelerator: "CmdOrCtrl+S",
-          click: () => mainWindow?.webContents.send("save-current"),
+          label: "قفل الخزنة",
+          accelerator: "CmdOrCtrl+L",
+          click: () => {
+            if (vaultService) vaultService.lockAll("menu");
+            sendToRenderer("vault-locked");
+          },
         },
         { type: "separator" },
         {
@@ -291,18 +355,7 @@ function setupMenu() {
     {
       label: "عرض",
       submenu: [
-        {
-          label: "إعادة تحميل",
-          accelerator: "CmdOrCtrl+R",
-          click: () => mainWindow?.reload(),
-        },
-        {
-          label: "تبديل أدوات التطوير",
-          accelerator:
-            process.platform === "darwin" ? "Alt+Cmd+I" : "Ctrl+Shift+I",
-          click: () => mainWindow?.webContents.toggleDevTools(),
-        },
-        { type: "separator" },
+        { label: "إعادة تحميل", accelerator: "CmdOrCtrl+R", role: "reload" },
         { label: "تكبير فعلي", accelerator: "CmdOrCtrl+0", role: "resetzoom" },
         { label: "تكبير", accelerator: "CmdOrCtrl+Plus", role: "zoomin" },
         { label: "تصغير", accelerator: "CmdOrCtrl+-", role: "zoomout" },
@@ -320,33 +373,14 @@ function setupMenu() {
     {
       label: "مساعدة",
       submenu: [
-        {
-          label: "حول KnouxCrypt™",
-          click: () => showAboutDialog(),
-        },
-        {
-          label: "اختصارات لوحة المفاتيح",
-          accelerator: "F1",
-          click: () => mainWindow?.webContents.send("show-shortcuts"),
-        },
-        {
-          label: "التحقق من التحديثات",
-          click: () => checkForUpdates(),
-        },
+        { label: "حول KnouxCrypt™", click: () => showAboutDialog() },
+        { label: "التحقق من التحديثات", click: () => checkForUpdates() },
         { type: "separator" },
-        {
-          label: "موقع الويب",
-          click: () => shell.openExternal("https://knouxcrypt.com"),
-        },
-        {
-          label: "الدعم التقني",
-          click: () => shell.openExternal("mailto:support@knouxcrypt.com"),
-        },
+        { label: "موقع الويب", click: () => shell.openExternal("https://knouxcrypt.com") },
       ],
     },
   ];
 
-  // تخصيص القائمة لـ macOS
   if (process.platform === "darwin") {
     template.unshift({
       label: APP_CONFIG.name,
@@ -355,16 +389,8 @@ function setupMenu() {
         { type: "separator" },
         { label: "الخدمات", role: "services", submenu: [] },
         { type: "separator" },
-        {
-          label: `إخفاء ${APP_CONFIG.name}`,
-          accelerator: "Command+H",
-          role: "hide",
-        },
-        {
-          label: "إخفاء الآخرين",
-          accelerator: "Command+Shift+H",
-          role: "hideothers",
-        },
+        { label: `إخفاء ${APP_CONFIG.name}`, accelerator: "Command+H", role: "hide" },
+        { label: "إخفاء الآخرين", accelerator: "Command+Shift+H", role: "hideothers" },
         { label: "إظهار الكل", role: "unhide" },
         { type: "separator" },
         { label: "إنهاء", accelerator: "Command+Q", click: () => app.quit() },
@@ -372,83 +398,37 @@ function setupMenu() {
     });
   }
 
-  const menu = Menu.buildFromTemplate(template);
-  Menu.setApplicationMenu(menu);
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
-/**
- * إعداد اختصارات لوحة المفاتيح العامة
- */
-function setupGlobalShortcuts() {
-  const { globalShortcut } = require("electron");
-
-  // اختصار إظهار/إخفاء النافذة
-  globalShortcut.register("CommandOrControl+Shift+K", () => {
-    if (mainWindow) {
-      if (mainWindow.isVisible()) {
-        mainWindow.hide();
-      } else {
-        mainWindow.show();
-        mainWindow.focus();
-      }
-    }
-  });
-
-  // اختصار تشفير سريع
-  globalShortcut.register("CommandOrControl+Shift+E", () => {
-    if (mainWindow) {
-      mainWindow.show();
-      mainWindow.webContents.send("quick-encrypt");
-    }
-  });
-}
-
-/**
- * عرض نافذة حول البرنامج
- */
 function showAboutDialog() {
-  dialog.showMessageBox(mainWindow, {
+  dialog.showMessageBox(mainWindow || undefined, {
     type: "info",
     title: "حول KnouxCrypt™ 2025",
     message: APP_CONFIG.name,
-    detail: `الإصدار: ${APP_CONFIG.version}\n${APP_CONFIG.description}\n\nطور بواسطة: ${APP_CONFIG.author}\n\n© 2025 ��ميع الحقوق محفوظة`,
-    icon: path.join(__dirname, "assets", "icon.png"),
+    detail: `الإصدار: ${APP_CONFIG.version}\n${APP_CONFIG.description}\n\nطور بواسطة: ${APP_CONFIG.author}\n\n© 2025 جميع الحقوق محفوظة`,
     buttons: ["موافق"],
   });
 }
 
-/**
- * إظهار إشعار النظام
- */
 function showNotification(title, body) {
   const { Notification } = require("electron");
-
   if (Notification.isSupported()) {
-    new Notification({
-      title: title,
-      body: body,
-      icon: path.join(__dirname, "assets", "icon.png"),
-    }).show();
+    new Notification({ title, body, icon: loadIcon("icon.png") }).show();
   }
 }
 
-/**
- * التحقق من التحديثات
- */
 function checkForUpdates() {
-  autoUpdater.checkForUpdatesAndNotify();
+  // Updates are only checked when the app is packaged and a publisher is set.
+  if (!app.isPackaged) return;
+  autoUpdater.checkForUpdatesAndNotify().catch(() => {});
 }
 
-/**
- * إعداد التحديث التلقائي
- */
 function setupAutoUpdater() {
-  autoUpdater.on("checking-for-update", () => {
-    console.log("جاري البحث عن تحديثات...");
-  });
-
+  if (!app.isPackaged) return;
+  autoUpdater.on("error", () => {});
   autoUpdater.on("update-available", () => {
-    dialog.showMessageBox(mainWindow, {
+    dialog.showMessageBox(mainWindow || undefined, {
       type: "info",
       title: "تحديث متاح",
       message: "يتوفر إصدار جديد من KnouxCrypt™",
@@ -456,10 +436,9 @@ function setupAutoUpdater() {
       buttons: ["موافق"],
     });
   });
-
   autoUpdater.on("update-downloaded", () => {
     dialog
-      .showMessageBox(mainWindow, {
+      .showMessageBox(mainWindow || undefined, {
         type: "info",
         title: "التحديث جاهز",
         message: "تم تنزيل التحديث وهو جاهز للتثبيت",
@@ -467,141 +446,107 @@ function setupAutoUpdater() {
         buttons: ["إعادة التشغيل الآن", "لاحقاً"],
       })
       .then((result) => {
-        if (result.response === 0) {
-          autoUpdater.quitAndInstall();
-        }
+        if (result.response === 0) autoUpdater.quitAndInstall();
       });
   });
 }
 
 /**
- * بدء خادم التطوير
+ * Minimal, validated window-control channel used by the frameless titlebar.
+ * The renderer may only ask for these three named actions.
  */
-function startDevServer() {
-  if (isDev) {
-    console.log("بدء خادم التطوير...");
-    devServer = spawn("npm", ["run", "dev"], {
-      stdio: "inherit",
-      shell: true,
-      cwd: path.join(__dirname, ".."),
-    });
-
-    devServer.on("error", (error) => {
-      console.error("خطأ في خادم التطوير:", error);
-    });
+function registerWindowControls() {
+  const { ipcMain } = require("electron");
+  const actions = {
+    "window-minimize": () => mainWindow && !mainWindow.isDestroyed() && mainWindow.minimize(),
+    "window-maximize": () => {
+      if (!mainWindow || mainWindow.isDestroyed()) return;
+      if (mainWindow.isMaximized()) mainWindow.unmaximize();
+      else mainWindow.maximize();
+    },
+    "window-close": () => mainWindow && !mainWindow.isDestroyed() && mainWindow.close(),
+  };
+  for (const [channel, fn] of Object.entries(actions)) {
+    ipcMain.removeAllListeners(channel);
+    ipcMain.on(channel, () => fn());
   }
+  ipcMain.handle("app-info", () => ({
+    name: APP_CONFIG.name,
+    version: APP_CONFIG.version,
+    isDev,
+    platform: process.platform,
+  }));
 }
 
-/**
- * أحداث التطبيق الرئيسية
- */
-app.whenReady().then(() => {
-  // إعداد البروتوكولات المخصصة
-  protocol.registerFileProtocol("knouxcrypt", (request, callback) => {
-    const url = request.url.substr(12);
-    callback({ path: path.normalize(`${__dirname}/${url}`) });
-  });
-
-  // بدء خادم التطوير
-  if (isDev) {
-    startDevServer();
-
-    // انتظار بدء الخادم
-    setTimeout(() => {
-      createSplashWindow();
-    }, 2000);
-  } else {
-    createSplashWindow();
-  }
-
-  // إعداد التحديث التلقائي
-  setupAutoUpdater();
-
-  // للنظم التي تدعم dock
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createMainWindow();
-    } else if (mainWindow) {
-      mainWindow.show();
+function registerAppProtocol() {
+  // A read-only handler scoped to the packaged renderer directory.
+  protocol.handle("knouxcrypt", (request) => {
+    let relative;
+    try {
+      relative = decodeURIComponent(new URL(request.url).pathname).replace(/^\/+/, "");
+    } catch {
+      return new Response("Bad request", { status: 400 });
     }
+    const resolved = path.resolve(RENDERER_DIR, relative);
+    if (resolved !== RENDERER_DIR && !resolved.startsWith(RENDERER_DIR + path.sep)) {
+      return new Response("Forbidden", { status: 403 });
+    }
+    return net.fetch(pathToFileURL(resolved).href);
   });
-});
+}
 
-// إنهاء التطبيق عند إغلاق جميع النوافذ
+// Only one instance may hold the vault session.
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  app.quit();
+} else {
+  app.on("second-instance", () => focusMainWindow());
+
+  app.whenReady().then(() => {
+    registerAppProtocol();
+
+    vaultService = new VaultService({ userDataPath: app.getPath("userData") });
+    unregisterVaultIpc = registerVaultIpc(vaultService, () => mainWindow);
+    registerWindowControls();
+
+    setupAutoUpdater();
+    createSplashWindow();
+
+    app.on("activate", () => {
+      if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
+      else focusMainWindow();
+    });
+  });
+}
+
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
+  if (process.platform !== "darwin") app.quit();
 });
 
-// معالجة الإنهاء
 app.on("before-quit", () => {
   isQuitting = true;
-
-  // إنهاء خادم التطوير
-  if (devServer) {
-    devServer.kill();
-  }
+  if (vaultService) vaultService.lockAll("quit");
 });
 
-// تنظيف الموارد
 app.on("will-quit", () => {
-  const { globalShortcut } = require("electron");
-  globalShortcut.unregisterAll();
+  if (unregisterVaultIpc) unregisterVaultIpc();
 });
 
-// معالجة الأخطاء غير المتوقعة
+// Security-relevant hardening for every renderer that is created.
+app.on("web-contents-created", (_event, contents) => {
+  contents.on("will-attach-webview", (event) => event.preventDefault());
+});
+
 process.on("uncaughtException", (error) => {
-  console.error("خطأ غير متوقع:", error);
-  dialog.showErrorBox("خطأ في التطبيق", `حدث خطأ غير متوقع:\n${error.message}`);
+  // Never surface a raw stack trace to the user.
+  dialog.showErrorBox("خطأ في التطبيق", "حدث خطأ غير متوقع. تم تسجيل التفاصيل محلياً.");
+  console.error("[main] uncaught exception:", error && error.message);
 });
 
-/**
- * معالجات IPC للتواصل مع العملية الفرعية
- */
-ipcMain.handle("app-version", () => APP_CONFIG.version);
-ipcMain.handle("app-name", () => APP_CONFIG.name);
-ipcMain.handle("is-dev", () => isDev);
-
-ipcMain.handle("show-save-dialog", async (event, options) => {
-  const result = await dialog.showSaveDialog(mainWindow, options);
-  return result;
-});
-
-ipcMain.handle("show-open-dialog", async (event, options) => {
-  const result = await dialog.showOpenDialog(mainWindow, options);
-  return result;
-});
-
-ipcMain.handle("show-message-box", async (event, options) => {
-  const result = await dialog.showMessageBox(mainWindow, options);
-  return result;
-});
-
-// إدارة النوافذ
-ipcMain.handle("window-minimize", () => {
-  mainWindow?.minimize();
-});
-
-ipcMain.handle("window-maximize", () => {
-  if (mainWindow?.isMaximized()) {
-    mainWindow.unmaximize();
-  } else {
-    mainWindow?.maximize();
-  }
-});
-
-ipcMain.handle("window-close", () => {
-  mainWindow?.close();
-});
-
-ipcMain.handle("window-is-maximized", () => {
-  return mainWindow?.isMaximized();
-});
-
-// إشعارات النظام
-ipcMain.handle("show-notification", (event, title, body) => {
-  showNotification(title, body);
-});
-
-module.exports = { app, mainWindow };
+module.exports = {
+  app,
+  get mainWindow() {
+    return mainWindow;
+  },
+  APP_CONFIG,
+};
