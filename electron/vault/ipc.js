@@ -54,8 +54,24 @@ const CHANNELS = Object.freeze({
   SIGN: "vault:sign",
   SIGN_VERIFY: "vault:sign-verify",
   CERT_INSPECT: "vault:cert-inspect",
+  ARCHIVE_CREATE: "vault:archive-create",
+  ARCHIVE_INSPECT: "vault:archive-inspect",
+  ARCHIVE_EXTRACT: "vault:archive-extract",
+  METADATA_INSPECT: "vault:metadata-inspect",
+  METADATA_CLEAN: "vault:metadata-clean",
+  FINGERPRINT_GET: "vault:fingerprint-get",
+  FINGERPRINT_COMPARE: "vault:fingerprint-compare",
+  TRANSFER_LISTEN: "vault:transfer-listen",
+  TRANSFER_STOP: "vault:transfer-stop",
+  TRANSFER_REQUESTS: "vault:transfer-requests",
+  TRANSFER_RESPOND: "vault:transfer-respond",
+  TRANSFER_SEND: "vault:transfer-send",
+  TRANSFER_REQUEST: "vault:transfer-request",
+  TRANSFER_STATE: "vault:transfer-state",
   PICK_INPUT: "vault:pick-input",
   PICK_OUTPUT: "vault:pick-output",
+  PICK_DIRECTORY: "vault:pick-directory",
+  PICK_INPUTS: "vault:pick-inputs",
   PROGRESS: "vault:progress",
   REVOKED: "vault:revoked",
 });
@@ -136,6 +152,18 @@ function registerVaultIpc(service, getWindow) {
   service.onRevoked = (event) => {
     const win = getWindow();
     if (win && !win.isDestroyed()) win.webContents.send(CHANNELS.REVOKED, event);
+  };
+
+  service.onTransfer = (event) => {
+    const win = getWindow();
+    if (win && !win.isDestroyed()) win.webContents.send(CHANNELS.TRANSFER_STATE, event);
+  };
+  // The inbound request carries the short authentication string the user must
+  // read out, so it goes to the renderer as its own event rather than being
+  // polled for.
+  service.transfer.onRequest = (request) => {
+    const win = getWindow();
+    if (win && !win.isDestroyed()) win.webContents.send(CHANNELS.TRANSFER_REQUEST, request);
   };
 
   ipcMain.handle(CHANNELS.STATUS, safe(async () => service.status()));
@@ -541,6 +569,156 @@ function registerVaultIpc(service, getWindow) {
   );
 
   ipcMain.handle(
+    CHANNELS.ARCHIVE_CREATE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const sessionId = requireString(p.sessionId, "sessionId");
+      const inputPaths = Array.isArray(p.inputPaths) ? p.inputPaths.filter((v) => typeof v === "string").slice(0, 4096) : [];
+      if (!inputPaths.length) throw new VaultError(CODES.BAD_INPUT, "Select at least one file to archive");
+      const outputPath = requireString(p.outputPath, "outputPath");
+      return service.archiveCreate({
+        sessionId,
+        inputPaths,
+        outputPath,
+        compression: p.compression !== false,
+        operationId: typeof p.operationId === "string" ? p.operationId : undefined,
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.ARCHIVE_INSPECT,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.archiveInspect(requireString(p.sessionId, "sessionId"), requireString(p.inputPath, "inputPath"));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.ARCHIVE_EXTRACT,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.archiveExtract(requireString(p.sessionId, "sessionId"), {
+        inputPath: requireString(p.inputPath, "inputPath"),
+        outputDir: requireString(p.outputDir, "outputDir"),
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.METADATA_INSPECT,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.metadataInspect({ inputPath: requireString(p.inputPath, "inputPath") });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.METADATA_CLEAN,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const remove = Array.isArray(p.remove)
+        ? p.remove.filter((v) => ["gps", "dates", "camera", "icc", "xmp", "comment"].includes(v))
+        : [];
+      return service.metadataClean({
+        inputPath: requireString(p.inputPath, "inputPath"),
+        outputPath: requireString(p.outputPath, "outputPath"),
+        remove,
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.FINGERPRINT_GET,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const request = {};
+      if (typeof p.sessionId === "string") request.sessionId = p.sessionId;
+      if (typeof p.keyId === "string") request.keyId = p.keyId;
+      if (typeof p.pem === "string") request.pem = p.pem.slice(0, 128 * 1024);
+      if (typeof p.inputPath === "string") request.inputPath = p.inputPath;
+      return service.fingerprintGet(request);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.FINGERPRINT_COMPARE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.fingerprintCompare(String(p.left || ""), String(p.right || ""));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.TRANSFER_LISTEN,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.transferListen({
+        sessionId: requireString(p.sessionId, "sessionId"),
+        port: Number.isInteger(p.port) ? p.port : 0,
+        // Loopback is the only supported bind; the service refuses anything else.
+        bindHost: "127.0.0.1",
+      });
+    }),
+  );
+
+  ipcMain.handle(CHANNELS.TRANSFER_STOP, safe(async () => service.transferStop()));
+  ipcMain.handle(CHANNELS.TRANSFER_REQUESTS, safe(async () => service.transferRequests()));
+
+  ipcMain.handle(
+    CHANNELS.TRANSFER_RESPOND,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.transferRespond({
+        sessionId: requireString(p.sessionId, "sessionId"),
+        requestId: requireString(p.requestId, "requestId"),
+        accept: p.accept === true,
+        outputDir: typeof p.outputDir === "string" ? p.outputDir : undefined,
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.TRANSFER_SEND,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const files = Array.isArray(p.files) ? p.files.filter((v) => typeof v === "string").slice(0, 1024) : [];
+      return service.transferSend({
+        sessionId: requireString(p.sessionId, "sessionId"),
+        host: typeof p.host === "string" && p.host ? p.host : "127.0.0.1",
+        port: Number.isInteger(p.port) ? p.port : 0,
+        code: typeof p.code === "string" ? p.code : "",
+        files,
+        sender: typeof p.sender === "string" ? p.sender : "This device",
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.PICK_DIRECTORY,
+    safe(async (event, payload) => {
+      const p = payload ? requireObject(payload) : {};
+      const result = await dialog.showOpenDialog(getWindow(), {
+        title: p.title || "Choose a folder",
+        properties: ["openDirectory", "createDirectory"],
+      });
+      return { cancelled: result.canceled, path: result.filePaths[0] || null };
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.PICK_INPUTS,
+    safe(async (event, payload) => {
+      const p = payload ? requireObject(payload) : {};
+      const result = await dialog.showOpenDialog(getWindow(), {
+        title: p.title || "Select files",
+        properties: ["openFile", "multiSelections"],
+      });
+      return { cancelled: result.canceled, paths: result.filePaths || [] };
+    }),
+  );
+
+  ipcMain.handle(
     CHANNELS.PICK_INPUT,
     safe(async () => {
       const result = await dialog.showOpenDialog(getWindow(), {
@@ -566,7 +744,12 @@ function registerVaultIpc(service, getWindow) {
 
   return () => {
     for (const channel of Object.values(CHANNELS)) {
-      if (channel !== CHANNELS.PROGRESS && channel !== CHANNELS.REVOKED) {
+      if (
+        channel !== CHANNELS.PROGRESS &&
+        channel !== CHANNELS.REVOKED &&
+        channel !== CHANNELS.TRANSFER_REQUEST &&
+        channel !== CHANNELS.TRANSFER_STATE
+      ) {
         ipcMain.removeHandler(channel);
       }
     }

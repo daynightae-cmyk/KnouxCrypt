@@ -32,6 +32,29 @@ app.whenReady().then(async () => {
   // A real source file for the file-cipher probe (binary, larger than one frame).
   const probePayload = Buffer.concat([Buffer.from("KnouxCrypt runtime file probe — مرحبا\n", "utf8"), Buffer.alloc(300000, 0xa7)]);
   fs.writeFileSync(path.join(dir, "probe-source.bin"), probePayload);
+  // A real JPEG carrying EXIF, XMP and ICC segments for the metadata probe.
+  fs.writeFileSync(path.join(dir, "probe-photo.jpg"), (() => {
+    const seg = (marker, payload) => {
+      const out = Buffer.alloc(4 + payload.length);
+      out[0] = 0xff;
+      out[1] = marker;
+      out.writeUInt16BE(payload.length + 2, 2);
+      payload.copy(out, 4);
+      return out;
+    };
+    return Buffer.concat([
+      Buffer.from([0xff, 0xd8]),
+      seg(0xe0, Buffer.from("JFIF\0\x01\x02", "latin1")),
+      seg(0xe1, Buffer.concat([Buffer.from("Exif\0\0", "latin1"), Buffer.from("MM\0*\0\0\0\x08\0\x01\x88\x25", "latin1"), Buffer.alloc(24, 1)])),
+      seg(0xe1, Buffer.concat([Buffer.from("http://ns.adobe.com/xap/1.0/\0", "latin1"), Buffer.from("<x:xmpmeta/>", "latin1")])),
+      seg(0xe2, Buffer.concat([Buffer.from("ICC_PROFILE\0\x01\x01", "latin1"), Buffer.alloc(64, 2)])),
+      seg(0xdb, Buffer.alloc(65, 3)),
+      seg(0xc0, Buffer.alloc(17, 4)),
+      seg(0xda, Buffer.alloc(12, 5)),
+      Buffer.from([1, 2, 3, 0xff, 0x00, 4]),
+      Buffer.from([0xff, 0xd9]),
+    ]);
+  })());
   // A real self-signed certificate for the certificate-inspector probe.
   let hasCert = false;
   try {
@@ -183,6 +206,64 @@ app.whenReady().then(async () => {
       if (${JSON.stringify(hasCert)}) {
         out.certInfo = await api.vault.certInspect({ inputPath: base + "/probe-cert.pem" });
       }
+      // Batch 06 (tasks 21-24): encrypted archive, fingerprint verify and
+      // metadata cleaning, all through the real IPC boundary.
+      const archiveOut = base + "/probe-archive.knx";
+      out.archiveMade = await api.vault.archiveCreate({
+        sessionId: enr.data.sessionId,
+        inputPaths: [base + "/probe-source.bin"],
+        outputPath: archiveOut,
+      });
+      out.archivePath = archiveOut;
+      out.archiveListed = await api.vault.archiveInspect(enr.data.sessionId, archiveOut);
+      out.archiveExtracted = await api.vault.archiveExtract({
+        sessionId: enr.data.sessionId,
+        inputPath: archiveOut,
+        outputDir: base + "/probe-extract",
+      });
+      out.archiveExtractPath = base + "/probe-extract/probe-source.bin";
+      out.archiveOverwriteDenied = (
+        await api.vault.archiveExtract({
+          sessionId: enr.data.sessionId,
+          inputPath: archiveOut,
+          outputDir: base + "/probe-extract",
+        })
+      ).error?.code;
+      out.archiveGuestDenied = (
+        await api.vault.archiveInspect(guest.data.sessionId, archiveOut)
+      ).error?.code;
+
+      out.fingerprint = await api.vault.fingerprintGet({
+        sessionId: enr.data.sessionId,
+        keyId: out.keyMade.data.id,
+      });
+      // Hand the public PEM back so the main process can hash it independently.
+      out.fingerprintPem = pub;
+      out.fingerprintEqual = await api.vault.fingerprintCompare(
+        out.fingerprint.data.fingerprint,
+        out.fingerprint.data.grouped,
+      );
+      out.fingerprintDifferent = await api.vault.fingerprintCompare(
+        out.fingerprint.data.fingerprint,
+        "00".repeat(32),
+      );
+
+      out.metaBefore = await api.vault.metadataInspect(base + "/probe-photo.jpg");
+      out.metaCleaned = await api.vault.metadataClean({
+        inputPath: base + "/probe-photo.jpg",
+        outputPath: base + "/probe-clean.jpg",
+        remove: ["gps", "xmp", "icc"],
+      });
+      out.metaAfter = await api.vault.metadataInspect(base + "/probe-clean.jpg");
+      out.metaSourcePath = base + "/probe-photo.jpg";
+      out.metaCleanPath = base + "/probe-clean.jpg";
+      out.metaNotJpeg = (
+        await api.vault.metadataClean({
+          inputPath: base + "/probe-source.bin",
+          outputPath: base + "/probe-nope.jpg",
+          remove: ["gps"],
+        })
+      ).error?.code;
       // Revocation must reach the renderer without a polling call.
       out.revokedEvent = await new Promise((resolve) => {
         const timer = setTimeout(() => resolve("timeout"), 4000);
@@ -250,6 +331,43 @@ app.whenReady().then(async () => {
       check("a real certificate is parsed over IPC", probe.certInfo?.ok === true && /runtime\.knoux\.test/.test(probe.certInfo?.data?.subject || ""), JSON.stringify(probe.certInfo?.error || probe.certInfo?.data?.subject));
       check("the parsed certificate reports its validity window", probe.certInfo?.data?.expired === false && probe.certInfo?.data?.selfSigned === true);
     }
+    check("an encrypted archive is created over IPC", probe.archiveMade?.ok === true, JSON.stringify(probe.archiveMade?.error));
+    const archiveZipHeader = fs.existsSync(probe.archivePath)
+      ? fs.readFileSync(probe.archivePath).subarray(0, 4).readUInt32LE(0)
+      : null;
+    check("the archive is not a readable ZIP", archiveZipHeader !== null && archiveZipHeader !== 0x04034b50, String(archiveZipHeader));
+    check("the archive lists its real entries", probe.archiveListed?.data?.fileCount === 1, JSON.stringify(probe.archiveListed?.data));
+    check("the archive extracts over IPC", probe.archiveExtracted?.ok === true, JSON.stringify(probe.archiveExtracted?.error));
+    check(
+      "the extracted file matches the source byte for byte",
+      fs.existsSync(probe.archiveExtractPath) &&
+        fs.readFileSync(probe.archiveExtractPath).equals(fs.readFileSync(path.join(dir, "probe-source.bin"))),
+    );
+    check("extraction refuses to overwrite an existing file", probe.archiveOverwriteDenied === "BAD_INPUT", String(probe.archiveOverwriteDenied));
+    check("a guest session cannot open an archive", probe.archiveGuestDenied === "SESSION_REQUIRED", String(probe.archiveGuestDenied));
+    check("a key fingerprint is computed over IPC", probe.fingerprint?.ok === true, JSON.stringify(probe.fingerprint?.error));
+    const fingerprintExpected = probe.fingerprintPem
+      ? crypto
+          .createHash("sha256")
+          .update(crypto.createPublicKey(probe.fingerprintPem).export({ type: "spki", format: "der" }))
+          .digest("hex")
+      : null;
+    check(
+      "the fingerprint matches an independent SHA-256 of the key",
+      probe.fingerprint?.data?.fingerprint === fingerprintExpected,
+      `${probe.fingerprint?.data?.fingerprint} vs ${fingerprintExpected}`,
+    );
+    check("a grouped fingerprint compares equal to its raw form", probe.fingerprintEqual?.data?.equal === true);
+    check("a different fingerprint is reported unequal", probe.fingerprintDifferent?.data?.equal === false);
+    check("JPEG metadata groups are detected over IPC", probe.metaBefore?.data?.cleanable === true && probe.metaBefore?.data?.groups?.find((g) => g.id === "gps")?.present === true, JSON.stringify(probe.metaBefore?.data));
+    check("metadata is removed over IPC", probe.metaCleaned?.ok === true, JSON.stringify(probe.metaCleaned?.error));
+    check("the removed groups are gone from the clean copy", ["gps", "xmp", "icc"].every((id) => probe.metaAfter?.data?.groups?.find((g) => g.id === id)?.present === false), JSON.stringify(probe.metaAfter?.data));
+    check("EXIF removal also cleared the capture date and camera groups", probe.metaAfter?.data?.groups?.find((g) => g.id === "dates")?.present === false);
+    const metaEoi = fs.existsSync(probe.metaCleanPath)
+      ? fs.readFileSync(probe.metaCleanPath).subarray(-2).toString("hex")
+      : null;
+    check("the clean copy is still a valid JPEG", metaEoi === "ffd9", String(metaEoi));
+    check("a non-JPEG is refused for metadata cleaning", probe.metaNotJpeg === "BAD_INPUT", String(probe.metaNotJpeg));
     check("renderer produced no console errors", consoleErrors.length === 0, consoleErrors.slice(0, 3).join(" | "));
   } catch (err) {
     check("runtime check completed without throwing", false, err.message);

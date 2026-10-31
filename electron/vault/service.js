@@ -20,6 +20,9 @@ const { ShareService } = require("./share");
 const { Preferences } = require("./preferences");
 const totp = require("./totp");
 const inspect = require("./inspect");
+const archive = require("./archive");
+const metadata = require("./metadata");
+const { TransferService } = require("./transfer");
 
 // Explicitly supported key algorithms. Anything absent is refused rather than
 // silently downgraded, so a caller cannot ask for a weak or unknown algorithm.
@@ -47,6 +50,44 @@ const KEY_ALGORITHMS = Object.freeze({
   },
   HMAC_256: { kind: "secret" },
 });
+
+// Helpers for the archive and metadata tasks. Writing always goes through a
+// temp file and a rename so an aborted write can never leave a half-written
+// output where the caller expects a complete one.
+async function atomicWrite(targetPath, bytes) {
+  const dir = path.dirname(targetPath);
+  const tmp = path.join(dir, `.${path.basename(targetPath)}.knoux-${crypto.randomBytes(6).toString("hex")}.tmp`);
+  try {
+    await fsp.writeFile(tmp, bytes, { mode: 0o600 });
+    await fsp.rename(tmp, targetPath);
+  } catch (err) {
+    await fsp.rm(tmp, { force: true }).catch(() => {});
+    throw new VaultError(CODES.IO_FAILED, "The output file could not be written");
+  }
+}
+
+async function readFileOrThrow(inputPath, notFound, failed) {
+  if (typeof inputPath !== "string" || !inputPath) {
+    throw new VaultError(CODES.BAD_INPUT, "A file path is required");
+  }
+  try {
+    return await fsp.readFile(inputPath);
+  } catch (err) {
+    if (err.code === "ENOENT") throw new VaultError(CODES.NOT_FOUND, notFound);
+    throw new VaultError(CODES.IO_FAILED, failed);
+  }
+}
+
+async function readHead(inputPath, length) {
+  const fh = await fsp.open(inputPath, "r");
+  try {
+    const buf = Buffer.alloc(length);
+    const { bytesRead } = await fh.read(buf, 0, length, 0);
+    return buf.subarray(0, bytesRead);
+  } finally {
+    await fh.close();
+  }
+}
 
 class VaultService {
   constructor(options = {}) {
@@ -83,9 +124,31 @@ class VaultService {
           }
         },
       });
+    // Local transfer is owned by the vault service so a revoked session can
+    // tear down any listener that is still open.
+    this.transfer = options.transfer || new TransferService({ userDataPath: options.userDataPath });
+    this.transfer.onState = (event) => {
+      this._record("transfer", `Transfer ${event.state}`);
+      this._emitTransfer(event);
+    };
+
     // The session manager is the single choke point for every revocation path
-    // (user lock, lock-all, idle sweep, quit), so forward its notification.
-    this.manager.onRevoke = (event) => this._emitRevoked(event.sessionId, event.reason);
+    // (user lock, lock-all, idle sweep, quit), so forward its notification and
+    // stop any open transfer listener at the same time.
+    this.manager.onRevoke = (event) => {
+      this._emitRevoked(event.sessionId, event.reason);
+      this.transfer.stop().catch(() => {});
+    };
+  }
+
+  _emitTransfer(event) {
+    if (this.onTransfer) {
+      try {
+        this.onTransfer(event);
+      } catch {
+        /* ignore */
+      }
+    }
   }
 
   _record(type, detail) {
@@ -678,6 +741,296 @@ class VaultService {
     }
     const result = inspect.inspectCertificate(text);
     this._record("certificate-inspect", `Parsed a certificate for ${result.subject}`);
+    return result;
+  }
+
+  // ---- task 21: encrypted archive -----------------------------------------
+
+  /**
+   * Build a ZIP from real files, then seal it with the vault engine. The caller
+   * supplies a destination, so nothing is written without a chosen path.
+   */
+  async archiveCreate({ sessionId, inputPaths, outputPath, compression = true, operationId } = {}) {
+    const { rawKey } = this._engineFor(sessionId);
+    if (!Array.isArray(inputPaths) || inputPaths.length === 0) {
+      throw new VaultError(CODES.BAD_INPUT, "Select at least one file to archive");
+    }
+    if (inputPaths.length > archive.MAX_ENTRIES) {
+      throw new VaultError(CODES.BAD_INPUT, `An archive may hold at most ${archive.MAX_ENTRIES} files`);
+    }
+    if (typeof outputPath !== "string" || !outputPath) {
+      throw new VaultError(CODES.BAD_INPUT, "Choose where to write the archive");
+    }
+    if (inputPaths.includes(outputPath)) {
+      throw new VaultError(CODES.BAD_INPUT, "The archive cannot be written over one of its own inputs");
+    }
+
+    const taken = new Set();
+    const entries = [];
+    let total = 0;
+    for (const inputPath of inputPaths) {
+      let bytes;
+      try {
+        bytes = await fsp.readFile(inputPath);
+      } catch (err) {
+        if (err.code === "ENOENT") throw new VaultError(CODES.NOT_FOUND, "An input file was not found");
+        throw new VaultError(CODES.IO_FAILED, "An input file could not be read");
+      }
+      if (bytes.length > archive.MAX_ENTRY_BYTES) {
+        throw new VaultError(CODES.BAD_INPUT, "An input file is too large to archive");
+      }
+      total += bytes.length;
+      if (total > archive.MAX_TOTAL_BYTES) throw new VaultError(CODES.BAD_INPUT, "The selected files are too large");
+      entries.push({ name: archive.entryNameFor(inputPath, taken), data: bytes });
+    }
+
+    const zip = archive.buildZip(entries, { compression });
+    const { bytes, meta } = this.engine.encryptBuffer(zip, { rawKey });
+    await atomicWrite(outputPath, bytes);
+    this.manager.touch(sessionId);
+    this._record("archive-create", `Created an encrypted archive of ${entries.length} file(s)`);
+    return {
+      outputPath,
+      fileCount: entries.length,
+      plaintextSize: zip.length,
+      encryptedSize: bytes.length,
+      compression: Boolean(compression),
+      operationId: operationId || null,
+      meta,
+    };
+  }
+
+  /** Decrypt an archive and list what is inside without extracting. */
+  async archiveInspect(sessionId, inputPath) {
+    const { rawKey } = this._engineFor(sessionId);
+    const container = await readFileOrThrow(inputPath, "The archive was not found", "The archive could not be read");
+    const { plaintext, meta } = this.engine.decryptBuffer(container, { rawKey });
+    const entries = archive.listZip(plaintext).map((e) => ({
+      name: e.name,
+      size: e.uncompSize,
+      method: e.method === 8 ? "deflate" : "store",
+    }));
+    this.manager.touch(sessionId);
+    this._record("archive-inspect", `Listed ${entries.length} entr(ies) in an archive`);
+    return {
+      inputPath,
+      fileCount: entries.length,
+      totalSize: entries.reduce((sum, e) => sum + e.size, 0),
+      entries,
+      meta,
+    };
+  }
+
+  /**
+   * Decrypt an archive and write its entries into a chosen directory. Entry
+   * names are validated before any write, so a hostile archive cannot escape
+   * the destination.
+   */
+  async archiveExtract(sessionId, { inputPath, outputDir } = {}) {
+    const { rawKey } = this._engineFor(sessionId);
+    if (typeof outputDir !== "string" || !outputDir) {
+      throw new VaultError(CODES.BAD_INPUT, "Choose a destination folder");
+    }
+    const container = await readFileOrThrow(inputPath, "The archive was not found", "The archive could not be read");
+    const { plaintext } = this.engine.decryptBuffer(container, { rawKey });
+    const entries = archive.extractZip(plaintext);
+
+    await fsp.mkdir(outputDir, { recursive: true });
+    const written = [];
+    for (const entry of entries) {
+      const base = path.basename(archive.assertSafeEntryName(entry.name));
+      const target = path.join(outputDir, base);
+      const exists = await fsp
+        .access(target)
+        .then(() => true)
+        .catch(() => false);
+      if (exists) {
+        throw new VaultError(CODES.BAD_INPUT, `Refusing to overwrite the existing file "${base}"`);
+      }
+      await atomicWrite(target, entry.data);
+      written.push({ name: base, size: entry.data.length });
+    }
+    this.manager.touch(sessionId);
+    this._record("archive-extract", `Extracted ${written.length} file(s) from an archive`);
+    return { outputDir, files: written };
+  }
+
+  // ---- task 24: metadata inspection and cleaning --------------------------
+
+  /**
+   * Read metadata from a real file. This never mutates the source: it only
+   * reports what is present, so the user can decide what to strip.
+   */
+  async metadataInspect({ inputPath } = {}) {
+    if (typeof inputPath !== "string" || !inputPath) {
+      throw new VaultError(CODES.BAD_INPUT, "Choose a file to inspect");
+    }
+    const stat = await fsp.stat(inputPath).catch((err) => {
+      if (err.code === "ENOENT") throw new VaultError(CODES.NOT_FOUND, "The file was not found");
+      throw new VaultError(CODES.IO_FAILED, "The file could not be read");
+    });
+    if (!stat.isFile()) throw new VaultError(CODES.BAD_INPUT, "That path is not a regular file");
+
+    const head = await readHead(inputPath, 1024 * 1024);
+    const kind = metadata.sniffKind(head);
+    const tags = kind === "jpeg" ? metadata.readJpegTags(head) : [];
+    const present = kind === "jpeg" ? metadata.presentGroups(head) : new Set();
+
+    // GPS lives inside EXIF alongside the capture date and camera details, so
+    // the three are reported together and the UI must say so.
+    const groups = [
+      { id: "gps", label: "GPS location", present: present.has("gps") },
+      { id: "dates", label: "Date and time", present: present.has("dates") },
+      { id: "camera", label: "Camera and lens", present: present.has("camera") },
+      { id: "icc", label: "Colour profile", present: present.has("icc") },
+      { id: "xmp", label: "Editing history", present: present.has("xmp") },
+    ];
+
+    this._record("metadata-inspect", `Inspected metadata in ${path.basename(inputPath)}`);
+    return {
+      inputPath,
+      name: path.basename(inputPath),
+      format: kind,
+      size: stat.size,
+      modifiedAt: stat.mtime.toISOString(),
+      tags,
+      groups,
+      cleanable: kind === "jpeg",
+    };
+  }
+
+  /**
+   * Write a copy of the file with the selected metadata groups removed. The
+   * original is only ever read. Removing metadata from a JPEG is a byte-exact
+   * segment filter, so no image re-encoding (and therefore no quality loss)
+   * happens. Formats we cannot rewrite safely are refused rather than faked.
+   */
+  async metadataClean({ inputPath, outputPath, remove = [] } = {}) {
+    if (typeof inputPath !== "string" || !inputPath) {
+      throw new VaultError(CODES.BAD_INPUT, "Choose a file to clean");
+    }
+    if (typeof outputPath !== "string" || !outputPath) {
+      throw new VaultError(CODES.BAD_INPUT, "Choose where to write the clean copy");
+    }
+    if (path.resolve(inputPath) === path.resolve(outputPath)) {
+      throw new VaultError(CODES.BAD_INPUT, "The clean copy must be a different file; the original is never modified");
+    }
+    const requested = Array.isArray(remove) ? remove.filter((r) => typeof r === "string") : [];
+    if (requested.length === 0) throw new VaultError(CODES.BAD_INPUT, "Select at least one metadata group to remove");
+
+    const bytes = await readFileOrThrow(inputPath, "The file was not found", "The file could not be read");
+    if (metadata.sniffKind(bytes.subarray(0, 1024 * 1024)) !== "jpeg") {
+      throw new VaultError(CODES.BAD_INPUT, "Only JPEG metadata can be removed byte-exactly today");
+    }
+    const before = metadata.readJpegTags(bytes);
+    const cleaned = metadata.stripJpegSegments(bytes, new Set(requested));
+    if (!cleaned) throw new VaultError(CODES.IO_FAILED, "The JPEG structure could not be rewritten safely");
+
+    const beforeTags = before.length;
+    const afterTags = metadata.readJpegTags(cleaned).length;
+    const beforeGroups = metadata.presentGroups(bytes);
+    const afterGroups = metadata.presentGroups(cleaned);
+    const removed = [...beforeGroups].filter((g) => !afterGroups.has(g));
+    await atomicWrite(outputPath, cleaned);
+    this._record("metadata-clean", `Wrote a metadata-cleaned copy of ${path.basename(inputPath)}`);
+    return {
+      inputPath,
+      outputPath,
+      requestedGroups: requested,
+      removedGroups: removed,
+      removedSegments: beforeTags - afterTags,
+      originalSize: bytes.length,
+      cleanedSize: cleaned.length,
+      originalUntouched: true,
+    };
+  }
+
+  // ---- task 23: fingerprint verification ----------------------------------
+
+  /**
+   * Fingerprint a public key or certificate. Accepts a stored key id, raw PEM,
+   * or the contents of a key file the user picked.
+   */
+  async fingerprintGet({ sessionId, keyId, pem, inputPath } = {}) {
+    let material = pem;
+    let source = "provided";
+    let name = null;
+    let algorithm = null;
+
+    if (!material && inputPath) {
+      const bytes = await readFileOrThrow(inputPath, "The key file was not found", "The key file could not be read");
+      material = bytes.toString("utf8");
+      source = "file";
+      name = path.basename(inputPath);
+    }
+    if (!material && keyId) {
+      const rawKey = this.manager.getDek(sessionId);
+      const { records } = await this.store.list("keys", rawKey);
+      const record = records.find((r) => r.id === keyId);
+      if (!record) throw new VaultError(CODES.NOT_FOUND, "No such key");
+      if (!record.publicPem) {
+        throw new VaultError(CODES.BAD_INPUT, "That key has no public material to fingerprint");
+      }
+      material = record.publicPem;
+      source = "vault";
+      name = record.name;
+      algorithm = record.algorithm;
+      this.manager.touch(sessionId);
+    }
+    if (!material) throw new VaultError(CODES.BAD_INPUT, "Provide a key id, PEM material or a key file");
+
+    const result = inspect.fingerprintOf(material);
+    this._record("fingerprint-get", `Fingerprinted ${source} public material`);
+    return { ...result, source, name, algorithm };
+  }
+
+  /** Compare two fingerprints and report where they diverge. */
+  fingerprintCompare(left, right) {
+    const result = inspect.compareFingerprints(left, right);
+    this._record("fingerprint-compare", result.equal ? "Fingerprints matched" : "Fingerprints did not match");
+    return result;
+  }
+
+  // ---- task 22: local transfer --------------------------------------------
+
+  /**
+   * Start listening for a transfer from another device. Requires an unlocked
+   * session, because accepting files writes into this device's storage.
+   */
+  async transferListen({ sessionId, port = 0, bindHost = "127.0.0.1" } = {}) {
+    this.manager.getDek(sessionId);
+    const info = await this.transfer.listen({ port, bindHost, sessionId });
+    this.manager.touch(sessionId);
+    this._record("transfer-listen", `Listening for a local transfer on port ${info.port}`);
+    return info;
+  }
+
+  transferStop() {
+    return this.transfer.stop();
+  }
+
+  transferRequests() {
+    return { requests: this.transfer.listRequests() };
+  }
+
+  /**
+   * Accept or decline an inbound request. Accepting is what starts the
+   * handshake; declining closes the socket with nothing written.
+   */
+  async transferRespond({ sessionId, requestId, accept, outputDir } = {}) {
+    this.manager.getDek(sessionId);
+    const result = await this.transfer.respond({ requestId, accept, outputDir });
+    this.manager.touch(sessionId);
+    this._record("transfer-respond", accept === true ? "Accepted a local transfer" : "Declined a local transfer");
+    return result;
+  }
+
+  /** Send files to a peer. Resolves only once the receiver has acknowledged. */
+  async transferSend({ sessionId, host, port, code, files, sender } = {}) {
+    this.manager.getDek(sessionId);
+    const result = await this.transfer.send({ host, port, code, files, sender });
+    this.manager.touch(sessionId);
+    this._record("transfer-send", `Sent ${result.files} file(s) to a local peer`);
     return result;
   }
 

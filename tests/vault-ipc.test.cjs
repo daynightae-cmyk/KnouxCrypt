@@ -56,11 +56,27 @@ async function call(channel, payload) {
   return fn({}, payload);
 }
 
+// Event-only channels are pushed from main to renderer; they have no handler
+// by design, so they are excluded from the invoke-surface check.
+const EVENT_ONLY = new Set([
+  CHANNELS.PROGRESS,
+  CHANNELS.REVOKED,
+  CHANNELS.TRANSFER_REQUEST,
+  CHANNELS.TRANSFER_STATE,
+]);
+
 test("all vault channels are registered", () => {
   setupService();
   for (const channel of Object.values(CHANNELS)) {
-    if (channel === CHANNELS.PROGRESS || channel === CHANNELS.REVOKED) continue;
+    if (EVENT_ONLY.has(channel)) continue;
     assert.ok(handlers.has(channel), `missing handler ${channel}`);
+  }
+});
+
+test("event-only channels are not registered as invoke handlers", () => {
+  setupService();
+  for (const channel of EVENT_ONLY) {
+    assert.ok(!handlers.has(channel), `${channel} must not be an invoke handler`);
   }
 });
 

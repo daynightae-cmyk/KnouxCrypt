@@ -181,6 +181,67 @@ function inspectCertificate(pem) {
   };
 }
 
+/**
+ * Fingerprint of a public key or certificate, in the same shape a user reads
+ * aloud: SHA-256 over the DER encoding, grouped in fours.
+ */
+function fingerprintOf(pem) {
+  const text = String(pem || "").trim();
+  if (!text.includes("-----BEGIN")) throw badInput("A PEM public key or certificate is required");
+  let der;
+  try {
+    der = text.includes("CERTIFICATE")
+      ? new crypto.X509Certificate(text).raw
+      : crypto.createPublicKey(text).export({ type: "spki", format: "der" });
+  } catch {
+    throw badInput("The PEM material could not be parsed");
+  }
+  const hex = crypto.createHash("sha256").update(der).digest("hex");
+  const groups = hex.match(/.{1,4}/g) || [];
+  return {
+    fingerprint: hex,
+    groups,
+    grouped: groups.join(" "),
+    short: groups.slice(0, 8).join(" "),
+  };
+}
+
+/**
+ * Compare two fingerprints group by group. The comparison itself is
+ * constant-time; `firstMismatch` is reported only so the UI can show where the
+ * two diverge, and it is derived from the same bytes that were compared.
+ */
+function compareFingerprints(left, right) {
+  const normalize = (value) => String(value || "").replace(/[^0-9a-fA-F]/g, "").toLowerCase();
+  const a = normalize(left);
+  const b = normalize(right);
+  if (!a || !b) throw badInput("Both fingerprints are required");
+  if (!/^[0-9a-f]+$/.test(a) || !/^[0-9a-f]+$/.test(b)) throw badInput("Fingerprints must be hexadecimal");
+
+  const ab = Buffer.from(a, "hex");
+  const bb = Buffer.from(b, "hex");
+  const equal = ab.length === bb.length && crypto.timingSafeEqual(ab, bb);
+
+  let firstMismatch = -1;
+  const limit = Math.min(ab.length, bb.length);
+  for (let i = 0; i < limit; i += 1) {
+    if (ab[i] !== bb[i]) {
+      firstMismatch = i;
+      break;
+    }
+  }
+  const groupLength = 2; // four hex characters per displayed group
+  return {
+    equal,
+    left: a,
+    right: b,
+    lengthMatch: ab.length === bb.length,
+    matchedGroups: firstMismatch === -1 ? Math.floor(limit / groupLength) : Math.floor(firstMismatch / groupLength),
+    totalGroups: Math.floor(Math.min(ab.length, bb.length) / groupLength),
+    firstMismatch,
+  };
+}
+
 async function payloadBytes({ text, inputPath }) {
   if (typeof text === "string" && text.length > 0) return Buffer.from(text, "utf8");
   if (typeof inputPath === "string" && inputPath.length > 0) {
@@ -202,4 +263,6 @@ module.exports = {
   sign,
   verify,
   inspectCertificate,
+  fingerprintOf,
+  compareFingerprints,
 };
