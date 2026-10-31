@@ -173,12 +173,27 @@ fun AccountScreen(
                     Spacer(Modifier.height(8.dp))
                     LinearProgressIndicator(Modifier.fillMaxWidth(), color = KnouxColors.VioletDeep)
                 }
-                accessState.message?.let { message ->
+                accessState.error?.let { failure ->
                     Spacer(Modifier.height(8.dp))
-                    Text(message, color = KnouxColors.Alert, style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        tr(failure.error.labelEn, failure.error.labelAr),
+                        color = KnouxColors.Alert,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    failure.detail?.let { detail ->
+                        Text(detail, color = KnouxColors.Faint, style = MaterialTheme.typography.labelSmall)
+                    }
                     TextButton(onClick = accessViewModel::clearMessage) {
                         Text(tr("Dismiss", "إغلاق"), color = KnouxColors.Violet, fontSize = 11.sp)
                     }
+                }
+                accessState.notice?.let { note ->
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        tr(note.en, note.ar),
+                        color = KnouxColors.Success,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                 }
             }
             Spacer(Modifier.height(10.dp))

@@ -1,6 +1,7 @@
 package com.knoux.crypt.ui
 
 import android.app.Application
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -121,6 +123,7 @@ fun PasswordsScreen(
     onBack: () -> Unit,
     onNeedUnlock: () -> Unit,
     onOpenAudit: () -> Unit = {},
+    onOpenDetail: (String) -> Unit = {},
 ) {
     if (container.session.currentAccess() == null) {
         LockedScreen(tr("Passwords", "كلمات المرور"), onBack, onNeedUnlock)
@@ -153,18 +156,6 @@ fun PasswordsScreen(
         password = ""
         url = ""
         notes = ""
-        showPassword = false
-        editorOpen = true
-    }
-
-    fun openEdit(record: SecretRecord) {
-        val payload = viewModel.payload(record) ?: return
-        editing = record
-        title = payload.title
-        username = payload.username
-        password = payload.password
-        url = payload.url
-        notes = payload.notes
         showPassword = false
         editorOpen = true
     }
@@ -207,7 +198,11 @@ fun PasswordsScreen(
         records.forEach { record ->
             val payload = viewModel.payload(record)
             val isRevealed = record.id in revealed
-            GlassCard(Modifier.fillMaxWidth()) {
+            GlassCard(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(role = Role.Button) { onOpenDetail(record.id) },
+            ) {
                 Text(
                     payload?.title?.ifBlank { tr("Untitled", "بلا عنوان") } ?: tr("Unreadable record", "سجل غير قابل للقراءة"),
                     style = MaterialTheme.typography.titleMedium,
@@ -244,7 +239,7 @@ fun PasswordsScreen(
                             )
                         }
                         Spacer(Modifier.weight(1f))
-                        TextButton(onClick = { openEdit(record) }) { Text(tr("Edit", "تعديل"), color = KnouxColors.Violet, fontSize = 11.sp) }
+                        TextButton(onClick = { onOpenDetail(record.id) }) { Text(tr("Open", "فتح"), color = KnouxColors.Violet, fontSize = 11.sp) }
                         TextButton(onClick = { pendingDelete = record }) { Text(tr("Delete", "حذف"), color = KnouxColors.Alert, fontSize = 11.sp) }
                     }
                     if (copiedId == record.id) {

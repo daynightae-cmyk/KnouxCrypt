@@ -14,8 +14,8 @@ class RotationAuthBroker {
     private val _authorization = MutableStateFlow<RotationAuthorization?>(null)
     val authorization: StateFlow<RotationAuthorization?> = _authorization.asStateFlow()
 
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error.asStateFlow()
+    private val _error = MutableStateFlow<SecurityMessage?>(null)
+    val error: StateFlow<SecurityMessage?> = _error.asStateFlow()
 
     private val _requesting = MutableStateFlow(false)
     val requesting: StateFlow<Boolean> = _requesting.asStateFlow()
@@ -31,7 +31,7 @@ class RotationAuthBroker {
         _authorization.value = authorization
     }
 
-    fun fail(message: String) {
+    fun fail(message: SecurityMessage) {
         _requesting.value = false
         _error.value = message
     }

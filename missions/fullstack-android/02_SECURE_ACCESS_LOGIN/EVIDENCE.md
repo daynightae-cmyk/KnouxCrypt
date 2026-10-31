@@ -72,3 +72,20 @@ fresh enrollment requires the prepared cipher; setup blocked by master key, by a
   commit lands before revocation, later writes fail, and cancellation/database errors
   write nothing. Full suite: 99 tests, 0 failures; APK 17,628,199 bytes; lint 0 errors.
 - Device lifecycle/Keystore behavior remains DEVICE_UNVERIFIED; no audit.
+
+## Addendum — 2026-11-01: bilingual failure handling and probe throttling (`f20937b`)
+
+The first hardware run exposed Latin-only failure text ("Authentication cancelled.") inside the
+Arabic UI, because `MainActivity` and the rotation ViewModel passed raw strings straight to the
+screens. Failure reporting is now typed: every category in `AccessError` carries an English and an
+Arabic sentence, and the platform or domain text is kept as `detail` beside it, so an unrecognised
+cause is never replaced by a generic sentence or upgraded into a success. Cancellation, lockout,
+permanent lockout, missing biometric, unavailable hardware, a result without a cipher, invalidation,
+the re-enrollment block and rotation-specific states each keep their own meaning.
+
+Six JVM tests (`app … AccessErrorTest`) assert that no category ships without distinct Arabic and
+English text and that the mapping does not change semantics. `SessionManager` additionally caches the
+master-key protection class and throttles the probe while unprovisioned; that value is display
+metadata and is never an authorization input, and the capability checks themselves are unchanged.
+The device-side biometric behaviour recorded above is unchanged and still stands: the prompt stayed
+pending for 20 s with no capability minted, and only an owner fingerprint opened a session.
