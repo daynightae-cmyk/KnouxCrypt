@@ -137,7 +137,12 @@ private fun algorithmFor(name: String): Totp.Algorithm = when (name.uppercase())
 }
 
 @Composable
-fun AuthenticatorScreen(container: AppContainer, onBack: () -> Unit, onNeedUnlock: () -> Unit) {
+fun AuthenticatorScreen(
+    container: AppContainer,
+    onBack: () -> Unit,
+    onNeedUnlock: () -> Unit,
+    onOpenImport: () -> Unit = {},
+) {
     if (container.session.currentAccess() == null) {
         LockedScreen(tr("Authenticator", "المصادقة"), onBack, onNeedUnlock)
         return
@@ -181,6 +186,8 @@ fun AuthenticatorScreen(container: AppContainer, onBack: () -> Unit, onNeedUnloc
             style = MaterialTheme.typography.labelSmall,
         )
         Spacer(Modifier.height(10.dp))
+        KnouxGhostButton(tr("Import accounts (QR / backup)", "استيراد الحسابات (QR / نسخة)"), onOpenImport)
+        Spacer(Modifier.height(8.dp))
         KnouxGhostButton(tr("Add TOTP entry", "إضافة إدخال TOTP"), {
             issuer = ""
             account = ""

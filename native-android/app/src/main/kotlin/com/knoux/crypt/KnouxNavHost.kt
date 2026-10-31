@@ -10,6 +10,7 @@ import androidx.navigation.navArgument
 import com.knoux.crypt.design.KnouxTab
 import com.knoux.crypt.ui.AccessScreen
 import com.knoux.crypt.ui.AccountScreen
+import com.knoux.crypt.ui.AuthImportScreen
 import com.knoux.crypt.ui.AuthenticatorScreen
 import com.knoux.crypt.ui.ClipboardGuardScreen
 import com.knoux.crypt.ui.FileCipherScreen
@@ -216,6 +217,14 @@ fun KnouxNavHost(
         }
         composable("authenticator") {
             AuthenticatorScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+                onOpenImport = { nav.navigate("auth_import") },
+            )
+        }
+        composable("auth_import") {
+            AuthImportScreen(
                 container = container,
                 onBack = { nav.popBackStack() },
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },

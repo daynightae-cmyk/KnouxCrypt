@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- No INTERNET, broad storage, camera or contacts permission is requested.
+    <!-- No INTERNET, broad storage, contacts or camera-at-install permission is requested; CAMERA is requested at runtime only for QR import.
          Documents are reached through the Storage Access Framework only. -->
     <uses-feature android:name="android.hardware.biometrics" android:required="false" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
         android:allowBackup="false"

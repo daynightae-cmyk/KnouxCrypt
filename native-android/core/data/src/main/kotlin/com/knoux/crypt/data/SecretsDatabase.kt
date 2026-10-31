@@ -41,6 +41,10 @@ interface SecretDao {
     @Upsert
     suspend fun upsert(entity: SecretEntity)
 
+    /** One Room transaction for a batch import; any failure aborts the whole batch. */
+    @Upsert
+    suspend fun upsertAll(entities: List<SecretEntity>)
+
     @Query("DELETE FROM secrets WHERE id = :id")
     suspend fun delete(id: String)
 
@@ -144,6 +148,39 @@ class SecretRepository(
                 recordId
             }
         }
+
+    /**
+     * Writes several records under one authorization boundary and one Room
+     * transaction ([SecretDao.upsertAll]). Either every row is committed or none
+     * is; a lock or cancellation before the write leaves the vault unchanged.
+     */
+    suspend fun saveBatch(
+        access: VaultAccess,
+        kind: String,
+        items: List<Pair<String?, String>>,
+    ): List<String> = withContext(Dispatchers.IO) {
+        if (items.isEmpty()) return@withContext emptyList()
+        session.withAuthorizedMutation(access) {
+            val keyVersion = keys.activeVersion(access)
+            val codec = SecretCodec(keys.keyFor(access, keyVersion))
+            val now = System.currentTimeMillis()
+            val ids = ArrayList<String>(items.size)
+            val entities = ArrayList<SecretEntity>(items.size)
+            items.forEach { (requestedId, payloadJson) ->
+                val recordId = requestedId?.takeIf { it.isNotBlank() } ?: java.util.UUID.randomUUID().toString()
+                ids += recordId
+                entities += SecretEntity(
+                    recordId,
+                    kind,
+                    codec.encrypt(kind, recordId, payloadJson, keyVersion),
+                    now,
+                    keyVersion,
+                )
+            }
+            dao.upsertAll(entities)
+            ids
+        }
+    }
 
     suspend fun delete(access: VaultAccess, id: String) = withContext(Dispatchers.IO) {
         session.withAuthorizedMutation(access) {

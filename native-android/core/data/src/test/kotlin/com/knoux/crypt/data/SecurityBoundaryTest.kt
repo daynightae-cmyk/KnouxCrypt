@@ -642,6 +642,10 @@ class SecurityBoundaryTest {
             return rows.value.firstOrNull { it.id == id }.also { lastReturned = it }
         }
 
+        override suspend fun upsertAll(entities: List<SecretEntity>) {
+            entities.forEach { entity -> upsert(entity) }
+        }
+
         override suspend fun upsert(entity: SecretEntity) {
             if (blockUpsert) {
                 upsertEntered.complete(Unit)

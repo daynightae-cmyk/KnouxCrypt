@@ -516,6 +516,10 @@ class VaultKeyRotationTest {
 
         override fun observe(kind: String): Flow<List<SecretEntity>> = flow { emit(rows.value.filter { it.kind == kind }) }
         override suspend fun find(id: String): SecretEntity? = rows.value.firstOrNull { it.id == id }
+        override suspend fun upsertAll(entities: List<SecretEntity>) {
+            entities.forEach { entity -> upsert(entity) }
+        }
+
         override suspend fun upsert(entity: SecretEntity) {
             rows.value = rows.value.filterNot { it.id == entity.id } + entity
         }
