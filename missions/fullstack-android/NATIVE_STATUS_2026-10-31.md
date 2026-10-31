@@ -106,7 +106,12 @@ Catalog accounting: 34 destinations total = **17 IMPLEMENTED**, **0 BLOCKED**, *
 
 ## Risks and gaps
 
-1. **No device verification**: no install, launch, lifecycle, predictive Back, rotation, biometric, Keystore, SAF, or screenshot evidence.
+1. **Device verification started, not finished**: the first hardware run (2026-11-01, itel S686LN /
+   Android 15 / API 35) executed all 8 instrumented tests green and behaviourally confirmed the
+   auth-bound gate and the screenshot policy on one handset. Still missing on real hardware: install
+   lifecycle and rotation, backup/restore through SAF, clipboard vendor behaviour, package inspector
+   on a real file, screen-off timing, TalkBack/font-scaling and canonical screenshots. No device
+   class coverage beyond this single low-cost TEE handset, and no independent review.
 2. **No security audit**: formats and code are tested but not reviewed externally; no fuzzing or dependency CVE scan.
 3. **Crypto scope**: KNP2 text uses Argon2id; passphrase files remain KNF1/PBKDF2 and device files use KNF2; record DEK rotation exists but the Keystore root is retained and lost-gate recovery is absent; no large-file soak; nonce/key-usage limits not formally analyzed.
 4. **Auth binding**: master key use is gated by the app capability, not per-use biometric authorization.
@@ -122,6 +127,37 @@ Catalog accounting: 34 destinations total = **17 IMPLEMENTED**, **0 BLOCKED**, *
 2. **Remaining vertical slices:** 05 Vault/Shadow Vault, 07 Notes editor, 09 Password detail (prerequisite 36 is now implemented), 11 Auth import, 19 Signatures, 21 Archive, 28 QR, 30 Document viewer, 33 Autofill, remaining design-only services.
 3. **Device gate:** follow `DEVICE_VERIFICATION_CHECKLIST.md`; install `app-debug.apk`, run all instrumented classes (access, Keystore record/KDK1/KNF2, Room migration), test privacy timing/clipboard/screen capture, HMAC/file integrity/package inspector, then capture Compose screenshots at 360/390/441 widths in EN/AR and compare against canonical references.
 4. **Quality gate:** detekt/ktlint, dependency locking, CVE scan, R8 shrinking (BouncyCastle adds 3.18 MB), and a real CI workflow (the PR14 template remains uninstalled).
+
+## First real-device run — itel S686LN, Android 15 / API 35 — 2026-11-01
+
+- Owner attached a physical handset (`itel S686LN`, arm64-v8a, security patch 2026-09-05,
+  `hardware_keystore=200`, fingerprint present). The clean-build APK
+  `a39077d7…06ea` (17,191,392 bytes) installed via `:app:installDebug`.
+- Instrumented suites ran for the first time: `:core:data:connectedDebugAndroidTest` **7/7 PASS**
+  (real-root record roundtrip, provider-chosen IV, KDK1 wrapped DEK, KNF2 device file, gate key
+  user-auth-bound, Room 1→2 migration, TASK 36 audit over real Room rows) and
+  `:app:connectedDebugAndroidTest` **1/1 PASS** (splash → guest Home is honest and navigable).
+- Build defect found only by hardware: `:core:data:mergeDebugAndroidTestJavaResource` collided on
+  `META-INF/versions/9/OSGI-INF/MANIFEST.MF` (BouncyCastle vs jspecify), so the instrumentation APK
+  could not be packaged at all. Fixed with the same `packaging` exclude `:app` already had; the JVM
+  suite and `:core:data:lintDebug` were re-run green afterwards (156 tests, 0 failures).
+- Gate behaviour: `Lock now` returned the app to the Access screen (`Vault state: Locked`,
+  `Session: No access`, `Strong biometric: Ready`). `Unlock with biometrics` raised the real
+  SystemUI sheet and it stayed pending at t+1/4/20 s with **no capability minted**; the session only
+  opened after the owner touched the sensor. While that sheet was up, `uiautomator dump` returned an
+  empty tree. This is behavioural support for the P0 claim, on one device, not an audit.
+- Screenshot policy measured: with `blockScreenshots = true`, `screencap` of the foreground app is
+  0.36 % non-black (system bar only) on two different screens — no card or field is recoverable.
+- Account/Access states render honestly on hardware, including the boundary line
+  `بوابة جلسة · ليست لكل استخدام` (session gate, not per-use) and `Data key: TEE`.
+- New gaps this run exposed: Latin-only failure strings inside the Arabic UI
+  (`Authentication cancelled.`), no canonical screenshot comparison yet (capture must be toggled off
+  first), repeated `keystore2 KEY_NOT_FOUND` binder traffic while the Account screen is displayed,
+  and the fact that every authenticated item now requires an owner fingerprint touch.
+- Evidence: `DEVICE_VERIFICATION_2026-11-01_ITEL_S686LN.md` plus raw XMLs and dumps in
+  `device-evidence/knoux-crypt-android-2026-11-01-itel-s686ln/`. Statuses moved to
+  DEVICE_VERIFIED (single handset) only for what actually ran; TASK 36's screen, rotation end-to-end,
+  SAF backup, clipboard timing and accessibility remain DEVICE_UNVERIFIED. No audit, no release.
 
 ## Password strength audit — TASK 36 — 2026-11-01 (`6db8263`)
 

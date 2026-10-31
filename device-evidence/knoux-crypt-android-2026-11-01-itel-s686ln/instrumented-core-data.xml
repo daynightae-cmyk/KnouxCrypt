@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="com.knoux.crypt.data.KeystoreDeviceTest" tests="7" failures="0" errors="0" skipped="0" time="1.685" timestamp="2026-10-31T21:20:15" hostname="localhost">
+  <properties>
+    <property name="device" value="itel S686LN - 15" />
+    <property name="flavor" value="" />
+    <property name="project" value=":core:data" />
+  </properties>
+  <testcase name="recordEncryptionUsesAProviderChosenIvWithTheRealRoot" classname="com.knoux.crypt.data.KeystoreDeviceTest" time="0.014" />
+  <testcase name="gateKeyIsUserAuthenticationBound" classname="com.knoux.crypt.data.KeystoreDeviceTest" time="0.001" />
+  <testcase name="knf2DeviceFileUsesWrappedPerFileDekWithTheRealRoot" classname="com.knoux.crypt.data.KeystoreDeviceTest" time="0.001" />
+  <testcase name="dataKeyWrappingRoundTripsUnderTheRealKeystoreRoot" classname="com.knoux.crypt.data.KeystoreDeviceTest" time="0.03" />
+  <testcase name="masterKeyRoundTripsAnAuthenticatedRecord" classname="com.knoux.crypt.data.KeystoreDeviceTest" time="0.028" />
+  <testcase name="auditScansRealRoomRowsAndDetectsReuseWeaknessAndGaps" classname="com.knoux.crypt.data.PasswordAuditRoomTest" time="0.242" />
+  <testcase name="migration1To2PreservesRowsAndDefaultsKeyVersionZero" classname="com.knoux.crypt.data.VaultDatabaseMigrationTest" time="0.058" />
+</testsuite>
