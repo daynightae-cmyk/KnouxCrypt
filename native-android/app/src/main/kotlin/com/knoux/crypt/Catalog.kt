@@ -63,7 +63,7 @@ object Catalog {
         ServiceDef("SECURITY_ACTIVITY", "Security Activity", "نشاط الأمان", "Review local security events", "راجع أحداث الأمان المحلية", ServiceArt.PRIVACY, null, ServiceStatus.DESIGN_ONLY, false),
         ServiceDef("SECRET_CAPSULE", "Expiring Secret Capsule", "كبسولة سرية مؤقتة", "Seal a secret with an expiry label", "اختم سرًا مع تاريخ انتهاء", ServiceArt.KEY, null, ServiceStatus.DESIGN_ONLY, false),
         ServiceDef("SESSION_PRIVACY", "Session Privacy", "خصوصية الجلسة", "Control session lock behavior", "تحكّم في قفل الجلسة", ServiceArt.PRIVACY, null, ServiceStatus.DESIGN_ONLY, false),
-        ServiceDef("FILE_INTEGRITY", "File Integrity", "سلامة الملف", "Check a file against a known hash", "قارن ملفًا ببصمة معروفة", ServiceArt.ENCRYPT, null, ServiceStatus.DESIGN_ONLY, false),
+        ServiceDef("FILE_INTEGRITY", "File Integrity", "سلامة الملف", "Check a file against a known hash", "قارن ملفًا ببصمة معروفة", ServiceArt.ENCRYPT, "file_integrity", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("SECURE_CLIPBOARD", "Secure Clipboard", "حافظة آمنة", "Time-bound clipboard handling", "تعامل مؤقت مع الحافظة", ServiceArt.PRIVACY, null, ServiceStatus.DESIGN_ONLY, false),
         ServiceDef("DEVICE_PAIRING", "Device Pairing", "اقتران الأجهزة", "Pair nearby devices for transfer", "اقرن أجهزة قريبة للنقل", ServiceArt.KEY, null, ServiceStatus.DESIGN_ONLY, false),
         ServiceDef("PASSWORD_AUDIT", "Password Audit", "تدقيق كلمات المرور", "Find reused and weak passwords locally", "اعثر على كلمات مرور ضعيفة محليًا", ServiceArt.PASSWORDS, null, ServiceStatus.DESIGN_ONLY, true),

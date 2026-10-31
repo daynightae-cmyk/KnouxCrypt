@@ -130,6 +130,9 @@ fun KnouxNavHost(
         composable("hash") {
             HashIntegrityScreen(onBack = { nav.popBackStack() })
         }
+        composable("file_integrity") {
+            HashIntegrityScreen(onBack = { nav.popBackStack() }, isFileIntegrityRoute = true)
+        }
         composable("random") {
             SecureRandomScreen(onBack = { nav.popBackStack() })
         }
