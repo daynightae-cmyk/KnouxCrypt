@@ -39,18 +39,16 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.knoux.crypt.AccessError
+import com.knoux.crypt.AccessErrors
 import com.knoux.crypt.AppContainer
-import com.knoux.crypt.data.MissingVaultKeyException
+import com.knoux.crypt.SecurityMessage
 import com.knoux.crypt.data.RotationAuthorization
-import com.knoux.crypt.data.RotationCorruptRecordException
 import com.knoux.crypt.data.RotationIncompleteException
 import com.knoux.crypt.data.RotationInventory
-import com.knoux.crypt.data.RotationNotAuthorizedException
 import com.knoux.crypt.data.RotationPhases
 import com.knoux.crypt.data.RotationProgress
 import com.knoux.crypt.data.RotationResult
-import com.knoux.crypt.data.VaultKeyInconsistentException
-import com.knoux.crypt.data.VaultLockedException
 import com.knoux.crypt.design.BackHeader
 import com.knoux.crypt.design.GlassCard
 import com.knoux.crypt.design.KnouxColors
@@ -78,7 +76,7 @@ class VaultKeyRotationViewModel(
         val busy: Boolean = false,
         val progress: RotationProgress? = null,
         val result: RotationResult? = null,
-        val error: String? = null,
+        val error: SecurityMessage? = null,
         val cancelledResumable: Boolean = false,
     )
 
@@ -139,7 +137,7 @@ class VaultKeyRotationViewModel(
         if (job?.isActive == true) return
         val access = container.session.currentAccess()
         if (access == null) {
-            _state.update { it.copy(error = "Unlock the vault before rotating its key.", busy = false) }
+            _state.update { it.copy(error = SecurityMessage(AccessError.NOT_UNLOCKED), busy = false) }
             return
         }
         job = viewModelScope.launch {
@@ -183,17 +181,8 @@ class VaultKeyRotationViewModel(
             .onSuccess { inventory -> _state.update { it.copy(inventory = inventory) } }
     }
 
-    private fun describe(failure: Throwable): String = when (failure) {
-        is VaultLockedException ->
-            "The vault locked during rotation. No key was discarded; unlock and resume."
-        is RotationNotAuthorizedException ->
-            "Owner verification is missing or expired. Verify with biometrics again."
-        is RotationIncompleteException -> failure.message ?: "Rotation is incomplete."
-        is RotationCorruptRecordException -> failure.message ?: "A record failed authentication."
-        is MissingVaultKeyException -> failure.message ?: "A required vault key is missing."
-        is VaultKeyInconsistentException -> failure.message ?: "Key metadata is inconsistent."
-        else -> failure.message ?: "Key rotation failed."
-    }
+    private fun describe(failure: Throwable): SecurityMessage =
+        AccessErrors.fromFailure(failure, rotationContext = true)
 }
 
 @Composable
@@ -419,8 +408,19 @@ fun VaultKeyRotationScreen(
             )
             Spacer(Modifier.height(8.dp))
         }
-        state.error?.let {
-            Text(it, color = KnouxColors.Alert, style = MaterialTheme.typography.bodySmall)
+        state.error?.let { failure ->
+            Text(
+                tr(failure.error.labelEn, failure.error.labelAr),
+                color = KnouxColors.Alert,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            failure.detail?.let { detail ->
+                Text(
+                    detail,
+                    color = KnouxColors.Faint,
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
             Spacer(Modifier.height(6.dp))
         }
 

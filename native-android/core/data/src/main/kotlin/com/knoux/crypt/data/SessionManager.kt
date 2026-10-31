@@ -83,8 +83,28 @@ class SessionManager internal constructor(private val keys: VaultKeySource) {
     private var access: VaultAccess? = null
     private var cachedKey: SecretKey? = null
     private var generation = 0L
+
+    /**
+     * When the live capability was minted. Used by screens that must refuse a
+     * long-idle sensitive action; zero while locked.
+     */
+    @Volatile private var unlockedAtMillis: Long = 0L
+
+    /**
+     * Cached platform protection class for the fixed master-key alias. This is
+     * display metadata only — it is never an authorization input, so caching it
+     * cannot let a stale value grant access. It exists because the Keystore
+     * binder probe was otherwise repeated on every recomposition.
+     */
+    @Volatile private var cachedSecurityLevel: String? = null
+    @Volatile private var lastSecurityLevelProbeMillis = 0L
     private val _unlocked = MutableStateFlow(false)
     val unlocked: StateFlow<Boolean> = _unlocked.asStateFlow()
+
+    companion object {
+        /** Minimum gap between Keystore protection-class probes while unprovisioned. */
+        const val SECURITY_LEVEL_RETRY_MILLIS = 5_000L
+    }
 
     val isUnlocked: Boolean
         get() = guard.read { access != null }
@@ -131,6 +151,7 @@ class SessionManager internal constructor(private val keys: VaultKeySource) {
         guard.write {
             generation += 1
             access = Capability(generation)
+            unlockedAtMillis = System.currentTimeMillis()
             synchronized(keyCacheLock) { cachedKey = null }
             _unlocked.value = true
         }
@@ -163,11 +184,17 @@ class SessionManager internal constructor(private val keys: VaultKeySource) {
     suspend fun lock() = mutationGate.withLock {
         guard.write {
             access = null
+            unlockedAtMillis = 0L
             synchronized(keyCacheLock) { cachedKey = null }
             generation += 1
             _unlocked.value = false
         }
         lockListeners.forEach { listener -> runCatching(listener) }
+    }
+
+    /** Millis since the live capability was minted, or null while locked. */
+    fun sessionAgeMillis(nowMillis: Long = System.currentTimeMillis()): Long? = guard.read {
+        if (access == null) null else (nowMillis - unlockedAtMillis).coerceAtLeast(0L)
     }
 
     fun currentAccess(): VaultAccess? = guard.read { access }
@@ -194,6 +221,22 @@ class SessionManager internal constructor(private val keys: VaultKeySource) {
         }
     }
 
-    /** Reports the platform's actual key protection class, or null before provisioning. */
-    fun keySecurityLevel(): String? = keys.masterKeySecurityLevel()
+    /**
+     * Reports the platform's actual key protection class, or null before
+     * provisioning. The value is cached because it describes a fixed alias and
+     * the Keystore probe is a binder call; it is display metadata and is never
+     * consulted for authorization. While nothing is provisioned the probe is
+     * throttled instead of cached, so a UI that recomposes frequently cannot
+     * generate Keystore traffic per frame, and provisioning is still observed
+     * within [SECURITY_LEVEL_RETRY_MILLIS].
+     */
+    fun keySecurityLevel(): String? {
+        cachedSecurityLevel?.let { return it }
+        val now = System.currentTimeMillis()
+        if (now - lastSecurityLevelProbeMillis < SECURITY_LEVEL_RETRY_MILLIS) return null
+        lastSecurityLevelProbeMillis = now
+        val level = runCatching { keys.masterKeySecurityLevel() }.getOrNull() ?: return null
+        cachedSecurityLevel = level
+        return level
+    }
 }

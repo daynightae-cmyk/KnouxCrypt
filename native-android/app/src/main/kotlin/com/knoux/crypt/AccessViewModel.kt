@@ -19,11 +19,15 @@ data class AccessUiState(
     val configured: Boolean = false,
     val strongBiometric: Boolean = false,
     val busy: Boolean = false,
-    val message: String? = null,
+    val error: SecurityMessage? = null,
+    val notice: LocalizedPair? = null,
     val unlocked: Boolean = false,
     val recoveryRequired: Boolean = false,
     val recoveryCode: String? = null,
 )
+
+/** A bilingual, non-error status line (used for successful gate replacement). */
+data class LocalizedPair(val en: String, val ar: String)
 
 class AccessViewModel(
     application: Application,
@@ -63,7 +67,8 @@ class AccessViewModel(
             busy = false,
             unlocked = true,
             configured = true,
-            message = null,
+            error = null,
+            notice = null,
             recoveryRequired = false,
             recoveryCode = null,
         )
@@ -72,25 +77,30 @@ class AccessViewModel(
     fun onGateRotated() = _state.update {
         it.copy(
             busy = false,
-            message = "Secure unlock gate replaced after biometric verification. The vault key and records were not changed.",
+            error = null,
             recoveryRequired = false,
             recoveryCode = null,
+            notice = LocalizedPair(
+                "Secure unlock gate replaced after biometric verification. The vault key and records were not changed.",
+                "استُبدلت بوابة الفتح الآمن بعد التحقق بالبصمة. مفتاح الخزنة والسجلات لم تتغير.",
+            ),
         )
     }
 
-    fun onError(message: String) = _state.update { it.copy(busy = false, message = message) }
+    fun onError(message: SecurityMessage) = _state.update { it.copy(busy = false, error = message, notice = null) }
 
     fun onRecoveryRequired(code: String) = _state.update {
         it.copy(
             busy = false,
             recoveryRequired = true,
             recoveryCode = code,
-            message = null,
+            error = null,
+            notice = null,
         )
     }
 
     fun consumeUnlocked() = _state.update { it.copy(unlocked = false) }
-    fun clearMessage() = _state.update { it.copy(message = null) }
+    fun clearMessage() = _state.update { it.copy(error = null, notice = null) }
 }
 
 fun <VM : ViewModel> viewModelFactory(create: () -> VM): ViewModelProvider.Factory =

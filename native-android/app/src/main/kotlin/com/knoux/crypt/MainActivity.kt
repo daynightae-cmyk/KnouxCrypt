@@ -147,7 +147,7 @@ class MainActivity : FragmentActivity() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     val cipherUsed = result.cryptoObject?.cipher
                     if (cipherUsed == null) {
-                        reportPromptMessage(action, "Biometric result did not include a key cipher.")
+                        reportPromptMessage(action, AccessErrors.missingCipher())
                         return
                     }
                     lifecycleScope.launch {
@@ -178,22 +178,25 @@ class MainActivity : FragmentActivity() {
                 }
 
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    reportPromptMessage(
-                        action,
-                        when (errorCode) {
-                            BiometricPrompt.ERROR_NEGATIVE_BUTTON,
-                            BiometricPrompt.ERROR_USER_CANCELED,
-                            -> "Authentication cancelled."
-                            BiometricPrompt.ERROR_LOCKOUT -> "Too many attempts. Try again later."
-                            BiometricPrompt.ERROR_LOCKOUT_PERMANENT ->
-                                "Biometric unlock is locked; guest mode remains available."
-                            BiometricPrompt.ERROR_NO_BIOMETRICS -> "No strong biometric is enrolled."
-                            BiometricPrompt.ERROR_HW_NOT_PRESENT,
-                            BiometricPrompt.ERROR_HW_UNAVAILABLE,
-                            -> "Biometric hardware is unavailable."
-                            else -> errString.toString()
-                        },
-                    )
+                    val message = when (errorCode) {
+                        BiometricPrompt.ERROR_NEGATIVE_BUTTON,
+                        BiometricPrompt.ERROR_USER_CANCELED,
+                        -> AccessErrors.cancelled()
+                        BiometricPrompt.ERROR_CANCELED -> AccessErrors.cancelled()
+                        BiometricPrompt.ERROR_LOCKOUT -> AccessErrors.lockout()
+                        BiometricPrompt.ERROR_LOCKOUT_PERMANENT -> AccessErrors.permanentLockout()
+                        BiometricPrompt.ERROR_NO_BIOMETRICS,
+                        BiometricPrompt.ERROR_NO_DEVICE_CREDENTIAL,
+                        -> AccessErrors.noBiometrics()
+                        BiometricPrompt.ERROR_HW_NOT_PRESENT,
+                        BiometricPrompt.ERROR_HW_UNAVAILABLE,
+                        BiometricPrompt.ERROR_UNABLE_TO_PROCESS,
+                        -> AccessErrors.hardwareUnavailable()
+                        // An unrecognised platform code keeps its raw text so a
+                        // real cause is never replaced by a generic sentence.
+                        else -> AccessErrors.platformDetail(errString.toString())
+                    }
+                    reportPromptMessage(action, message)
                 }
             },
         )
@@ -213,7 +216,7 @@ class MainActivity : FragmentActivity() {
         prompt.authenticate(info, BiometricPrompt.CryptoObject(cipher))
     }
 
-    private fun reportPromptMessage(action: GateAction, message: String) {
+    private fun reportPromptMessage(action: GateAction, message: SecurityMessage) {
         if (action == GateAction.ROTATE_KEYS) {
             container.rotationAuthBroker.fail(message)
         } else {
@@ -222,29 +225,25 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun handleFailure(failure: Exception, action: GateAction) {
-        if (action == GateAction.ROTATE_KEYS) {
-            val message = when (failure) {
-                is UnlockKeyInvalidatedException,
-                is KeyPermanentlyInvalidatedException,
-                -> "The biometric key was invalidated. Unlock or recover the gate before rotating."
-                is UnlockRejectedException -> "Authentication failed; rotation was not authorized."
-                is UnlockNotAuthorizedException -> "Unlock the vault before rotating its key."
-                else -> failure.message ?: "Rotation authorization failed."
-            }
-            container.rotationAuthBroker.fail(message)
+        val rotationContext = action == GateAction.ROTATE_KEYS
+        val invalidated = failure is KeyPermanentlyInvalidatedException
+        if (invalidated) {
+            val message = AccessErrors.invalidatedKey(rotationContext)
+            if (rotationContext) container.rotationAuthBroker.fail(message) else accessViewModel.onError(message)
+            if (!rotationContext) accessViewModel.refresh()
+            return
+        }
+        if (rotationContext) {
+            container.rotationAuthBroker.fail(AccessErrors.fromFailure(failure, rotationContext = true))
             return
         }
         when (failure) {
-            is UnlockKeyInvalidatedException,
-            is KeyPermanentlyInvalidatedException,
-            -> lifecycleScope.launch {
+            is UnlockKeyInvalidatedException -> lifecycleScope.launch {
                 val reason = runCatching { container.unlockManager.recoveryReason() }.getOrNull()
                 if (reason != null) {
                     accessViewModel.onRecoveryRequired(reason)
                 } else {
-                    accessViewModel.onError(
-                        "The biometric key was invalidated. Your data is intact; try again or use the existing gate.",
-                    )
+                    accessViewModel.onError(AccessErrors.fromFailure(failure, rotationContext = false))
                 }
                 accessViewModel.refresh()
             }
@@ -252,27 +251,19 @@ class MainActivity : FragmentActivity() {
             is UnlockReenrollmentBlockedException -> lifecycleScope.launch {
                 val configured = runCatching { container.unlockManager.isConfigured() }.getOrDefault(false)
                 if (configured) {
-                    accessViewModel.onError(
-                        "A vault and unlock gate already exist. Unlock with the existing gate; a new gate cannot claim this vault.",
-                    )
+                    accessViewModel.onError(AccessErrors.fromFailure(failure, rotationContext = false))
                 } else {
                     accessViewModel.onRecoveryRequired(UnlockManager.RECOVERY_GATE_MISSING)
                 }
                 accessViewModel.refresh()
             }
 
-            is UnlockNotAuthorizedException ->
-                accessViewModel.onError("Unlock the vault with biometrics before changing its gate.")
-
             is UnlockNotConfiguredException -> {
-                accessViewModel.onError("Secure unlock is not set up on this device.")
+                accessViewModel.onError(AccessErrors.fromFailure(failure, rotationContext = false))
                 accessViewModel.refresh()
             }
 
-            is UnlockRejectedException ->
-                accessViewModel.onError("Authentication failed. The vault stayed locked.")
-
-            else -> accessViewModel.onError(failure.message ?: "Secure unlock is unavailable.")
+            else -> accessViewModel.onError(AccessErrors.fromFailure(failure, rotationContext = false))
         }
     }
 }
