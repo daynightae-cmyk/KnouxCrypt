@@ -43,7 +43,9 @@ that saving/reading a note or password works with the real Keystore root (the
 previous caller-IV path would fail), that a new device-key file is KNF2 with a
 wrapped per-file DEK, and that legacy KNF1 files still open. In Privacy Center,
 exercise every auto-lock timeout, screen-off lock, clipboard timeout and lock
-clear, the FLAG_SECURE toggle, and the app-switch cover.
+clear, the FLAG_SECURE toggle, and the app-switch cover. In File Integrity, hash
+a known file, compare correct/wrong references, cancel mid-hash, use a corrupt
+URI, and stream a 4 GB file if available; verify the in-memory report copy.
 
 **Still unverified until this runs:** same `Cipher` instance returned by
 `BiometricPrompt` (the boundary rejects substitution by identity), Keystore
