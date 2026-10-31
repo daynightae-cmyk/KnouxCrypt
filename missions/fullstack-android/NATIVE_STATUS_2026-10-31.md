@@ -13,6 +13,7 @@
 **HMAC cancellation commit:** `012456058ca7f4579b93d5dc168a608a910f8977`
 **Clipboard Guard + Secure Clipboard commit:** `25b5acb6cffea6e4cc6423b07370ec5eae726c93`
 **PR #14 reconciliation merge:** `b4fe65c`
+**Main merge (owner-requested consolidation):** `4bdb5614d415b2c8a8c07056af13fd8849b75c02`
 **Base:** `integration/knoux-crypt-android-ready-20261030` @ `8f6f992`
 **PR #14 branch untouched:** `android/task00-foundation-review` @ `310665d` (still unmerged, not deleted).
 
@@ -110,7 +111,7 @@ Catalog accounting: 34 destinations total = **15 IMPLEMENTED**, **0 BLOCKED**, *
 6. **Gate recovery**: a biometric-invalidated or lost gate shows a truthful non-destructive recovery-required state. Data can be backed up/restored, but the gate and Keystore root key cannot be restored. Data-key rotation exists; the root key is retained for KNF1 files.
 7. **Biometric cipher identity**: unlock passes the exact prepared `Cipher` back to the domain and rejects substitution; real `BiometricPrompt` same-instance behavior is still DEVICE_UNVERIFIED.
 6. **Visual parity**: PR15 is the accepted baseline, not pixel certification; the external Preview artifact is not the APK.
-7. **PR14 review branch** remains unmerged and untouched; this branch must be reviewed before any merge to `main`.
+7. **PR14 review branch** remains unmerged and untouched. The owner requested consolidation of this implementation branch into `main`; a normal conflict-free merge was pushed at `4bdb561`. This does not constitute device verification, release approval, signing or an audit.
 
 ## Safe next actions (dependency-aware)
 
@@ -179,4 +180,4 @@ Catalog accounting: 34 destinations total = **15 IMPLEMENTED**, **0 BLOCKED**, *
 - Repository flows, in-flight reads/writes and file chunk loops revalidate the capability; decrypted ViewModel state is cleared on lock.
 - 21 new JVM tests cover guest reset/re-enrollment, stale and locked capabilities, in-flight revocation, invalidation, corrupt/substituted tokens, rotation atomicity and format compatibility. Biometric/Keystore behavior remains DEVICE_UNVERIFIED.
 
-No merge to `main`, release, signing, Play upload, or production claim was performed.
+The owner-requested consolidation merge to `main` was performed at `4bdb561` (normal merge, no force, no history rewrite). No release, signing, Play upload, production or device-verified security claim was made.
