@@ -25,12 +25,13 @@ export function SplashEntry() {
   const [playIntro] = useState(() => !introPlayed);
   const motion=useMotionPreferences();
   const {cue}=useKnouxAudio();
+  const [skipped,setSkipped]=useState(false);
   const [phase,setPhase]=useState("dormant");
   useEffect(()=>{
-    if(!playIntro||!motion.running){setPhase("idle");return;}
-    const timers=[[100,"awakening"],[800,"ignition"],[2100,"idle"]].map(([ms,next])=>setTimeout(()=>setPhase(next),ms));
+    if(!playIntro||!motion.running||skipped){setPhase("idle");return;}
+    const timers=[[350,"awakening"],[950,"ignition"],[1650,"identity"],[2400,"gateway"],[3200,"idle"]].map(([ms,next])=>setTimeout(()=>setPhase(next),ms));
     return()=>timers.forEach(clearTimeout);
-  },[motion.running,playIntro]);
+  },[motion.running,playIntro,skipped]);
   useEffect(()=>{if(phase==="ignition")cue("ignition");},[phase,cue]);
   const [entering, setEntering] = useState(false);
   const timer = useRef();
@@ -49,14 +50,15 @@ export function SplashEntry() {
   }
 
   return (
-    <main className={`crypt-entry ${playIntro ? "crypt-ignite" : ""}`} dir={dir} lang={locale} data-screen="SPLASH_ENTRY" aria-labelledby="crypt-brand">
+    <main className={`crypt-entry ${playIntro ? "crypt-ignite" : ""}`} dir={dir} lang={locale} data-entry-scene={entering?"extinguishing":phase} data-screen="SPLASH_ENTRY" aria-labelledby="crypt-brand">
       <div className="crypt-atmosphere" aria-hidden="true">
         <i className="crypt-horizon crypt-horizon-top" /><i className="crypt-horizon crypt-horizon-bottom" />
         <i className="crypt-ember" /><i className="crypt-ember" /><i className="crypt-ember" />
       </div>
+      {playIntro&&!skipped&&phase!=="idle"&&<button className="splash-skip" onClick={()=>setSkipped(true)}>{t("Skip intro")}</button>}
       <div className="crypt-entry-group" data-entry-phase={entering?"extinguishing":phase}>
         <div className="crypt-emblem" aria-hidden="true">
-          <div className="splash-energy-wave"/><StagEmblem phase={entering?"extinguishing":phase}/>
+          <div className="splash-energy-wave"/><svg className="splash-antler-light" viewBox="0 0 1254 1254"><path d="M605 550C430 370 180 390 175 195M649 550C824 370 1074 390 1079 195"/></svg><StagEmblem phase={entering?"extinguishing":phase}/>
         </div>
         <p className="splash-access-state" role="status">{t(entering?"Opening Secure Access — not authenticated":"Local interface · authentication required")}</p>
         <div className="crypt-branding">

@@ -21,9 +21,9 @@ observations=json.loads(b('eval','''(async()=>{const logos=[...document.querySel
 assert all(any(float(sample[i].split(',')[3])<.1 for sample in observations['samples']) for i in range(observations['logos'])),observations
 # Deterministic captures seek the same real CSS animation, not a replacement image.
 for name,ms in [('eyes-open',1000),('eyes-closed',8670),('eyes-reopened',1000)]:
- b('eval',f'for(const e of document.querySelectorAll(".stag-eye-aperture"))for(const a of e.getAnimations()){{a.pause();a.currentTime={ms}}}')
+ b('eval',f'document.querySelector(".crypt-app-shell").dataset.eyeBehavior="{"closed" if ms==8670 else "open"}"');b('wait',250)
  b('screenshot','.live-stag-stage .stag-emblem',out/f'{name}.png')
-b('eval','for(const e of document.querySelectorAll(".stag-eye-aperture"))for(const a of e.getAnimations())a.play()')
+b('eval','document.querySelector(".crypt-app-shell").dataset.eyeBehavior="open"')
 b('focus','.service-quick-dock a[href="/notes"]')
 check('const p=document.querySelector(".knoux-pulselink");if(!p||p.querySelectorAll("path").length!==2||getComputedStyle(p).pointerEvents!=="none")throw Error("keyboard eye-to-card pulse missing");if(location.pathname!=="/home")throw Error("focus navigated")')
 b('screenshot',out/'pulselink-keyboard.png');b('press','Enter');b('wait','.dw-notes')

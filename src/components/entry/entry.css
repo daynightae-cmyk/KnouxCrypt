@@ -79,3 +79,18 @@
 [data-entry-phase="ignition"] .splash-energy-wave{animation:splash-wave 1s ease-out both}
 @keyframes splash-wave{0%{transform:scale(.6);opacity:.2}40%{opacity:1}100%{transform:scale(1.9);opacity:.1}}
 .crypt-app-shell[data-motion-quality="off"] .crypt-entry *{animation:none!important;transition:none!important}
+.splash-skip{position:absolute;inset-block-start:48px;inset-inline-end:24px;color:#c6aedb;background:#140b21;border:1px solid #5b3c79;padding:9px 16px;border-radius:9px;z-index:2;cursor:pointer}
+.splash-skip:focus-visible{outline:2px solid #dfbaff;outline-offset:4px}
+.crypt-entry[data-entry-scene] .crypt-branding h1,.crypt-entry[data-entry-scene] .crypt-branding p{transition:clip-path .7s ease;clip-path:inset(0)}
+.crypt-entry:is([data-entry-scene="dormant"],[data-entry-scene="awakening"],[data-entry-scene="ignition"]) .crypt-branding :is(h1,p){clip-path:inset(0 100% 0 0)}
+.crypt-entry[data-entry-scene="identity"] .crypt-branding p{clip-path:inset(0 100% 0 0)}
+html[dir=rtl] .crypt-entry:is([data-entry-scene="dormant"],[data-entry-scene="awakening"],[data-entry-scene="ignition"]) .crypt-branding :is(h1,p){clip-path:inset(0 0 0 100%)}
+.crypt-entry[data-entry-scene="dormant"] .crypt-emblem img{filter:brightness(.015)}
+.crypt-entry[data-entry-scene="awakening"] .crypt-emblem img{filter:brightness(.18)}
+.crypt-entry .crypt-emblem img{transition:filter .85s ease}
+.crypt-entry:is([data-entry-scene="dormant"],[data-entry-scene="awakening"],[data-entry-scene="ignition"],[data-entry-scene="identity"]) .crypt-gate{opacity:.15}
+.splash-antler-light{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:#caa3f5;stroke-width:2;opacity:0;pointer-events:none}
+.splash-antler-light path{stroke-dasharray:30 1200}
+[data-entry-scene="ignition"] .splash-antler-light{opacity:.4;animation:splash-antler 700ms ease-out both}
+@keyframes splash-antler{from{stroke-dashoffset:0}to{stroke-dashoffset:-900;opacity:0}}
+@media(prefers-reduced-motion:reduce){.crypt-entry .crypt-emblem img{transition:none}}

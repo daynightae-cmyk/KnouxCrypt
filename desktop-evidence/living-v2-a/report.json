@@ -1,0 +1,131 @@
+{
+  "generatedBy": "CodeRabbit",
+  "batch": "A",
+  "baseline": "74fe4bf8a5649e825c639345d865727738274fc6",
+  "branch": "desktop/electron-fullstack-44-services-20261031",
+  "taskIds": [
+    "LIVING2-A1",
+    "LIVING2-A2",
+    "LIVING2-A3",
+    "LIVING2-A4"
+  ],
+  "files": [
+    "scripts/check-living-cipher.py",
+    "src/components/desktop/DesktopWorkspace.jsx",
+    "src/components/desktop/PulseLink.jsx",
+    "src/components/desktop/live-security.css",
+    "src/components/entry/SplashEntry.jsx",
+    "src/components/entry/StagEmblem.jsx",
+    "src/components/entry/entry.css",
+    "src/components/entry/stag.css",
+    "src/components/home/Home.jsx",
+    "src/components/shell/AppShell.jsx",
+    "src/i18n/desktop-ar.js",
+    "scripts/check-eye-lifecycle.py",
+    "scripts/check-living-v2.py",
+    "src/components/entry/StagEyeBehavior.jsx"
+  ],
+  "sha256": {
+    "scripts/check-living-cipher.py": "fece1bb5f0a0760efc2cb5386799b1d25e92e259ff78203e4a1b890f36b7c43b",
+    "src/components/desktop/DesktopWorkspace.jsx": "87b6f76cfb727a5c7fe97ed97ec03ec5e72e6d1d931159542e6f980cb427b8b7",
+    "src/components/desktop/PulseLink.jsx": "fb7c0b63534488ab6f0bdc2334c32e906c564748607f2a8e62b5f08b58fed6d5",
+    "src/components/desktop/live-security.css": "ffea2208560916d356a7170ae0399897008b25848a14e8b5aa867f1d21fcfdf2",
+    "src/components/entry/SplashEntry.jsx": "7cd74158adbfe89de412cadf3f114a2f07e31b03c9b73725b17134141911b130",
+    "src/components/entry/StagEmblem.jsx": "cdf094884c0b5afefb8e69735796ed58cf9615e273058c942cbfdfe7285bbbca",
+    "src/components/entry/entry.css": "7c4616120f93e28fe17fbf24a74af6996f1382d018378cce2803e0988f85d626",
+    "src/components/entry/stag.css": "395c9a1d8a10b1562aa4c6aff89b96b44a7145fb069b13a1d81b21d093149800",
+    "src/components/home/Home.jsx": "9ee4f69fc81a83681e208e2efe4158cff5fab4ace99f4ec0e0648b97243be092",
+    "src/components/shell/AppShell.jsx": "402d96d38c1c389ef905915fabca06b3d62a56687bb7ed2f09998c2f68c77303",
+    "src/i18n/desktop-ar.js": "0c0e264036145982a4319abbf0c1bebbfc945794b38cf2c18a21cc74ea8b309f",
+    "scripts/check-eye-lifecycle.py": "0f1bc9afeaa4d4a5c5d71286efd7316fe065b08914e637282f1f276a2ce22702",
+    "scripts/check-living-v2.py": "d59857aeaa93d3357d67ee8490442f0ffb367b37b3da5eb6b7fd04dc9f599ef9",
+    "src/components/entry/StagEyeBehavior.jsx": "11344fec0472ae78eac28795895f1075dca547b2b3fd3c6eaf94db2937d12b5d",
+    "package.json": "2c92f9a454e7d5b4d3adc1181abcd5bb0c7590907cbd602864cafbe00c868cff",
+    "src/assets/knoux-stag.png": "6b054a6815726ee545b0d935cf851fb751a44b3dc8505a68066e438bec004f68"
+  },
+  "environment": "Ubuntu26.04.1 Node24.21 npm11.19, existing dependencies/no lockfile; registered Vite3000/shared Chromium",
+  "limitations": [
+    "Real authentication/key custody/crypto engines remain unconnected; explicit guest and demo boundaries retained.",
+    "Windows application/runtime/EXE/device sound unverified.",
+    "Historical audit findings uncleared; no dependency changes.",
+    "Vercel unique bundle/checksum/report not supplied; no import claimed.",
+    "Cloud cadence previously around12RAF/s; no60fps claim."
+  ],
+  "nextFour": [
+    "01 SPLASH_ENTRY real bootstrap",
+    "02 SECURE_ACCESS_LOGIN real unlock",
+    "03 HOME real states/permissions",
+    "04 FILE_CIPHER authenticated file operations"
+  ],
+  "checks": [
+    {
+      "command": "npm run check",
+      "exitCode": 0
+    },
+    {
+      "command": "python3 scripts/check-living-v2.py",
+      "exitCode": 0
+    },
+    {
+      "command": "python3 scripts/check-eye-lifecycle.py",
+      "exitCode": 0
+    },
+    {
+      "command": "python3 scripts/check-living-cipher.py",
+      "exitCode": 0
+    },
+    {
+      "command": "python3 scripts/check-desktop-routes.py",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check electron/main.js",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check electron/preload.js",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "review": {
+    "passes": [
+      0,
+      1,
+      1
+    ],
+    "findingsAddressed": [
+      "Narrow Home pulse source selector",
+      "Hidden-tab QA duration now exceeds longest blink interval"
+    ],
+    "finalPass": "One minor finding before fix; corrected and fresh extended lifecycle test passed. No Critical/Warning findings."
+  },
+  "evidenceSha256": {
+    "awakening-and-continuity.webm": "5f725f812881c5a225809d2156f1e20428a5bc4243efd1d271368c9dce5d97e1",
+    "splash-gateway.png": "406e7b39b7dd72942a5155da1c1aa7693e0a3fcfe087314e2b47eeedf3aa7c9b",
+    "eyes-open.png": "7cf6f2d8cef9a5725e59f62707f028f69a9b5b9e9a30f746a72af1104e497f90",
+    "eyes-closed.png": "fe5295c2f300dfcdd1beab684d9bf8057c3840ad4fde500a89391618be954997",
+    "eyes-reopened.png": "71bf422fe16967d2383f8951748fc40d044230eb9b8a1ea7eceec2441dff46a2",
+    "home-energy-cards.png": "d0cb87c03a1e2f194e985b888a035540bb506ce3a39e482aa9751009b02aa06a",
+    "splash-skip-en.png": "55e80a08ee0891fc602bc705e9a827f5c3be49cfb0c3c76c2a0bc73eef6ccd8a",
+    "splash-skip-ar.png": "b005093ccdf16cc2b5b09e2c681d9658f5afb8ba4c7c18accb1b7b7f05a17dfd",
+    "observations.json": "c9254174a4704996363be50ebe149e2dbb84e231f6e13f5b0a440eb00fd79f48",
+    "natural-double-blink.webm": "7f21d7712903fe5bfa298196220bf637dabe6b12bd0aa9b3dcd09e6800acf963",
+    "eye-lifecycle.json": "09dffff4184264c39a738ba5b7a361127d08788a482334db71c9d886b490a711",
+    "regression/splash-blink-pulselink.webm": "84f65049043cd33f11f1aac633be445b97eb682eb38eec6357f14b785b6230d9",
+    "regression/splash-en.png": "e9d49274e73554c3fb96fd7ac8464116fb41365ff9b015f3551281cfbd77301b",
+    "regression/eyes-open.png": "d6eace5ee4adefe358778fc803f29fa4be909f9a9827ccecf971b3dea029998b",
+    "regression/eyes-closed.png": "706a1698c9052320f5feab628c14059178cdc170697718646d3e8af53eadff0a",
+    "regression/eyes-reopened.png": "e8190a169a595807f2898e7a25e3b5f63c0904d3c5426852062916db8704198b",
+    "regression/pulselink-keyboard.png": "627c493d53dbeaf51988943701eb4d60f702978e306c23985974fc79f606838e",
+    "regression/energy-vein-card.png": "287f8fd58048b2498df9d609a39f7eb01adcc2e63e6c289960f59ba832d86d83",
+    "regression/access-en.png": "bd345a25f75a06e4f7179cdfb23f19f413fcd5754c391fa6c9ae465680a08f69",
+    "regression/splash-ar.png": "d74bf3bd70bdcaf325d11abdf99d9b2e160111c5540e93f461eb8dec817e7248",
+    "regression/access-ar.png": "58ed3ba06c8c0ec84e93ab3a49a53dce697ca21988e7d1271d9beaeba9a147df",
+    "regression/observations.json": "747470cf89e31e0d2710d6c0637a92178008bad5fad24c905028afc3961f9aab"
+  },
+  "taskOneStatus": "Cinematic and safe access transition implemented; real authenticated transition unavailable because auth backend absent."
+}

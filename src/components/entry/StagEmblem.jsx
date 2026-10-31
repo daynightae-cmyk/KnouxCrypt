@@ -24,14 +24,15 @@ export function StagEmblem({className='',ignite=false,phase, intensity}) {
           lets those exact contours go dark; source pixels and silhouette stay intact. */}
       <g className="stag-eye-shutter" fill="#090511"><use href={`#${id}-left`}/><use href={`#${id}-right`}/></g>
       <g clipPath={`url(#${id}-aperture)`}><g className="stag-eye-envelope">
-        <g fill="#ad53ff" opacity=".45" filter={`url(#${id}-reflection)`}><use href={`#${id}-left`}/><use href={`#${id}-right`}/></g>
+        <g className="stag-eye-reflection" fill="#ad53ff" opacity=".45" filter={`url(#${id}-reflection)`}><use href={`#${id}-left`}/><use href={`#${id}-right`}/></g>
         {['left','right'].map(side=><g key={side} className={`stag-eye stag-eye-${side}`}>
-          <use href={`#${id}-${side}`} fill="#b25cff" filter={`url(#${id}-bloom)`}/>
+          <use href={`#${id}-${side}`} className="stag-eye-bloom" fill="#b25cff" filter={`url(#${id}-bloom)`}/>
           <use href={`#${id}-${side}`} fill={`url(#${id}-core)`} className="stag-eye-core"/>
           <g clipPath={`url(#${id}-${side}-clip)`}><ellipse className="stag-eye-glint" cx={side==='left'?453:801} cy="713" rx="36" ry="7" fill="white" transform={`rotate(${side==='left'?35:-35} ${side==='left'?453:801} 713)`}/></g>
         </g>)}
         <g className="stag-eye-trails" stroke="#e9beff" strokeWidth="2"><path d="M440 713 Q368 710 330 693"/><path d="M814 713 Q886 710 924 693"/></g>
       </g></g>
+      <g className="stag-eye-lidline"><path d="M425 713L479 733"/><path d="M829 713L775 733"/></g>
     </svg>
   </span>;
 }
