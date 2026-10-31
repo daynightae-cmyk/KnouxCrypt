@@ -7,7 +7,7 @@ class Context{
  createGain(){const n={gain:parameter(),connect(){},disconnect(){this.disconnected=true;}};this.gains.push(n);return n;}
  createBiquadFilter(){return{frequency:parameter(),Q:parameter(),connect(){},disconnect(){}};}
  createStereoPanner(){return{pan:parameter(),connect(){},disconnect(){}};}
- createOscillator(){const n={frequency:parameter(),detune:parameter(),connect(){},disconnect(){this.disconnected=true;},start(){},stop(){this.stopped=true;}};this.oscs.push(n);return n;}
+ createOscillator(){const n={frequency:parameter(),detune:parameter(),connect(){},disconnect(){this.disconnected=true;},start(time){this.startTime=time;},stop(){this.stopped=true;}};this.oscs.push(n);return n;}
  async resume(){}async close(){this.closed=true;this.state='closed';}
 }
 (async()=>{
@@ -30,6 +30,7 @@ class Context{
  engine.configure({effectsVolume:.35,reducedSensory:true});assert.ok(engine.effects.gain.target<.35);engine.mute();assert.equal(engine.cue(),false);
  assert.equal(Object.keys(SONIC_CATALOG).length,12);assert.equal(new Set(Object.values(SONIC_CATALOG).map(s=>JSON.stringify(s.frequencies))).size,12,'distinct sound signatures');
  await engine.dispose();assert.ok(c.closed&&c.oscs.every(n=>n.stopped));assert.equal(engine.cue(),false);engine.dispose();assert.equal(engine.nodes.size,0);assert.equal(engine.cues.size,0);
+ const signature=createAmbientAudio(Context);await signature.enable();assert.equal(signature.cue('ignition'),true);assert.deepEqual(Context.last.oscs.slice(-4).map(o=>o.startTime),[0,.08,.2,.28],'low impulse precedes crystalline response');await signature.dispose();
  class Blocked extends Context{async resume(){throw new Error('Device unavailable');}}
  const blocked=createAmbientAudio(Blocked);await assert.rejects(()=>blocked.enable());assert.equal(blocked.enabled,false);await blocked.dispose();
  let release;class Pending extends Context{resume(){return new Promise(r=>{release=r;});}}

@@ -15,7 +15,7 @@ export function PulseLink(){
     const clear=()=>{setPulse(null);if(shell)delete shell.dataset.pulseFocus;if(recipient)delete recipient.dataset.pulseReceived;};
     const start=e=>{
       if(!(e.target instanceof Element))return;
-      const card=e.target.closest('.hub-service,.service-quick-dock a,.dw-sidebar nav a,.hub-extra-tools a,.crypt-gate,.access-submit,.access-guest,.access-method,[data-pulselink]');
+      const card=e.target.closest('.hub-service,.service-quick-dock a,.dw-sidebar nav a,.hub-extra-tools a,.dw-tool-grid a,.dw-tool-select,.crypt-gate,.access-submit,.access-guest,.access-method,[data-pulselink]');
       if(!card||card.matches(':disabled,[aria-disabled="true"]')||(e.relatedTarget instanceof Node&&card.contains(e.relatedTarget)))return;
       if(e.type!=='click'&&performance.now()-last<150)return;
       const target=card.getBoundingClientRect();

@@ -12,7 +12,7 @@ export const SONIC_CATALOG = Object.freeze({
   warning: {frequencies:[293.66,311.13],duration:.32,level:.022},
   error: {frequencies:[130.81,155.56],duration:.28,level:.026,sweep:.7},
   lock: {frequencies:[261.63,196,130.81],duration:.65,level:.023,sweep:.55},
-  ignition: {frequencies:[82.41,164.81,329.63,659.25],duration:1.1,level:.023,sweep:1.3},
+  ignition: {frequencies:[82.41,164.81,329.63,659.25],delays:[0,.08,.2,.28],duration:1.1,level:.023,sweep:1.3},
 });
 const clamp=(n,fallback)=>typeof n==='number'&&Number.isFinite(n)?Math.max(0,Math.min(1,n)):fallback;
 const SERVICE_NOTES=['ENCRYPT','VAULT','NOTES','PASSWORDS','KEY_FORGE','AUTHENTICATOR','PRIVACY','BACKUP'];
@@ -92,7 +92,7 @@ export class KnouxAudioEngine {
     spec.frequencies.forEach((baseFrequency,i)=>{
       const frequency=baseFrequency*accent;
       const oscillator=this.context.createOscillator(),envelope=this.context.createGain();
-      const start=now+i*.018;oscillator.type='sine';oscillator.frequency.setValueAtTime(frequency,start);
+      const start=now+(spec.delays?.[i]??i*.018);oscillator.type='sine';oscillator.frequency.setValueAtTime(frequency,start);
       if(spec.sweep)oscillator.frequency.exponentialRampToValueAtTime(frequency*spec.sweep,start+spec.duration);
       envelope.gain.setValueAtTime(0,start);envelope.gain.linearRampToValueAtTime(spec.level/spec.frequencies.length,start+.025);
       envelope.gain.exponentialRampToValueAtTime(.00001,start+spec.duration);
