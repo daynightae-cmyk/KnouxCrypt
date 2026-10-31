@@ -68,7 +68,7 @@ export function LiveSecurityPreview({previewId}) {
     setPhase('dormant');
     const timers=[[80,'awakening'],[650,'ignition'],[1500,'idle']].map(([ms,next])=>setTimeout(()=>setPhase(next),ms));
     return()=>timers.forEach(clearTimeout);
-  },[pathname,dimmed,motion.running]);
+  },[dimmed,motion.running]);
   useEffect(()=>{if(phase==='ignition')cue('ignition');if(phase==='extinguishing')cue('lock');},[phase,cue]);
   function pointer(e){
     if(!motion.running || motion.preferences.performance || e.pointerType==='touch')return;

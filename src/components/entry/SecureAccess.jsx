@@ -6,6 +6,7 @@ import { Fingerprint } from "./SplashEntry";
 import valley from "../../assets/auth-landscape.webp";
 import { StagEmblem } from "./StagEmblem";
 import "./access.css";
+import {useKnouxAudio} from "../shell/KnouxAudioProvider";
 
 function Icon({ name }) {
   const { t, locale, dir } = useLanguage();
@@ -47,6 +48,7 @@ function DemoSheet({ method, onClose, onContinue }) {
 }
 
 export function SecureAccess() {
+  const {cue}=useKnouxAudio();
   const { t, locale, dir } = useLanguage();
 
   const navigate = useNavigate();
@@ -69,9 +71,11 @@ export function SecureAccess() {
     if (username.trim() && password && (username !== "demo" || password !== "preview")) nextErrors.password = "Use only the sample values: demo / preview. Do not enter real credentials.";
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) {
+      cue("warning");
       (nextErrors.username ? userInput : passwordInput).current.focus();
       return;
     }
+    cue("open");
     setMethod("Sign In");
   }
 
@@ -96,11 +100,11 @@ export function SecureAccess() {
             {errors.password && <p className="access-error" id="password-error" role="alert">{t(errors.password)}</p>}
           </div>
           <p id="access-demo-hint" className="access-sample">{t("Offline preview · Use ")}<strong><bdi dir="ltr">demo / preview</bdi></strong>{t(" only")}</p>
-          <button type="submit" className="access-submit">{t("Sign In ")}<Icon name="arrow"/></button>
+          <button type="submit" data-sound="none" className="access-submit">{t("Sign In ")}<Icon name="arrow"/></button>
         </form>
         <div className="access-divider"><span>{t("OR CONTINUE WITH")}</span></div>
         <div className="access-methods" aria-label={t("Visual preview methods")}>
-          {[['GitHub', 'Continue securely', 'github'], ['Passkey', 'Use your device', 'key'], ['Fingerprint', 'Quick unlock', 'fingerprint']].map(([name, description, icon]) => <button key={name} type="button" className={`access-method ${selected === name ? "access-selected" : ""}`} aria-pressed={selected === name} onClick={() => { setSelected(name); setMethod(name); }}>
+          {[['GitHub', 'Continue securely', 'github'], ['Passkey', 'Use your device', 'key'], ['Fingerprint', 'Quick unlock', 'fingerprint']].map(([name, description, icon]) => <button key={name} type="button" data-sound="open" className={`access-method ${selected === name ? "access-selected" : ""}`} aria-pressed={selected === name} onClick={() => { setSelected(name); setMethod(name); }}>
             <span className={icon === "fingerprint" ? "access-biometric" : ""}>{icon === "fingerprint" ? <Fingerprint/> : <Icon name={icon}/>}</span><span>{t(name)}</span><small>{t(description)}</small>
           </button>)}
         </div>
