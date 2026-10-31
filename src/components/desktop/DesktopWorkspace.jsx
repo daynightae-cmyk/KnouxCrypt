@@ -7,6 +7,7 @@ import { Mark } from '../security/ScreenUI';
 import { ServiceGrid, ToolsDirectory } from '../home/Home';
 import { useNotes, NOTE_CATEGORIES } from '../notes/NotesContext';
 import './desktop.css';
+import {DesktopPasswords, DesktopAuthenticator, DesktopKeyForge, DesktopPrivacy} from './DesktopSecurity';
 
 const artwork = import.meta.glob('../../assets/service-*.webp', {eager:true, import:'default'});
 export function useDesktopWorkspace() {
@@ -63,5 +64,5 @@ export function DesktopNotes() {
 export function DesktopRoute({id,children}) {
   const wide=useDesktopWorkspace();
   if(!wide) return children;
-  switch(id){case 'HOME':return <DesktopHome/>;case 'FILE_CIPHER':return <DesktopFileCipher/>;case 'SHADOW_VAULT':return <DesktopVault/>;case 'NOTES':case 'NOTES_EDITOR':return <DesktopNotes/>;default:return children;}
+  switch(id){case 'PASSWORDS':return <DesktopPasswords/>;case 'AUTHENTICATOR':return <DesktopAuthenticator/>;case 'KEY_FORGE':return <DesktopKeyForge/>;case 'PRIVACY':return <DesktopPrivacy/>;case 'HOME':return <DesktopHome/>;case 'FILE_CIPHER':return <DesktopFileCipher/>;case 'SHADOW_VAULT':return <DesktopVault/>;case 'NOTES':case 'NOTES_EDITOR':return <DesktopNotes/>;default:return children;}
 }
