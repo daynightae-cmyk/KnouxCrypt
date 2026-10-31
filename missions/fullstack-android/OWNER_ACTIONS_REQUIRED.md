@@ -2,9 +2,9 @@
 
 This is an owner checklist for genuinely owner-exclusive last-mile actions. It is
 not a mission pack and it does not shift unfinished engineering onto the owner.
-Everything listed here is engineering-complete up to the stated boundary.
+Everything listed here is engineering-complete up to the stated boundary. The source branch was consolidated into `main` at `4bdb561`; that merge does not verify Android runtime or authorize release.
 
-Updated: 2026-10-31 · Branch `android/native-implementation-20261031` · Security P0 `c3f718f` · Rotation `176d8c3` · Privacy `3091032` · Keystore IV fix `ca7a1bc`.
+Updated: 2026-10-31 · Branch `android/native-implementation-20261031` · main merge `4bdb561` · Security P0 `c3f718f` · Rotation `176d8c3` · Privacy `3091032` · Keystore IV fix `ca7a1bc`.
 
 ## 1. Run the device-only security checks (TASK 02 / TASK 45)
 
