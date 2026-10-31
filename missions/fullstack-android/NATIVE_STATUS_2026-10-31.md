@@ -56,7 +56,7 @@ Test distribution (current): security 58 (FileEnvelope 13 + KNF2 8 + Hashing 3 +
 | 06 | Secure notes | **BUILD_VERIFIED + codec TESTED**; Room/device test open |
 | 07 | Notes editor | PLANNED as a dedicated task (inline editor exists inside 06) |
 | 08 | Passwords | **BUILD_VERIFIED + codec TESTED**; sensitive-copy clipboard timeout wired; autofill/device open |
-| 09 | Password detail | PLANNED (edit dialog exists inside 08) |
+| 09 | Password detail | **SOURCE_IMPLEMENTED + JVM_TESTED (17 new) + RULES DEVICE_VERIFIED (3 instrumented Room tests) — SCREEN DEVICE_UNVERIFIED / AUDIT_PENDING**: `password_detail/{recordId}` route, live-capability load with LOADING/READY/MISSING/UNREADABLE/LOCKED states, masked secret with 60 s freshness gate and 15 s auto-hide, managed-lease copy, validated origin, plaintext-free bounded history, session-only access log, real SecureRandom generator |
 | 10 | Authenticator | **BUILD_VERIFIED + TOTP TESTED (RFC 6238)**; device clock/UI open |
 | 11 | Auth import | PLANNED |
 | 12 | Key Forge | **BUILD_VERIFIED** (ephemeral key only); persistent keyring open |
@@ -92,7 +92,7 @@ Test distribution (current): security 58 (FileEnvelope 13 + KNF2 8 + Hashing 3 +
 | 42 | Session privacy controls | **BUILD_VERIFIED + JVM_TESTED policy (2) — DEVICE_UNVERIFIED**: configurable auto-lock, screen-off lock, clipboard timeout + lock clear, screenshot policy, app-switch cover, mutation/revocation serialization |
 | 43 | File integrity tool | **BUILD_VERIFIED + JVM_TESTED (hash vectors) — DEVICE_UNVERIFIED**: streaming SHA-256, checksum validation, match/mismatch evidence, cancel, in-memory reports, dedicated `file_integrity` route reusing Hash & Integrity |
 | 44 | Secure clipboard | **BUILD_VERIFIED + JVM_TESTED (policy) — DEVICE_UNVERIFIED**: managed copy action, hidden staged value, timeout/clear, guard linkage; no guaranteed erasure |
-| 45 | Final integration/verification | **SOURCE-LEVEL AUDIT DONE / DEVICE_BLOCKED / RELEASE_BLOCKED / AUDIT_PENDING**: 34 routes and 17 implemented/17 design-only; 156 tests, lint, APK; device/signing/audit/visual gates remain open |
+| 45 | Final integration/verification | **SOURCE-LEVEL AUDIT DONE / DEVICE PARTIALLY VERIFIED / RELEASE_BLOCKED / AUDIT_PENDING**: 34 Tools destinations (17 implemented / 17 design-only) plus the non-catalog `password_detail` route; 179 JVM tests and 10 instrumented tests passing on one Android 15 handset; device/signing/audit/visual gates remain open |
 
 Catalog accounting: 34 destinations total = **17 IMPLEMENTED**, **0 BLOCKED**, **17 DESIGN_ONLY** (Recovery is implemented for encrypted data export/restore; gate recovery remains out of scope. Key rotation is an internal Account wizard, not a new Tools destination. Password Audit is a Tools destination added by TASK 36). Eight Home cards preserved in the accepted order.
 
@@ -124,9 +124,51 @@ Catalog accounting: 34 destinations total = **17 IMPLEMENTED**, **0 BLOCKED**, *
 ## Safe next actions (dependency-aware)
 
 1. **Device/audit gate:** run the new rotation, Keystore/KNF2 and Room migration instrumentation on real hardware; test privacy timing/clipboard and file-integrity SAF/cancel/4GB; capture AR/EN screenshots; commission independent review. TASK 31/42/43 are source-implemented but DEVICE_UNVERIFIED/AUDIT_PENDING. Root retention for existing external KNF1 files remains documented.
-2. **Remaining vertical slices:** 05 Vault/Shadow Vault, 07 Notes editor, 09 Password detail (prerequisite 36 is now implemented), 11 Auth import, 19 Signatures, 21 Archive, 28 QR, 30 Document viewer, 33 Autofill, remaining design-only services.
+2. **Remaining vertical slices:** 05 Vault/Shadow Vault, 07 Notes editor, 11 Auth import (dependency-ready), 19 Signatures, 21 Archive, 28 QR, 30 Document viewer, 33 Autofill, remaining design-only services.
 3. **Device gate:** follow `DEVICE_VERIFICATION_CHECKLIST.md`; install `app-debug.apk`, run all instrumented classes (access, Keystore record/KDK1/KNF2, Room migration), test privacy timing/clipboard/screen capture, HMAC/file integrity/package inspector, then capture Compose screenshots at 360/390/441 widths in EN/AR and compare against canonical references.
 4. **Quality gate:** detekt/ktlint, dependency locking, CVE scan, R8 shrinking (BouncyCastle adds 3.18 MB), and a real CI workflow (the PR14 template remains uninstalled).
+
+## Bilingual failures, quieter Keystore, and TASK 09 password detail — 2026-11-01 (`f20937b` + this commit)
+
+- Baseline was re-checked first: branch and `main` at `337feb9`, clean tree, two worktrees, no CI
+  workflow installed, and `origin/main` ahead by Desktop PR #24 (`d1aaeb2`). That commit touches only
+  `electron/`, `src/`, `scripts/` and `tests/` — zero overlap with `native-android/` — so it was
+  integrated by fast-forward before any Android work started.
+- **Localisation defect fixed.** Every secure-access and rotation failure is now a typed `AccessError`
+  category carrying both Arabic and English sentences (`AccessError.kt`), with the platform or domain
+  text preserved as `detail` so an unrecognised cause is never replaced by a generic line or a
+  success. `AccessViewModel`, `RotationAuthBroker`, `AccessScreen`, `AccountScreen`,
+  `VaultKeyRotationScreen` and `MainActivity` were moved off raw strings; the BiometricPrompt code
+  mapping now also covers `ERROR_CANCELED`, `ERROR_NO_DEVICE_CREDENTIAL` and `ERROR_UNABLE_TO_PROCESS`.
+  Six regression tests assert that no category ships without distinct Arabic and English text and that
+  cancellation, lockout, invalidation, re-enrollment block and the unknown-failure detail keep their
+  meanings (`app … AccessErrorTest`).
+- **Keystore probe noise reduced.** `SessionManager` caches the fixed master-key alias's protection
+  class and throttles the probe to once per 5 s while nothing is provisioned, so UI recomposition
+  stops generating repeated binder calls. The cached value is display metadata and is never consulted
+  for authorization. `SessionManager` also records when a capability was minted
+  (`sessionAgeMillis()`), which is what the new reveal window is measured against.
+- **TASK 09 password detail implemented as a real slice.** New route `password_detail/{recordId}`
+  (UUID only — no plaintext deep link), `CredentialDetailViewModel` loading through the
+  revocation-checked repository with distinct LOADING/READY/MISSING/UNREADABLE/LOCKED states, masked secret with
+  a 60 s session-freshness gate and 15 s auto-hide, managed-lease copy for secret/username/origin,
+  validated `http(s)` origin that rejects embedded credentials, bounded plaintext-free revision
+  history (`PasswordPayload.revisions`, legacy rows still decode), a session-only access log, and a
+  real `SecureRandom` generator (uniform, one character per selected class, 8–64 clamped, refuses an
+  empty selection) matching the reference controls. The Passwords list now opens this screen and its
+  duplicate inline edit dialog was removed.
+- Two new pure modules carry the rules so the screen cannot drift: `PasswordCredential.kt`
+  (`CredentialOrigins`, `PasswordRevisions`, `CredentialRevealPolicy`, `CredentialDiff`) and
+  `PasswordGenerator.kt` in `:core:security`.
+- Verification: **179 JVM tests, 0 failures** (security 77, data 85, app 17 — 23 new tests in this
+  phase); lint 0 errors; `:core:data:connectedDebugAndroidTest` **10/10 PASS on the itel S686LN**,
+  including the three new detail tests against real Room. The first hardware run of the history test
+  failed with `UnlockReenrollmentBlockedException` — the app's own P0 rule — and was corrected to
+  assert that rule rather than bypass it.
+- Clean-build APK: **17,273,312 bytes, SHA-256 `9d0eeb9eea62d5f3e8c624acdfc5e4e1b8871ef23a9fc0aba4d3c43b6215f242`**,
+  installed and cold-started on the device with no crash-buffer entries. The detail **screen** was not
+  rendered on hardware: it needs an authenticated session, so layout, RTL, TalkBack, keyboard, the
+  reveal countdown and canonical screenshots remain DEVICE_UNVERIFIED. No audit, no release claim.
 
 ## First real-device run — itel S686LN, Android 15 / API 35 — 2026-11-01
 

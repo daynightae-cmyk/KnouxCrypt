@@ -74,6 +74,16 @@ const CHANNELS = Object.freeze({
   PICK_INPUTS: "vault:pick-inputs",
   PROGRESS: "vault:progress",
   REVOKED: "vault:revoked",
+  CLIPBOARD_STATUS: "vault:clipboard-status",
+  CLIPBOARD_COPY: "vault:clipboard-copy",
+  CLIPBOARD_DISARM: "vault:clipboard-disarm",
+  CLIPBOARD_CLEAR_NOW: "vault:clipboard-clear-now",
+  CLIPBOARD_VERIFY: "vault:clipboard-verify",
+  CLIPBOARD_STATE: "vault:clipboard-state",
+  RANDOM_GENERATE: "vault:random-generate",
+  HMAC_COMPUTE: "vault:hmac-compute",
+  HMAC_COMPARE: "vault:hmac-compare",
+  PUBLIC_QR: "vault:public-qr",
 });
 
 const STORE_COLLECTIONS = Object.freeze(["notes", "passwords", "authenticator", "keys"]);
@@ -157,6 +167,11 @@ function registerVaultIpc(service, getWindow) {
   service.onTransfer = (event) => {
     const win = getWindow();
     if (win && !win.isDestroyed()) win.webContents.send(CHANNELS.TRANSFER_STATE, event);
+  };
+
+  service.onClipboard = (event) => {
+    const win = getWindow();
+    if (win && !win.isDestroyed()) win.webContents.send(CHANNELS.CLIPBOARD_STATE, event);
   };
   // The inbound request carries the short authentication string the user must
   // read out, so it goes to the renderer as its own event rather than being
@@ -694,6 +709,98 @@ function registerVaultIpc(service, getWindow) {
     }),
   );
 
+  ipcMain.handle(CHANNELS.CLIPBOARD_STATUS, safe(async () => service.clipboardStatus()));
+
+  ipcMain.handle(
+    CHANNELS.CLIPBOARD_COPY,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.clipboardCopy({
+        sessionId: typeof p.sessionId === "string" ? p.sessionId : undefined,
+        text: requireString(p.text, "text", 64 * 1024),
+        seconds: Number.isInteger(p.seconds) ? p.seconds : 30,
+        // Consent is a strict boolean: a truthy string must not lease.
+        confirm: p.confirm === true,
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.CLIPBOARD_DISARM,
+    safe(async (event, payload) => {
+      const p = payload ? requireObject(payload) : {};
+      return service.clipboardDisarm(
+        typeof p.leaseId === "string" ? p.leaseId : undefined,
+        typeof p.reason === "string" ? p.reason : undefined,
+      );
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.CLIPBOARD_CLEAR_NOW,
+    safe(async (event, payload) => {
+      const p = payload ? requireObject(payload) : {};
+      return service.clipboardClearNow(typeof p.leaseId === "string" ? p.leaseId : undefined);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.CLIPBOARD_VERIFY,
+    safe(async (event, payload) => {
+      const p = payload ? requireObject(payload) : {};
+      return service.clipboardVerify(typeof p.leaseId === "string" ? p.leaseId : undefined);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.RANDOM_GENERATE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.randomGenerate({
+        type: typeof p.type === "string" ? p.type : "hex",
+        length: Number.isInteger(p.length) ? p.length : undefined,
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.HMAC_COMPUTE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const request = {
+        algorithm: typeof p.algorithm === "string" ? p.algorithm : "SHA-256",
+        // The key is passed through untouched; it is never logged or echoed back.
+        key: typeof p.key === "string" ? p.key.slice(0, 8192) : "",
+        keyEncoding: typeof p.keyEncoding === "string" ? p.keyEncoding : "utf8",
+        encoding: p.encoding === "base64" ? "base64" : "hex",
+      };
+      if (typeof p.message === "string") request.message = p.message.slice(0, 4 * 1024 * 1024);
+      if (typeof p.inputPath === "string") request.inputPath = p.inputPath;
+      return service.hmacCompute(request);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.HMAC_COMPARE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.hmacCompare(String(p.left || "").slice(0, 512), String(p.right || "").slice(0, 512));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.PUBLIC_QR,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const request = {};
+      if (typeof p.sessionId === "string") request.sessionId = p.sessionId;
+      if (typeof p.keyId === "string") request.keyId = p.keyId;
+      if (typeof p.text === "string") request.text = p.text.slice(0, 4096);
+      if (typeof p.errorCorrectionLevel === "string") request.errorCorrectionLevel = p.errorCorrectionLevel;
+      return service.publicKeyQr(request);
+    }),
+  );
+
   ipcMain.handle(
     CHANNELS.PICK_DIRECTORY,
     safe(async (event, payload) => {
@@ -748,7 +855,8 @@ function registerVaultIpc(service, getWindow) {
         channel !== CHANNELS.PROGRESS &&
         channel !== CHANNELS.REVOKED &&
         channel !== CHANNELS.TRANSFER_REQUEST &&
-        channel !== CHANNELS.TRANSFER_STATE
+        channel !== CHANNELS.TRANSFER_STATE &&
+        channel !== CHANNELS.CLIPBOARD_STATE
       ) {
         ipcMain.removeHandler(channel);
       }

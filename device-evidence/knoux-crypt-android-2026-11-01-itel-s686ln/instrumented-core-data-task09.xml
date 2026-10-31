@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="com.knoux.crypt.data.KeystoreDeviceTest" tests="10" failures="0" errors="0" skipped="0" time="1.622" timestamp="2026-10-31T22:37:03" hostname="localhost">
+  <properties>
+    <property name="device" value="itel S686LN - 15" />
+    <property name="flavor" value="" />
+    <property name="project" value=":core:data" />
+  </properties>
+  <testcase name="recordEncryptionUsesAProviderChosenIvWithTheRealRoot" classname="com.knoux.crypt.data.KeystoreDeviceTest" time="0.021" />
+  <testcase name="gateKeyIsUserAuthenticationBound" classname="com.knoux.crypt.data.KeystoreDeviceTest" time="0.015" />
+  <testcase name="knf2DeviceFileUsesWrappedPerFileDekWithTheRealRoot" classname="com.knoux.crypt.data.KeystoreDeviceTest" time="0.014" />
+  <testcase name="dataKeyWrappingRoundTripsUnderTheRealKeystoreRoot" classname="com.knoux.crypt.data.KeystoreDeviceTest" time="0.008" />
+  <testcase name="masterKeyRoundTripsAnAuthenticatedRecord" classname="com.knoux.crypt.data.KeystoreDeviceTest" time="0.007" />
+  <testcase name="auditScansRealRoomRowsAndDetectsReuseWeaknessAndGaps" classname="com.knoux.crypt.data.PasswordAuditRoomTest" time="0.112" />
+  <testcase name="generatorOutputIsStorableAndScoresStrong" classname="com.knoux.crypt.data.PasswordDetailRoomTest" time="0.038" />
+  <testcase name="detailRoundTripKeepsHistoryAndNeverStoresPlaintext" classname="com.knoux.crypt.data.PasswordDetailRoomTest" time="0.036" />
+  <testcase name="lockedExistingVaultRefusesANewEnrollmentGate" classname="com.knoux.crypt.data.PasswordDetailRoomTest" time="0.006" />
+  <testcase name="migration1To2PreservesRowsAndDefaultsKeyVersionZero" classname="com.knoux.crypt.data.VaultDatabaseMigrationTest" time="0.133" />
+</testsuite>

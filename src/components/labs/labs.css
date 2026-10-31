@@ -238,6 +238,61 @@
   pointer-events: none;
   animation: lab-frame-light 7s ease-in-out infinite;
 }
+/* A real, scannable QR matrix: white quiet zone, black modules, no overlay, so
+   a camera can actually read it. The decorative frame is not applied here. */
+.lab-qr-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.lab-meta {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0;
+}
+.lab-meta > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+}
+.lab-meta dt {
+  color: #a58cc0;
+}
+.lab-meta dd {
+  margin: 0;
+  color: #e6d7f5;
+  overflow-wrap: anywhere;
+  text-align: end;
+}
+.lab-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.lab-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 12px 0;
+  font-size: 12px;
+  color: #cbb6df;
+  cursor: pointer;
+}
+.lab-consent input {
+  margin-top: 2px;
+  accent-color: #bd7ce7;
+}
+.lab-error {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #d76c8a;
+  border-radius: 10px;
+  color: #ffc2d2;
+  font-size: 12px;
+}
 .lab-screen :focus-visible {
   outline: 2px solid #dfb8ff;
   outline-offset: 3px;

@@ -30,6 +30,7 @@ const CODES = Object.freeze({
   ALREADY_ENROLLED: "ALREADY_ENROLLED",
   NOT_ENROLLED: "NOT_ENROLLED",
   CANCELLED: "CANCELLED",
+  CONSENT_REQUIRED: "CONSENT_REQUIRED",
 });
 
 function badInput(message) {

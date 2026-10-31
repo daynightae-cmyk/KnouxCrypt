@@ -96,17 +96,35 @@ fun AccessScreen(
                 if (state.unlocked) tr("Authorized", "مصرّح") else tr("No access", "لا وصول"),
             )
         }
-        if (state.message != null) {
+        state.error?.let { failure ->
             Spacer(Modifier.height(12.dp))
             Text(
-                state.message.orEmpty(),
+                tr(failure.error.labelEn, failure.error.labelAr),
                 color = KnouxColors.Alert,
                 style = MaterialTheme.typography.bodySmall,
                 textAlign = TextAlign.Center,
             )
+            failure.detail?.let { detail ->
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    detail,
+                    color = KnouxColors.Faint,
+                    style = MaterialTheme.typography.labelSmall,
+                    textAlign = TextAlign.Center,
+                )
+            }
             TextButton(onClick = viewModel::clearMessage) {
                 Text(tr("Dismiss", "إغلاق"), color = KnouxColors.Violet)
             }
+        }
+        state.notice?.let { note ->
+            Spacer(Modifier.height(12.dp))
+            Text(
+                tr(note.en, note.ar),
+                color = KnouxColors.Success,
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+            )
         }
         Spacer(Modifier.height(16.dp))
         if (!state.checked) {
