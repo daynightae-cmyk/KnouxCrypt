@@ -23,6 +23,11 @@ android {
     sourceSets {
         getByName("androidTest").assets.srcDir("$projectDir/schemas")
     }
+    packaging {
+        // Bouncy Castle and jspecify both ship this OSGi-only manifest entry, which
+        // collides while merging the instrumentation APK's Java resources.
+        resources.excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+    }
 }
 
 ksp {
