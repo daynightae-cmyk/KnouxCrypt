@@ -4,7 +4,7 @@ This is an owner checklist for genuinely owner-exclusive last-mile actions. It i
 not a mission pack and it does not shift unfinished engineering onto the owner.
 Everything listed here is engineering-complete up to the stated boundary.
 
-Updated: 2026-10-31 · Branch `android/native-implementation-20261031` · Security P0 `c3f718f` · Rotation `176d8c3`.
+Updated: 2026-10-31 · Branch `android/native-implementation-20261031` · Security P0 `c3f718f` · Rotation `176d8c3` · Privacy `3091032` · Keystore IV fix `ca7a1bc`.
 
 ## 1. Run the device-only security checks (TASK 02 / TASK 45)
 
@@ -12,8 +12,7 @@ Updated: 2026-10-31 · Branch `android/native-implementation-20261031` · Securi
 hypervisor (`HypervisorPresent=False`), so BiometricPrompt, real Keystore
 invalidation, lifecycle and screenshot parity cannot be executed here.
 
-**What is already done:** all source, JVM tests (99 passing), androidTest
-compilation and the debug APK. Nothing is waiting on code.
+**What is already done:** all source, JVM tests (111 passing; split runs due host memory), androidTest compilation and the debug APK. Nothing is waiting on code.
 
 **Exact owner input needed:** a physical Android 8.0+ device (API 26+) with
 enrolled strong biometrics, USB debugging enabled, visible in `adb devices`.
@@ -39,13 +38,20 @@ and confirm conflicts are refused without partial writes. Open Account → Vault
 data key rotation, perform the biometric reauth, migrate a vault with mixed
 versions, kill the app mid-rotation and resume, cancel after migration, and
 confirm an existing KNF1 device-key file still decrypts after rotation. Run the
-Room 1→2 migration test on a database created by the previous build.
+Room 1→2 migration test on a database created by the previous build. Also verify
+that saving/reading a note or password works with the real Keystore root (the
+previous caller-IV path would fail), that a new device-key file is KNF2 with a
+wrapped per-file DEK, and that legacy KNF1 files still open. In Privacy Center,
+exercise every auto-lock timeout, screen-off lock, clipboard timeout and lock
+clear, the FLAG_SECURE toggle, and the app-switch cover.
 
 **Still unverified until this runs:** same `Cipher` instance returned by
 `BiometricPrompt` (the boundary rejects substitution by identity), Keystore
-invalidation mapping, real KDK1 wrapping under the non-exportable root, Room
-migration on a real database, rotation interruption/resume, screen/inset/RTL
-parity and process-death behavior.
+invalidation mapping, real KDK1 wrapping and KNC encryption under the
+non-exportable root, KNF2 file encryption/decryption, legacy KNF1 file
+decryption, Room migration on a real database, rotation interruption/resume,
+lifecycle/privacy timing, clipboard clearing after process death, screen/inset/
+RTL parity.
 
 ## 2. Commission an independent security review (TASK 02 / TASK 30)
 
@@ -74,11 +80,12 @@ activation test. Do not place secrets in the APK or repository.
   gate still shows a truthful recovery-required state; the backup cannot restore
   the old gate or Keystore root.
 - **Key rotation is source-implemented/JVM-tested but not device-verified or
-  audited.** It rotates wrapped record DEKs, not the Keystore root. The root is
-  retained because external KNF1 device-key files cannot be enumerated and a
-  KNF2 versioned file format does not exist. No root-retirement or complete
-  key-loss recovery claim is made.
+  audited.** It rotates wrapped record DEKs, not the Keystore root. New
+  device-key files now use KNF2 with a root-wrapped per-file DEK; existing
+  external KNF1 device-key files remain readable and are not automatically
+  migrated. No root-retirement or complete key-loss recovery claim is made.
 - The owner decision still needed for future work is the recovery-credential
-  policy for re-authorizing an existing vault, and whether to invest in a KNF2
-  file format so external files can ever move off the retained root key. Current
-  retention is safe and non-destructive; do not force its removal.
+  policy for re-authorizing an existing vault, and whether to build a KNF2
+  migration tool for existing external KNF1 files so they can eventually move
+  off the retained root key. Current retention is safe and non-destructive; do
+  not force its removal.

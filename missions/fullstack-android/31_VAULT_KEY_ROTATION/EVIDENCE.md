@@ -4,6 +4,7 @@ Date: 2026-10-31 (Asia/Dubai)
 Branch: `android/native-implementation-20261031`
 Baseline SHA: `ef4592c350b9b60aa23a5b23dca1bd123f5c2b2b`
 Implementation SHA: `176d8c38557893b773e598f596dd81c8aea90240`
+Keystore IV compatibility fix: `ca7a1bce8ec6108318f6d60907218777d236ca56`
 
 Classification: **SOURCE_IMPLEMENTED / JVM_TESTED / DEVICE_UNVERIFIED / AUDIT_PENDING**.
 This is **not** a complete security closure. No physical device/emulator was available
@@ -105,9 +106,9 @@ DB failure, backup restore revocation, reauth cipher/substitution), `VaultBackup
 
 | Check | Command | Result |
 |---|---|---|
-| Fresh all-module JVM tests | `./gradlew :core:security:test :core:data:test :app:testDebugUnitTest --rerun-tasks` | **PASS, exit 0 — 99 tests, 0 skipped, 0 failures, 0 errors** |
-| Debug APK | `./gradlew :app:assembleDebug` | **PASS, exit 0 — 17,628,199 bytes** |
-| APK SHA-256 | `sha256sum app/build/outputs/apk/debug/app-debug.apk` | `81b793f7226eee10f2f120982c4b41b82a825c30434b0fd9f8a74bb0bfdae959` |
+| Fresh JVM tests (split to avoid host OOM) | `:core:security:test`, `:core:data:testDebugUnitTest`, `:app:testDebugUnitTest` with `--rerun-tasks --no-daemon -Dorg.gradle.jvmargs=-Xmx1024m...` | **PASS, exit 0 each — 111 tests aggregate, 0 failures/errors** |
+| Debug APK | `./gradlew :app:assembleDebug` | **PASS, exit 0 — 17,642,827 bytes** |
+| APK SHA-256 | `sha256sum app/build/outputs/apk/debug/app-debug.apk` | `7a40f487c6ca3a3ba177dc880e215484ff1a62d26d15be06e0305fb2fe78a7a1` |
 | Lint | `./gradlew :core:data:lintDebug :app:lintDebug` | **PASS, 0 errors** (10 app warnings, 8 core:data warnings) |
 | androidTest compile | `./gradlew :app:compileDebugAndroidTestKotlin :core:data:compileDebugAndroidTestKotlin` | **PASS (compiled, NOT RUN)** |
 | Device | `D:/Android/sdk/platform-tools/adb.exe devices`; Hypervisor | Empty device list; `HypervisorPresent=False` |
@@ -133,14 +134,34 @@ test in `VaultDatabaseMigrationTest`.
   the old key is not implemented.
 - **No background/WorkManager rotation:** the wizard requires the app foreground and a
   live session; leaving the screen cancels the job and leaves a resume journal.
-- **KNF1 file rotation pending:** KNF1 format has no key-version field; a future KNF2 is
-  required for device-key file re-encryption.
+- **External device files:** new device-key files use KNF2 with a per-file DEK wrapped by
+  the Keystore root (KDK1). Existing KNF1 device files remain readable, but are not
+  rewritten automatically; the root key is retained for them. A KNF2 migration tool for
+  existing external files/U4 SAF documents is not implemented.
 - Data-key unwrapping currently performs a root Keystore operation per record read; no
   per-session DEK cache is kept (security-first, performance not optimized).
 - No screenshot comparison: no canonical `31_VAULT_KEY_ROTATION` PNG was present in this
   checkout (only the Anima text prompt). Visual parity is not claimed.
 - The owner decision that remains is whether external device-key files should ever be
   migrated to a KNF2 versioned format; until then the root key cannot be retired.
+
+## 6a. Keystore randomized-IV correction (`ca7a1bc`)
+
+A review found Android Keystore keys with `setRandomizedEncryptionRequired(true)` reject
+caller-supplied encryption IVs. This affected KDK1 wrapping, KNC1 records under the root,
+and KNF1 device files. Corrected without changing the root alias or formats:
+
+- KDK1 and KNC1/KNC2 encryption now call `Cipher.init(ENCRYPT_MODE, key)` and persist
+  `Cipher.iv`; decryption keeps reading the stored IV, so historical caller-IV blobs
+  remain readable (JVM compatibility tests).
+- New device-key files use **KNF2**: random per-file DEK, wrapped by the root via KDK1
+  (provider IV), with chunk nonces derived from the exportable DEK. Legacy KNF1 device
+  files remain decryptable with the root. `FileEnvelope.encrypt(DEVICE)` now rejects a
+  non-exportable key rather than attempting a caller-IV encryption.
+- JVM tests cover KDK1 legacy/current, KNC1/KNC2 legacy, KNF2 round-trip/tamper/truncation,
+  non-exportable-key rejection and legacy KNF1 device decryption. Real Keystore record,
+  KDK1 and KNF2 tests were added to androidTest but **not run** on hardware.
+- Full verification is recorded in the status ledger; DEVICE_UNVERIFIED remains.
 
 ## 7. Next safe action
 

@@ -49,9 +49,9 @@ Classification: **DOMAIN_IMPLEMENTED + INTEGRATED + TESTED_LOCAL (KAT) + BUILD_V
 
 ## Honest remaining gaps
 
-- **KNF1 portable file containers still use PBKDF2-HMAC-SHA256.** Only KNP2 text /
-  future backup wrappers use Argon2id. The UI says this explicitly; a KNF2 format is
-  not implemented and must not be claimed.
+- **Passphrase file containers remain KNF1/PBKDF2-HMAC-SHA256.** Argon2id covers KNP2 text
+  and backup wrappers, not files. Device-key files now use KNF2 with a root-wrapped
+  per-file DEK (not an Argon2id KDF). No Argon2id file-container format is claimed.
 - No on-device run: rendering, RTL, keyboard, timing and low-memory behavior are
   DEVICE_UNVERIFIED. There is no screenshot against the canonical reference.
 - Argon2id is a vetted third-party implementation (Bouncy Castle) but this build has

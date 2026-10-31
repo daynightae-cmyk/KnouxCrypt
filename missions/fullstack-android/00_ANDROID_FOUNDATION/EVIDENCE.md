@@ -72,3 +72,32 @@ Branch: `android/native-implementation-20261031`; implementation commit `2975ec6
 - Detekt/ktlint, dependency locking/vulnerability scan, CI workflow installation (PR14 template remains unrun).
 - Security review/audit; per-use auth binding of the data key; recovery/rotation; large-file soak tests.
 - Visual parity screenshots at target sizes and both locales.
+
+---
+
+## Android Keystore randomized-IV compatibility correction — 2026-10-31 (`ca7a1bc`)
+
+Review finding: `KeystoreManager` provisions `knoux.master.v2` with
+`setRandomizedEncryptionRequired(true)`, but three production paths supplied a caller IV
+during encryption: KDK1 DEK wrapping (`VaultKeys.kt`), KNC1/KNC2 records via the root
+(`AuthenticatedEnvelope`), and KNF1 device-key file chunks (`FileEnvelope`). Android
+Keystore rejects caller encryption IVs for such keys.
+
+Corrections (no alias/key regeneration, no randomized-encryption downgrade):
+
+- KDK1 and KNC encryption initialize the cipher without an IV and persist `Cipher.iv`.
+  Header/AAD and on-disk layouts are unchanged; historical caller-IV KDK1/KNC1/KNC2 blobs
+  remain decryptable (JVM compatibility tests).
+- New device-key files are **KNF2**: a random per-file DEK is wrapped by the root with KDK1
+  (provider IV); chunk nonces derive from the exportable file DEK. Legacy KNF1 device files
+  remain decryptable with the root. The legacy KNF1 device-encrypt path rejects a
+  non-exportable key instead of attempting a caller-IV operation.
+- Passphrase KNP/KNF paths use derived software keys and are unaffected. Gate ciphers and
+  `DeviceWrappingKey` already used provider-generated IVs on encryption; audit confirmed no
+  other production caller-IV encryption path.
+- Instrumented tests were added for real-root record encryption, real KDK1 wrap/unwrap and
+  KNF2 wrapped-file-DEK round-trip. They were **compiled, not run** (no device).
+
+Actual verification is recorded in `NATIVE_STATUS_2026-10-31.md`; the aggregate JVM suite
+is 111 tests passing. Real Keystore/KNF2/record behavior remains **DEVICE_UNVERIFIED**; no
+independent audit. Do not claim on-device success until the instrumented tests execute.

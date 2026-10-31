@@ -23,4 +23,4 @@ install, launch, screenshot, lifecycle, Back, biometric, Keystore or SAF evidenc
 - UI: wrong passphrase/tamper errors retained; added an OOM path that leaves the ciphertext untouched and tells the user no silent downgrade occurred. Footer now states KNP2/Argon2id and that KNP1 remains readable.
 - Tests (actual): `./gradlew :core:security:test --rerun-tasks` PASS — `PassphraseEnvelopeTest` 8 tests, 0 failures; `Argon2idTest` 3 tests incl. the published reference vector, 0 failures. Full suite 70 tests, 0 failures.
 - Build/lint: `:app:assembleDebug` PASS, APK 17,562,730 bytes; `:app:lintDebug` 0 errors.
-- Device UI, clipboard behavior and low-memory timing remain **DEVICE_UNVERIFIED**. KNP1 generation still exists only as a compatibility helper; KNF1 file containers are unchanged (PBKDF2).
+- Device UI, clipboard behavior and low-memory timing remain **DEVICE_UNVERIFIED**. KNP1 generation still exists only as a compatibility helper. Passphrase file containers remain KNF1/PBKDF2; new device-key files use KNF2 with a root-wrapped per-file DEK.
