@@ -23,6 +23,7 @@ class Context{
  engine.setVisible(true);c.currentTime=1;assert.equal(engine.cue('navigate'),true);
  for(const route of ['/constructor','/toString','/__proto__']){engine.setScene(route);assert.equal(engine.voices[0].osc.frequency.target,55);}
  assert.equal(engine.cue('constructor'),false);assert.equal(engine.cue('__proto__'),false);
+ const accents=[];for(const service of ['ENCRYPT','VAULT','NOTES','PASSWORDS','KEY_FORGE','AUTHENTICATOR','PRIVACY','BACKUP']){c.currentTime+=1;for(const voice of [...engine.cues])voice.onended();assert.equal(engine.cue('nav',{service}),true);accents.push(c.oscs.at(-2).frequency.value);}assert.equal(new Set(accents).size,8,'each service has a distinct navigation accent');
  const sourcesBefore=c.oscs.length;engine.setScene('/vault/collections');engine.setScene('/notes');assert.equal(c.oscs.length,sourcesBefore,'scene crossfade reuses voices');assert.equal(engine.inspect().scene,'notes');
  engine.configure({profile:'silent'});assert.equal(engine.shouldPlay,false);assert.equal(engine.master.gain.target,0);c.currentTime=2;assert.equal(engine.cue('error'),false);
  engine.configure({profile:'immersive',masterMute:true});assert.equal(engine.cue('error'),false);engine.configure({masterMute:false,effectsVolume:0});assert.equal(engine.cue('error'),false);

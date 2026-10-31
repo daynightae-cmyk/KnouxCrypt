@@ -1,4 +1,7 @@
 export const desktopAr = {
+  "Opening Secure Access — not authenticated": "جارٍ فتح الدخول الآمن — لم تتم المصادقة",
+  "Local interface · authentication required": "واجهة محلية · المصادقة مطلوبة",
+
   "System Status": "حالة النظام",
   "Encryption Engine": "محرك التشفير",
   "Vault Protection": "حماية الخزنة",

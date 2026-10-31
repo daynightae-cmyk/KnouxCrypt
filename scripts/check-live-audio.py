@@ -80,6 +80,9 @@ browser('press','Escape');browser('wait',1400)
 browser('click','.app-sound-toggle');browser('wait',2600)
 observations['offMaster']=evaluate('window.__audioContexts[0].__gains[0].gain.value')
 assert observations['offMaster']<.035,observations
+browser('wait',750)
+check('if(window.__audioContexts[0].state!=="suspended"||window.__audioContexts[0].__gains[0].gain.value!==0)throw Error("end-of-fade is not exact silence")')
+observations['endOfFade']=evaluate('({state:window.__audioContexts[0].state,master:window.__audioContexts[0].__gains[0].gain.value,activeSources:window.__audioContexts[0].__osc.filter(o=>!o.__ended).length})')
 check('if(JSON.parse(localStorage.getItem("knoux.audio")).ambient!==false)throw Error("opt-out not saved");window.__count=window.__audioContexts[0].__osc.length')
 browser('click','.dw-collapse')
 check('if(window.__audioContexts[0].__osc.length!==window.__count)throw Error("muted click made sound")')
@@ -110,3 +113,10 @@ observations['limits']='Programmatic running audio and distinct frequency envelo
 print('PASS: actual Web Audio fade-in/out, nonzero quiet waveform, distinct click/nav tones, continuous clock across routes, one context, six settled voices, silent/off suppression, playback failure isolation and persistent opt-out. Evidence:',out)
 
 pending_startup_cancel()
+
+# Independent native disposal of the actual graph verifies physical node cleanup.
+browser('reload');browser('wait','.dw-page');browser('click','.dw-collapse')
+observations['cleanup']=evaluate("(async()=>{const {KnouxAudioEngine}=await import('/src/components/shell/ambientAudio.js');const e=new KnouxAudioEngine(window.AudioContext);await e.enable();await e.dispose();return {...e.inspect(),nodes:e.nodes.size,envelopes:e.cueEnvelopes.size}})()")
+assert observations['cleanup']['state']=='closed' and observations['cleanup']['voiceCount']==0 and observations['cleanup']['nodes']==0 and observations['cleanup']['envelopes']==0,observations
+(out/'audio-observations.json').write_text(json.dumps(observations,indent=2))
+print('PASS: exact zero end-of-fade gain and suspended context; actual native graph disposal closes context and clears sources/nodes/envelopes.')

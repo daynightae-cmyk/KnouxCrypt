@@ -52,7 +52,7 @@ export function KnouxAudioProvider({children}){
       if(!event.isTrusted||document.hidden||!(event.target instanceof Element))return;
       const control=event.target.closest('button,a,input[type="checkbox"],input[type="radio"]');
       if(!control||!control.closest('.crypt-app-shell')||control.closest('.app-sound-strip')||control.matches(':disabled,[aria-disabled="true"]'))return;
-      cue(control.dataset.sound||(control.matches('a')?'nav':'click'));
+      cue(control.dataset.sound||(control.matches('a')?'nav':'click'),{service:control.dataset.service});
     };
     const hover=event=>{if(event.isTrusted&&event.target instanceof Element&&event.target.closest('.service-quick-dock a'))cue('hover');};
     document.addEventListener('visibilitychange',visibility);window.addEventListener('blur',visibility);window.addEventListener('focus',visibility);

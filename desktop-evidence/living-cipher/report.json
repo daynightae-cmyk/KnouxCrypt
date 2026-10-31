@@ -1,0 +1,161 @@
+{
+  "generatedBy": "CodeRabbit",
+  "baseline": "d1ba212574038a3f87f7edf91b179f08cc2d568d",
+  "taskIds": [
+    "LIVING-CIPHER-01",
+    "LIVING-CIPHER-02",
+    "LIVING-CIPHER-03",
+    "LIVING-CIPHER-04"
+  ],
+  "taskStatus": {
+    "LIVING-CIPHER-01": "Cinematic Splash and safe access transition implemented; real authenticated transition BLOCKED_MISSING_AUTH_BACKEND. Guest remains explicit demo.",
+    "LIVING-CIPHER-02": "Geometric reversible both-eye closing/opening apertures across shared logo instances; actual automatic blink and pixel proof.",
+    "LIVING-CIPHER-03": "Two real SVG paths from original eye coordinates to hovered/focused service cards; bounded timeout cleanup, no delayed navigation or authorization claim.",
+    "LIVING-CIPHER-04": "Energy vein card borders and eight distinct service navigation accents; security-success cue evidence gates preserved."
+  },
+  "files": [
+    "scripts/check-audio.cjs",
+    "scripts/check-live-audio.py",
+    "scripts/check-living-cipher.py",
+    "src/components/desktop/DesktopWorkspace.jsx",
+    "src/components/desktop/LiveSecurityPreview.jsx",
+    "src/components/desktop/PulseLink.jsx",
+    "src/components/desktop/live-security.css",
+    "src/components/entry/SplashEntry.jsx",
+    "src/components/entry/StagEmblem.jsx",
+    "src/components/entry/entry.css",
+    "src/components/entry/stag.css",
+    "src/components/home/Home.jsx",
+    "src/components/shell/KnouxAudioProvider.jsx",
+    "src/components/shell/ambientAudio.js",
+    "src/i18n/desktop-ar.js"
+  ],
+  "sha256": {
+    "scripts/check-audio.cjs": "a63b1aeb90168f9b2e784386f6b20df0608476280b1ac5a163a29f0db39154cc",
+    "scripts/check-live-audio.py": "4e308ac7f947f96342392a0474a0f8e3d51e18d2dadb9ac212e8d2ef4aac057c",
+    "scripts/check-living-cipher.py": "5bb56d848262db15ebca2fac1d761e288163454b18a7f00ab1452f32a87fce7a",
+    "src/components/desktop/DesktopWorkspace.jsx": "46576095f4dc7280f1541e31e1f0110cf446b3681419ff0a19101083137a1a76",
+    "src/components/desktop/LiveSecurityPreview.jsx": "e2cf88eac8f0fa78f19f63e45bb3224fe8b43c3bac9a94adf4a84271b891f12d",
+    "src/components/desktop/PulseLink.jsx": "0785060fb34fa7065350dfe088e2a235bff17fc5231f94ae735e8286f2ebe680",
+    "src/components/desktop/live-security.css": "dec8c9eeb7a5d57d2d3a0389ce1c3c687e3411a46b0802e0b61f41e2c60338be",
+    "src/components/entry/SplashEntry.jsx": "4dfed0f4db871d6ed1f7d6e94cf9fc043fe01a4b8aba8fa34e36b1b9494ae8e4",
+    "src/components/entry/StagEmblem.jsx": "9a4bd65388955fa08118dbed9aab79c2cc9bd4f0cf1dd498dfe2b6da18c954e2",
+    "src/components/entry/entry.css": "acc304238c206e5a9239dc4cfeb8603c4e61006ae1bf7232977bc2a45fcbb07b",
+    "src/components/entry/stag.css": "910353596d0ef28c600115d99b54df2c667e334a238f62b0a35a36c42831a4b7",
+    "src/components/home/Home.jsx": "ad144485bacf81a04df490bfb7831689a4fdb4fca072b991ff5e3a96b36a89ac",
+    "src/components/shell/KnouxAudioProvider.jsx": "63c1a238d2b8be8dd61e5591c191b583f7f68f6732d24bb4fbd1debaa849b5c1",
+    "src/components/shell/ambientAudio.js": "10c0e17a21231aed955a5c433c9542faead5a78d7f50ca659b74490154fade70",
+    "src/i18n/desktop-ar.js": "d65a892671135fc59368659d2ef1f386dc07370571549eb34f4b507d9599a1b3",
+    "package.json": "2c92f9a454e7d5b4d3adc1181abcd5bb0c7590907cbd602864cafbe00c868cff",
+    "src/assets/knoux-stag.png": "6b054a6815726ee545b0d935cf851fb751a44b3dc8505a68066e438bec004f68"
+  },
+  "environment": "Ubuntu26.04.1 Node24.21 npm11.19, existing unchanged dependencies/no lockfile, registered Vite3000/shared cloud Chromium",
+  "checks": [
+    {
+      "command": "npm run check",
+      "exitCode": 0,
+      "status": "passed"
+    },
+    {
+      "command": "QA_OUTPUT=$WORKSPACE_ROOT/output/desktop/living-cipher python3 scripts/check-living-cipher.py",
+      "exitCode": 0,
+      "status": "passed"
+    },
+    {
+      "command": "QA_OUTPUT=$WORKSPACE_ROOT/output/desktop/living-cipher python3 scripts/check-live-audio.py",
+      "exitCode": 0,
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/check-desktop-routes.py",
+      "exitCode": 0,
+      "status": "passed"
+    },
+    {
+      "command": "node --check electron/main.js",
+      "exitCode": 0,
+      "status": "passed"
+    },
+    {
+      "command": "node --check electron/preload.js",
+      "exitCode": 0,
+      "status": "passed"
+    },
+    {
+      "command": "node_modules/.bin/electron --version",
+      "exitCode": 0,
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "status": "passed"
+    },
+    {
+      "command": "coderabbit review --agent -t uncommitted",
+      "exitCode": 0,
+      "status": "passed"
+    },
+    {
+      "command": "npm audit --json",
+      "status": "blocked (reused unchanged dependencies)",
+      "exitCode": 1,
+      "reason": "ENOLOCK from prior turn; historical audit findings uncleared."
+    }
+  ],
+  "review": {
+    "terminal": "complete",
+    "passes": [
+      1,
+      0
+    ],
+    "fixed": "Sidebar service links now carry service ID for correct sonic accent.",
+    "remaining": 0
+  },
+  "evidence": "outputs/desktop/living-cipher/",
+  "preservedAudioSHA": "d1ba212574038a3f87f7edf91b179f08cc2d568d",
+  "mainBaseline": "8b98d3175e7ffc810c6f1a8af3e67ab3a447c956",
+  "pr": 17,
+  "limitations": [
+    "No authenticated service session or cryptographic success added.",
+    "Vercel unique bundle/checksum/report absent; no import claimed.",
+    "Windows native runtime/EXE/device audio and subjective mix unverified.",
+    "Historical dependency audit uncleared; no dependency changes.",
+    "Prior cloud cadence around12RAF/s; device smoothness not certified."
+  ],
+  "nextFour": [
+    "01 SPLASH_ENTRY foundation",
+    "02 SECURE_ACCESS_LOGIN real unlock",
+    "03 HOME state/permissions",
+    "04 FILE_CIPHER real authenticated encryption"
+  ],
+  "audioEndOfFade": {
+    "masterGain": 0,
+    "state": "suspended",
+    "settledSources": 6
+  },
+  "audioDispose": {
+    "state": "closed",
+    "sources": 0,
+    "cues": 0,
+    "nodes": 0,
+    "envelopes": 0
+  },
+  "browserCases": 88,
+  "nativeElectronLimitation": "Syntax and Linux binary version only; not app runtime/IPC or Windows verification.",
+  "evidenceSha256": {
+    "splash-blink-pulselink.webm": "c52904958de5d924c32905e5d4765c7ef8cd48abc47b82ff40b1e2af884312f2",
+    "splash-en.png": "f74003609ca063a152d4a514c321e6b6b7f1c18c76af9ddf38acbcbcd6de5ef3",
+    "eyes-open.png": "dad47dceda12936263911d332f8101bf0a573bf2310fb8fc06f6bc30bece78a8",
+    "eyes-closed.png": "e6993865afc340320e6e31f43d7701cea3f9b6c9f9920e20d8fad1fa6678a3bd",
+    "eyes-reopened.png": "a8ff6a7c2425ac832efd811d3c9e6b1826e3a1facec743784cb0f74181d463c9",
+    "pulselink-keyboard.png": "7d467e53eeae155ac81c4e7f1bfc99eb610975b7e37d70e9a65f03e6d5d4c189",
+    "energy-vein-card.png": "9d31acdbfaac7906613d139eb55a7a88ffa76430a38227589c2c09977cf7de14",
+    "access-en.png": "f3a0bd2f243c1e6513256792a97a45ecdc2e7bff2ddd40844cdbd5bb1cbc37db",
+    "splash-ar.png": "b15d181ebc9a8099f468c8fad9a0f82c68c397d510eeb459d7f3abaef381277e",
+    "access-ar.png": "b91401e6910b6b097079a0a4006250249d38f1758a4a85c979a4b11155597bfb",
+    "observations.json": "ba18426790fdb7808d4d8ec4167d37d6f011cffebf55ebbf512aceabe665d9f1",
+    "audio-preferences-and-workspace.png": "8da128148868bcc7a68a048cdb791c9c0ee5dd32a87095d01de7e93248b9ae38",
+    "audio-observations.json": "7df20ccaebe481b24402008d6077299509a8c4d84c326ebf08f60fcca92883b5"
+  }
+}

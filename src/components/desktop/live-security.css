@@ -41,3 +41,13 @@
 .live-security-preview[data-dimmed="true"] *{animation-play-state:paused!important}
 .workspace-activity{position:relative;font-size:11px;white-space:nowrap}.workspace-activity summary{cursor:pointer;padding:10px;border:1px solid #744297;border-radius:8px;list-style:inside;display:flex;align-items:center;gap:8px}.workspace-activity summary span{padding:0 5px;border-radius:4px;background:#53297b}.workspace-activity>div{position:absolute;inset-inline-end:0;top:calc(100% + 6px);width:280px;max-height:360px;overflow:auto;white-space:normal;padding:14px;background:#11091fee;border:1px solid #8c57b3;border-radius:10px;z-index:25;box-shadow:0 14px 45px #0009}.workspace-activity p{font-size:10px;color:#c6afd9}.workspace-activity dl>div,.workspace-activity li{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid #65418144}.workspace-activity ol{padding:0;list-style:none}.workspace-activity time{font-size:10px;color:#baa7cc}.live-real-context{font-size:9px!important;color:#e4c9fc!important;text-align:center}
 @media(max-width:1350px){.workspace-activity summary{font-size:0;gap:0;padding:9px}.workspace-activity summary:before{content:'◷';font-size:16px}.workspace-activity summary span{font-size:10px;margin-inline-start:5px}}
+.knoux-pulselink{position:fixed;inset:0;width:100vw!important;height:100vh!important;pointer-events:none;z-index:5;overflow:hidden}
+.knoux-pulselink path{fill:none;stroke:#eed1ff;stroke-width:1.4;stroke-dasharray:8 100;stroke-dashoffset:8;filter:drop-shadow(0 0 4px #b76aff);animation:knoux-pulse .7s ease-in-out both}
+@keyframes knoux-pulse{0%{stroke-dashoffset:8;opacity:0}15%{opacity:.8}85%{opacity:.6}100%{stroke-dashoffset:-100;opacity:0}}
+.energy-vein{position:absolute;inset:0;pointer-events:none;border-radius:inherit;overflow:hidden}
+.energy-vein svg{width:100%!important;height:100%!important;position:absolute;inset:0}
+.energy-vein rect{fill:none;stroke:#d6adff;stroke-width:.6;stroke-dasharray:12 88;opacity:0;vector-effect:non-scaling-stroke}
+.hub-service:is(:hover,:focus-visible) .energy-vein rect{opacity:.8;animation:knoux-vein 2.4s linear infinite}
+@keyframes knoux-vein{to{stroke-dashoffset:-100}}
+.crypt-app-shell[data-motion-quality="off"] .energy-vein rect,.crypt-app-shell[data-motion-running="false"] .energy-vein rect{animation:none}
+@media(prefers-reduced-motion:reduce){.knoux-pulselink{display:none}.energy-vein rect{animation:none!important}}

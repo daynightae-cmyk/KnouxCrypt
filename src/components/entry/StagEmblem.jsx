@@ -15,6 +15,7 @@ export function StagEmblem({className='',ignite=false,phase, intensity}) {
         <path id={`${id}-left`} d={LEFT_EYE}/><path id={`${id}-right`} d={RIGHT_EYE}/>
         <clipPath id={`${id}-left-clip`}><use href={`#${id}-left`}/></clipPath>
         <clipPath id={`${id}-right-clip`}><use href={`#${id}-right`}/></clipPath>
+        <clipPath id={`${id}-aperture`}><rect className="stag-eye-aperture" width="1254" height="1254"/></clipPath>
         <radialGradient id={`${id}-core`}><stop stopColor="#fff"/><stop offset=".4" stopColor="#f7e9ff"/><stop offset="1" stopColor="#bc65ff"/></radialGradient>
         <filter id={`${id}-bloom`} x="-100%" y="-150%" width="300%" height="400%"><feGaussianBlur stdDeviation="12"/></filter>
         <filter id={`${id}-reflection`} x="-100%" y="-150%" width="300%" height="400%"><feGaussianBlur stdDeviation="22"/></filter>
@@ -22,7 +23,7 @@ export function StagEmblem({className='',ignite=false,phase, intensity}) {
       {/* The source has painted white eyes. A reversible local occlusion layer
           lets those exact contours go dark; source pixels and silhouette stay intact. */}
       <g className="stag-eye-shutter" fill="#090511"><use href={`#${id}-left`}/><use href={`#${id}-right`}/></g>
-      <g className="stag-eye-envelope">
+      <g clipPath={`url(#${id}-aperture)`}><g className="stag-eye-envelope">
         <g fill="#ad53ff" opacity=".45" filter={`url(#${id}-reflection)`}><use href={`#${id}-left`}/><use href={`#${id}-right`}/></g>
         {['left','right'].map(side=><g key={side} className={`stag-eye stag-eye-${side}`}>
           <use href={`#${id}-${side}`} fill="#b25cff" filter={`url(#${id}-bloom)`}/>
@@ -30,7 +31,7 @@ export function StagEmblem({className='',ignite=false,phase, intensity}) {
           <g clipPath={`url(#${id}-${side}-clip)`}><ellipse className="stag-eye-glint" cx={side==='left'?453:801} cy="713" rx="36" ry="7" fill="white" transform={`rotate(${side==='left'?35:-35} ${side==='left'?453:801} 713)`}/></g>
         </g>)}
         <g className="stag-eye-trails" stroke="#e9beff" strokeWidth="2"><path d="M440 713 Q368 710 330 693"/><path d="M814 713 Q886 710 924 693"/></g>
-      </g>
+      </g></g>
     </svg>
   </span>;
 }

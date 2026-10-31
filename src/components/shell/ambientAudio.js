@@ -15,6 +15,7 @@ export const SONIC_CATALOG = Object.freeze({
   ignition: {frequencies:[82.41,164.81,329.63,659.25],duration:1.1,level:.023,sweep:1.3},
 });
 const clamp=(n,fallback)=>typeof n==='number'&&Number.isFinite(n)?Math.max(0,Math.min(1,n)):fallback;
+const SERVICE_NOTES=['ENCRYPT','VAULT','NOTES','PASSWORDS','KEY_FORGE','AUTHENTICATOR','PRIVACY','BACKUP'];
 const ROOTS={'home':55,'file-cipher':58.27,'vault':49,'notes':65.41,'passwords':51.91,'authenticator':61.74,'key-forge':55,'privacy':51.91,'backup':49,'tools':58.27};
 
 export class KnouxAudioEngine {
@@ -49,7 +50,11 @@ export class KnouxAudioEngine {
     clearTimeout(this.suspendTimer);
     if(!active&&typeof this.context.suspend==='function')this.suspendTimer=setTimeout(()=>{
       if(this.disposed||this.shouldPlay)return;
-      try{Promise.resolve(this.context.suspend()).catch(()=>{});}catch{/* Device failure cannot block a service. */}
+      try{
+        this.master.gain.cancelScheduledValues(this.context.currentTime);this.master.gain.setValueAtTime(0,this.context.currentTime);
+        // Let the native rendering thread apply zero before freezing its clock.
+        this.suspendTimer=setTimeout(()=>{if(this.disposed||this.shouldPlay)return;try{Promise.resolve(this.context.suspend()).catch(()=>{});}catch{/* Device already gone. */}},80);
+      }catch{/* Device failure cannot block a service. */}
     },3000);
     const profile=this.config.profile==='immersive'?.14:.085;
     this.ramp(this.master.gain,active?.45:0,active?1.15:.8);
@@ -82,7 +87,10 @@ export class KnouxAudioEngine {
     const now=this.context.currentTime;
     if(now-this.lastCue<.12||now-(this.lastKinds.get(kind)??-Infinity)<(kind==='process'?5:kind==='hover'?1:.18)||this.cues.size>20)return false;
     this.lastCue=now;this.lastKinds.set(kind,now);
-    spec.frequencies.forEach((frequency,i)=>{
+    const serviceIndex=kind==='nav'?SERVICE_NOTES.indexOf(evidence.service):-1;
+    const accent=serviceIndex<0?1:2**(serviceIndex/12);
+    spec.frequencies.forEach((baseFrequency,i)=>{
+      const frequency=baseFrequency*accent;
       const oscillator=this.context.createOscillator(),envelope=this.context.createGain();
       const start=now+i*.018;oscillator.type='sine';oscillator.frequency.setValueAtTime(frequency,start);
       if(spec.sweep)oscillator.frequency.exponentialRampToValueAtTime(frequency*spec.sweep,start+spec.duration);
