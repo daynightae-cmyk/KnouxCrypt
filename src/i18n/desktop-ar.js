@@ -1,4 +1,5 @@
 export const desktopAr = {
+  "Skip intro":"تخطي المقدمة",
   "Opening Secure Access — not authenticated": "جارٍ فتح الدخول الآمن — لم تتم المصادقة",
   "Local interface · authentication required": "واجهة محلية · المصادقة مطلوبة",
 

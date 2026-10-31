@@ -63,7 +63,7 @@ export function ServiceGrid({ filter = "" }) {
   const filtered = SERVICES.filter(s => `${s.title} ${s.description} ${t(s.title)} ${t(s.description)}`.toLowerCase().includes(filter.toLowerCase()));
   return <>{filtered.length ? <div className="hub-services">{filtered.map((service, index) => <Link className={`hub-service hub-service-${service.art}`} data-service={service.id} style={{"--rim-delay": `${index * 30}ms`}} key={service.id} to={SCREENS[service.id]}>
     <span className="energy-vein" aria-hidden="true"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><rect x="1" y="1" width="98" height="98" rx="10" pathLength="100"/></svg></span><span className="hub-icon"><img src={artwork[`../../assets/service-${service.art}.webp`]} width="120" height="124" alt=""/></span>
-    <span className="hub-service-copy"><span>{t(service.title)}</span><small>{t(service.description)}</small></span><span className="hub-chevron" aria-hidden="true">{t("›")}</span>
+    <span className="service-personality" data-personality={service.id} aria-hidden="true"><i/><i/><i/></span><span className="hub-service-copy"><span>{t(service.title)}</span><small>{t(service.description)}</small></span><span className="hub-chevron" aria-hidden="true">{t("›")}</span>
   </Link>)}</div> : <p className="hub-no-results" role="status">{t("No matching tools.")}</p>}</>;
 }
 function HubDialog({ kind, onClose }) {

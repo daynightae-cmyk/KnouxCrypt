@@ -9,6 +9,8 @@ import { WorkspaceActivityProvider } from "../desktop/WorkspaceActivity";
 import { DesktopChrome } from "../desktop/DesktopWorkspace";
 import { MotionProvider, useMotionPreferences } from "./MotionPreferences";
 import { KnouxAudioProvider } from "./KnouxAudioProvider";
+import {StagEyeBehavior} from "../entry/StagEyeBehavior";
+import {PulseLink} from "../desktop/PulseLink";
 import { AmbientSound } from "./AmbientSound";
 
 export const CYBER_TERMS = Object.freeze(["AES-256", "ENCRYPTION", "CIPHER", "SHA-256", "ZERO TRUST", "KEY EXCHANGE", "HMAC", "AEAD", "NONCE", "PUBLIC KEY", "AUTH TAG", "0x7F A9"]);
@@ -67,7 +69,7 @@ function ShellContent({ children }) {
   useLayoutEffect(() => { scroll.current?.scrollTo?.(0,0); },[pathname]);
   return <div data-motion-quality={motion.quality} data-motion-running={motion.running} data-performance={motion.preferences.performance} style={{"--particle-intensity":motion.preferences.particles,"--eye-intensity":motion.preferences.eyes}} data-page-hidden={pageHidden ? "true" : "false"} data-scene={pathname===SCREENS.SPLASH_ENTRY?"splash":pathname===SCREENS.SECURE_ACCESS_LOGIN?"auth":"content"} className={`crypt-app-shell ${primary?'app-has-navigation':''}`}>
     <a className="app-skip-link" href="#app-content">{t("Skip to page content")}</a>
-    <NavigationEffects/>
+    <StagEyeBehavior/><PulseLink/><NavigationEffects/>
     <CipherAtmosphere/>
     <div className="app-utility-bar"><LanguageToggle/>{guestPreview && <span className="app-guest-session">{t("Guest · visual demo")}</span>}<AmbientSound splash={pathname===SCREENS.SPLASH_ENTRY}/></div>
     <div ref={scroll} className="app-scroll-region" id="app-content" tabIndex={0} role="region" aria-label={t("Page content")}><DesktopChrome>{children}</DesktopChrome></div>
