@@ -1,0 +1,62 @@
+name: Dependabot Validation
+
+on:
+  pull_request:
+    branches: [main]
+
+# Test untrusted PR code with read-only permissions and no persisted credentials.
+permissions:
+  contents: read
+
+concurrency:
+  group: dependabot-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  desktop:
+    name: Desktop
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run full desktop checks, tests and production build
+        env:
+          CI: 'true'
+        run: xvfb-run -a npm run check
+
+  android:
+    name: Android JVM
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - uses: android-actions/setup-android@v3
+      - name: Security JVM tests
+        working-directory: native-android
+        run: bash ./gradlew :core:security:test --no-daemon --console=plain --max-workers=2 -Dorg.gradle.jvmargs=-Xmx1024m
+      - name: Data JVM tests
+        working-directory: native-android
+        run: bash ./gradlew :core:data:testDebugUnitTest --no-daemon --console=plain --max-workers=2 -Dorg.gradle.jvmargs=-Xmx1024m
+      - name: App JVM tests
+        working-directory: native-android
+        run: bash ./gradlew :app:testDebugUnitTest --no-daemon --console=plain --max-workers=2 -Dorg.gradle.jvmargs=-Xmx1024m
+      - name: Lint and debug APK
+        working-directory: native-android
+        run: bash ./gradlew :core:data:lintDebug :app:lintDebug :app:assembleDebug --no-daemon --console=plain --max-workers=2 -Dorg.gradle.jvmargs=-Xmx1024m

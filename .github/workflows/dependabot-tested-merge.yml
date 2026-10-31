@@ -1,0 +1,73 @@
+name: Dependabot Tested Merge
+
+on:
+  workflow_run:
+    workflows: ["Dependabot Validation"]
+    types: [completed]
+
+# Trusted default-branch code only; never checks out the PR.
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+
+jobs:
+  merge:
+    name: Merge verified Dependabot update
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify exact tested revision and squash merge
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LINKED_PRS: ${{ toJSON(github.event.workflow_run.pull_requests) }}
+          VALIDATION_RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+
+          # Fail closed if GitHub did not link exactly one pull request.
+          if [[ "$(jq 'length' <<<"$LINKED_PRS")" != "1" ]]; then
+            echo "No single linked PR; refusing to merge."
+            exit 0
+          fi
+          number="$(jq -r '.[0].number // empty' <<<"$LINKED_PRS")"
+          tested_head="$(jq -r '.[0].head.sha // empty' <<<"$LINKED_PRS")"
+          tested_base="$(jq -r '.[0].base.sha // empty' <<<"$LINKED_PRS")"
+          if [[ ! "$number" =~ ^[0-9]+$ || ! "$tested_head" =~ ^[0-9a-f]{40}$ || ! "$tested_base" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Missing or invalid tested PR identifiers; refusing to merge."
+            exit 0
+          fi
+
+          # Ignore closed/draft/human/fork PRs and any ref advanced since testing.
+          pr="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${number}")"
+          if ! jq -e --arg repo "$GITHUB_REPOSITORY" --arg head "$tested_head" --arg base "$tested_base" '
+            .state == "open" and .draft == false
+            and .user.login == "dependabot[bot]"
+            and .head.repo.full_name == $repo
+            and (.head.ref | startswith("dependabot/"))
+            and .base.ref == "main"
+            and .head.sha == $head
+            and .base.sha == $base
+          ' <<<"$pr" >/dev/null; then
+            echo "PR is not eligible or its head/base changed; refusing to merge."
+            exit 0
+          fi
+
+          # Both independent validation jobs must have succeeded.
+          jobs="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${VALIDATION_RUN_ID}/jobs?per_page=100")"
+          if ! jq -e '
+            ([.jobs[] | select(.name == "Desktop" and .conclusion == "success")] | length) == 1
+            and ([.jobs[] | select(.name == "Android JVM" and .conclusion == "success")] | length) == 1
+          ' <<<"$jobs" >/dev/null; then
+            echo "Not all mandatory validation jobs passed; refusing to merge."
+            exit 1
+          fi
+
+          # The merge API rejects a head revision that changes after verification.
+          gh api --method PUT "repos/${GITHUB_REPOSITORY}/pulls/${number}/merge" \
+            -f sha="$tested_head" -f merge_method=squash \
+            --jq '{merged, sha, message}'
