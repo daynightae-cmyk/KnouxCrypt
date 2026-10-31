@@ -4,12 +4,16 @@ out = pathlib.Path(os.environ.get('QA_OUTPUT') or tempfile.mkdtemp(prefix='knoux
 out.mkdir(parents=True, exist_ok=True)
 
 def browser(*args):
+    # The shared browser click does not scroll nested workspaces automatically.
+    if args[0] == 'click':
+        scroll = subprocess.run(['coderabbit-agent-browser', 'scrollintoview', args[1]], text=True, capture_output=True)
+        if scroll.returncode: raise AssertionError(scroll.stderr or scroll.stdout)
     result = subprocess.run(['coderabbit-agent-browser', *args], text=True, capture_output=True)
     if result.returncode: raise AssertionError(result.stderr or result.stdout)
     return result.stdout
 
 def check(js):
-    return browser('eval', '(()=>{'+js+';return "PASS"})()')
+    return browser('eval', '(async()=>{await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));'+js+';return "PASS"})()')
 
 browser('open', 'http://localhost:3000/home')
 for locale in ['en','ar']:

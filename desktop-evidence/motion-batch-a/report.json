@@ -1,0 +1,89 @@
+{
+  "generatedBy": "CodeRabbit",
+  "batch": "MOTION A",
+  "taskIds": [
+    "MOTION-A1",
+    "MOTION-A2",
+    "MOTION-A3",
+    "MOTION-A4"
+  ],
+  "branch": "desktop/electron-fullstack-44-services-20261031",
+  "baseline": "d99f02db0269b0ba73a2c516ff0615112df5dbeb",
+  "files": [
+    "scripts/check-live-security.py",
+    "src/components/desktop/ExperienceSettings.jsx",
+    "src/components/desktop/LiveSecurityPreview.jsx",
+    "src/components/desktop/live-security.css",
+    "src/components/shell/MotionPreferences.jsx",
+    "scripts/check-desktop-workspace.py",
+    "src/components/desktop/DesktopWorkspace.jsx",
+    "src/components/entry/StagEmblem.jsx",
+    "src/components/entry/stag.css",
+    "src/components/shell/AppShell.jsx",
+    "src/i18n/desktop-ar.js"
+  ],
+  "sha256": {
+    "scripts/check-live-security.py": "ef592f54f9e812052ca8640f54a1176a1507315e04f600e15a9d32b378031259",
+    "src/components/desktop/ExperienceSettings.jsx": "b147bcd125616c6b4ba4039ec13eea5c66e15ebcd16037165ec2328c5a9cfef6",
+    "src/components/desktop/LiveSecurityPreview.jsx": "f5a4b4801bf7ac4103786b574fb3816bacfd3af07f622293484e0c8b4e676a93",
+    "src/components/desktop/live-security.css": "205d72944257f3299ff50237adc1fd5eafec2d5c236838f91f85aba85d84096b",
+    "src/components/shell/MotionPreferences.jsx": "c024c151df00097b6aa4188d0040a9a0dc5f711dc4f4c1cd0f7dda953a1157a0",
+    "scripts/check-desktop-workspace.py": "40f16556c014aa20770d19606fc2add10e73801bddd741cf5547e69d24fb0919",
+    "src/components/desktop/DesktopWorkspace.jsx": "579799705536208b2eb2af4bcaa9445c31ad34d9bbcf5b55b69479ea38f4c122",
+    "src/components/entry/StagEmblem.jsx": "1fb99a0a57e0e119159a310f390ca3bd183ad74941fc2e8b0789d3517a58988f",
+    "src/components/entry/stag.css": "dbcd7550ac1874ec5d0322ba79e21839f3b698f2d38020e3dbe8e588cc42dec9",
+    "src/components/shell/AppShell.jsx": "acffe1c687535a648d57615875917daa6d7163998eecfcd81c643f6dbfdf88ec",
+    "src/i18n/desktop-ar.js": "5fcc2afc87e3471aa4f7c21c5186240202f1929df41cedac70d529343416fdeb",
+    "package.json": "2c92f9a454e7d5b4d3adc1181abcd5bb0c7590907cbd602864cafbe00c868cff"
+  },
+  "environment": "Ubuntu26.04 Node24.21 npm11.19, existing node_modules/no dependency changes, registered cloud Chromium Vite port3000",
+  "checks": [
+    {
+      "command": "npm run check",
+      "exitCode": 0,
+      "coverage": "44 EN/AR route renders, existing audio lifecycle, Vite build"
+    },
+    {
+      "command": "python3 scripts/check-desktop-workspace.py",
+      "exitCode": 0,
+      "coverage": "60 desktop cases, file/note/key/password/tools/backup interactions and mobile fallback"
+    },
+    {
+      "command": "QA_OUTPUT=$WORKSPACE_ROOT/output/desktop/motion-a python3 scripts/check-live-security.py",
+      "exitCode": 0,
+      "coverage": "80 scene/viewport/locale cases, isolation, moving orbit, pause, extinction/ignition, sticky dock, keyboard, modal focus and reduced motion"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "coderabbit review --agent -t uncommitted",
+      "exitCode": 0,
+      "findings": 0,
+      "scope": "Nine motion source files; terminal review_completed"
+    }
+  ],
+  "preservation": {
+    "fullBundle": "workspace-context/checkpoints/desktop-d99f02d.bundle",
+    "fullBundleSha256": "e386819ea89fc537b0966c18dea3433edfc1ed6416fc9a0e580e76c1501a225e",
+    "shareableBundle": "outputs/desktop/pre-motion/desktop-unique-d99f02d.bundle",
+    "sha256": "f07d0355b20960da1561c304b2b4994a1ba109fb65ba16d9509b05ec7b455be3",
+    "prerequisite": "3ce168973436ba81010ab717d083bcc691fa623a"
+  },
+  "evidence": "outputs/desktop/motion-a/",
+  "limitations": [
+    "Visual/demo scenes do not perform encryption or authorize access.",
+    "Windows/Electron native runtime and EXE unverified.",
+    "Vercel bundle absent; no import claimed.",
+    "No heap-leak certification; persistent DOM and bounded CSS animation model checked.",
+    "Audio unchanged in this increment; expanded engine follows in Batch B.",
+    "No main merge, Android edits, dependency or IPC changes."
+  ],
+  "next": [
+    "MOTION-B5 service scene state",
+    "MOTION-B6 backup/tools contextual activity",
+    "MOTION-B7 expanded audio and runtime QA",
+    "MOTION-B8 reconciliation/evidence/push"
+  ]
+}
