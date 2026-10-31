@@ -43,12 +43,12 @@ export function ScreenHeader({ title, accent, caption, children }) {
 
  return <header className="security-header"><Link to={SCREENS.HOME} className="security-logo" aria-label={t("Back to Home")}><StagEmblem/></Link><div className="security-title"><h1>{t(title)} <span>{t(accent)}</span></h1><p>{t(caption)}</p></div><div className="security-header-actions">{children}</div></header>;
 }
-export function PreviewSheet({ title, children, onClose }) {
+export function PreviewSheet({ title, children, onClose, label = "VISUAL DEMO", dismissLabel = "Back to preview" }) {
   const { t, locale, dir } = useLanguage();
 
  const ref=useRef(null);
  useEffect(()=>{const prior=document.activeElement; ref.current.showModal();return()=>prior?.focus();},[]);
- return <dialog className="security-dialog" ref={ref} onCancel={onClose} onClick={e=>{if(e.target===e.currentTarget)onClose();}} aria-labelledby="security-sheet-title"><button autoFocus className="security-close" aria-label={t("Close visual demo")} onClick={onClose}>{t("×")}</button><p className="security-demo-label">{t("VISUAL DEMO")}</p><h2 id="security-sheet-title">{t(title)}</h2>{children}<button className="security-sheet-dismiss" onClick={onClose}>{t("Back to preview")}</button></dialog>;
+ return <dialog className="security-dialog" ref={ref} onCancel={onClose} onClick={e=>{if(e.target===e.currentTarget)onClose();}} aria-labelledby="security-sheet-title"><button autoFocus className="security-close" aria-label={t("Close dialog")} onClick={onClose}>{t("×")}</button><p className="security-demo-label">{t(label)}</p><h2 id="security-sheet-title">{t(title)}</h2>{children}<button className="security-sheet-dismiss" onClick={onClose}>{t(dismissLabel)}</button></dialog>;
 }
 export function IconButton({ icon, label, ...props }) {
   const { t, locale, dir } = useLanguage();

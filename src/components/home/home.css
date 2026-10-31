@@ -163,3 +163,24 @@
 .hub-energy-ribbons {inset:0;width:100%;height:100%;}
 .hub-hero-sparks {inset:0;}
 @media(min-height:740px){.hub-stag-hero {--hub-hero-size:clamp(140px,calc(21dvh - 8px),168px);}}
+
+/* Real vault status panel: reflects actual session/engine state, never a claim. */
+.hub-vault-status { margin:10px 0 14px; padding:12px 14px; border:1px solid #6a3a9e88; border-radius:16px; background:linear-gradient(135deg,#1a0d2b99,#0b071b); }
+.hub-vault-status-head { display:flex; align-items:flex-start; gap:10px; }
+.hub-vault-dot { flex-shrink:0; width:10px; height:10px; margin-top:4px; border-radius:50%; background:#8a8a99; box-shadow:0 0 8px #8a8a9988; }
+.hub-vault-status[data-vault-tone="ok"] .hub-vault-dot { background:#4ade80; box-shadow:0 0 10px #4ade80aa; }
+.hub-vault-status[data-vault-tone="warn"] .hub-vault-dot { background:#fbbf24; box-shadow:0 0 10px #fbbf24aa; }
+.hub-vault-status-head strong { font-size:13px; font-weight:600; }
+.hub-vault-status-head p { margin-top:3px; font-size:11px; line-height:1.5; color:#ad97c1; }
+.hub-vault-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px 12px; margin-top:10px; }
+.hub-vault-facts div { min-width:0; }
+.hub-vault-facts dt { font-size:9px; letter-spacing:.12em; color:#9a86ad; text-transform:uppercase; }
+.hub-vault-facts dd { margin-top:2px; font-size:11px; color:#e7d8f5; overflow-wrap:anywhere; }
+.hub-vault-action { display:inline-block; margin-top:10px; font-size:11px; color:#d4a4ff; }
+.hub-vault-activity { margin-top:10px; border-top:1px solid #372546; padding-top:8px; }
+.hub-vault-activity h3 { font-size:10px; letter-spacing:.12em; color:#a98cc0; text-transform:uppercase; }
+.hub-vault-activity ul { margin-top:6px; display:grid; gap:4px; }
+.hub-vault-activity li { display:flex; justify-content:space-between; gap:10px; font-size:10.5px; color:#cbb8dd; }
+.hub-vault-activity time { flex-shrink:0; color:#96809f; }
+.hub-hero h1[data-vault-tone="warn"] { color:#f4d9a0; }
+.hub-hero h1[data-vault-tone="ok"] { color:#c9f7d8; }
