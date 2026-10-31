@@ -147,6 +147,85 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
     displayStatusReason:
       "Credential storage and generation are real and tested. Autofill, password auditing and browser integration remain unimplemented previews and are labelled as such.",
   },
+  {
+    id: "PASSWORD_DETAIL",
+    title: "Password Detail",
+    platformCapability:
+      "A single credential is read from the encrypted vault record store by id; reveal and copy act on the stored record, and no value is rendered until the user asks for it.",
+    permissionNeeds: [],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/vault-store.test.cjs (single-record read, update and removal against the encrypted store)",
+      "tests/vault-ipc.test.cjs (record-level IPC validation and guest refusal)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Detail, edit and delete operate on the real stored record. Site-URL reputation checks are not implemented and are not claimed.",
+  },
+  {
+    id: "AUTHENTICATOR",
+    title: "Authenticator",
+    platformCapability:
+      "RFC 6238 TOTP and RFC 4226 HOTP computed in the Electron main process with HMAC-SHA1/256/512; the Base32 secret lives only in the encrypted store and is never sent to the renderer.",
+    permissionNeeds: ["Unlocked vault session"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/totp.test.cjs (RFC 4226 Appendix D and RFC 6238 Appendix B vectors for SHA-1, SHA-256 and SHA-512)",
+      "tests/vault-ipc.test.cjs (add/list/code/remove over IPC, secret never returned, duplicate and malformed-secret refusal, guest refusal)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Codes are computed from stored secrets and agree with the published RFC vectors. Camera QR scanning is not implemented and remains a labelled preview.",
+  },
+  {
+    id: "AUTH_IMPORT",
+    title: "2FA Import",
+    platformCapability:
+      "Accounts are added by Base32 secret through the same validated IPC path as manual entry; duplicate accounts are refused rather than silently shadowed.",
+    permissionNeeds: ["Unlocked vault session"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/totp.test.cjs (Base32 decoding accepts padding, spaces and lowercase, and refuses weak or malformed secrets)",
+      "tests/vault-ipc.test.cjs (malformed secret and duplicate account refusal over IPC)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Secret import is real and validated. otpauth:// URI parsing and camera QR scanning are not implemented and are labelled as unavailable.",
+  },
+  {
+    id: "KEY_FORGE",
+    title: "Key Forge",
+    platformCapability:
+      "Key pairs are generated with Node/OpenSSL for Ed25519, P-256, P-384, RSA-2048/4096 and HMAC-256; private material is sealed in the encrypted store and export requires explicit confirmation.",
+    permissionNeeds: ["Unlocked vault session"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/vault-ipc.test.cjs (key generation for a supported algorithm, inventory without private material, unsupported-algorithm refusal, confirmation-gated private export, guest refusal)",
+      "tests/vault-store.test.cjs (the key collection is encrypted like every other record store)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Generation, storage and confirmation-gated export are real and tested. The inventory shows public material only.",
+  },
+  {
+    id: "KEY_DETAILS",
+    title: "Key Details",
+    platformCapability:
+      "Fingerprints are computed as SHA-256 over the SPKI public key (or over the secret for symmetric keys) and are shown from the stored record.",
+    permissionNeeds: ["Unlocked vault session"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/vault-ipc.test.cjs (fingerprint format asserted as 64 hex characters, inventory carries no private material)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Fingerprints are derived from the real key material. No external trust chain or CA validation is claimed.",
+  },
 ]);
 
 export function capabilityById(id) {

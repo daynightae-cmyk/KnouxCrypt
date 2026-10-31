@@ -117,6 +117,27 @@ app.whenReady().then(async () => {
       out.storeAfterRemove = (await api.vault.storeList(enr.data.sessionId, "notes")).data?.records?.length;
       const guestStore = await api.vault.storePut(guest.data.sessionId, "notes", { id: "x" });
       out.guestStoreDenied = guestStore.error?.code;
+      // Authenticator and Key Forge over the same live bridge.
+      out.authAdd = await api.vault.authAdd(enr.data.sessionId, {
+        name: "Runtime account",
+        issuer: "Knoux",
+        secret: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+      });
+      const authListed = await api.vault.authList(enr.data.sessionId);
+      out.authCount = authListed.data?.accounts?.length;
+      out.authSecretLeaked = /GEZDGNBV/.test(JSON.stringify(authListed));
+      const code = await api.vault.authCode(enr.data.sessionId, out.authAdd.data.id);
+      out.authCode = code.data?.code;
+      out.authCodeShape = /^[0-9]{6}$/.test(code.data?.code || "");
+      out.authRemoved = (await api.vault.authRemove(enr.data.sessionId, out.authAdd.data.id)).data?.removed;
+      out.keyMade = await api.vault.keyGenerate(enr.data.sessionId, { algorithm: "ED25519", name: "Runtime key" });
+      const keyListed = await api.vault.keyList(enr.data.sessionId);
+      out.keyCount = keyListed.data?.keys?.length;
+      out.keyPrivateLeaked = /PRIVATE KEY/.test(JSON.stringify(keyListed));
+      out.keyExportDenied = (await api.vault.keyExportPrivate(enr.data.sessionId, out.keyMade.data.id, {})).error?.code;
+      out.keyExportAllowed = (await api.vault.keyExportPrivate(enr.data.sessionId, out.keyMade.data.id, { confirm: true })).ok;
+      out.guestAuthDenied = (await api.vault.authList(guest.data.sessionId)).error?.code;
+      out.guestKeyDenied = (await api.vault.keyList(guest.data.sessionId)).error?.code;
       // Revocation must reach the renderer without a polling call.
       out.revokedEvent = await new Promise((resolve) => {
         const timer = setTimeout(() => resolve("timeout"), 4000);
@@ -158,6 +179,18 @@ app.whenReady().then(async () => {
     check("a stored note can be removed over IPC", probe.storeRemove?.ok === true && probe.storeAfterRemove === 0, `${probe.storeRemove?.ok}/${probe.storeAfterRemove}`);
     check("a guest session cannot write the store", probe.guestStoreDenied === "SESSION_REQUIRED", String(probe.guestStoreDenied));
     check("no plaintext secret is left in the store file", !fs.readdirSync(dir).filter((f) => f.startsWith("store") || f.endsWith(".knvstore")).some((f) => fs.readFileSync(path.join(dir, f)).includes(Buffer.from("secret body text"))));
+    check("an authenticator account is stored over IPC", probe.authAdd?.ok === true, JSON.stringify(probe.authAdd?.error));
+    check("the account is listed once", probe.authCount === 1, String(probe.authCount));
+    check("the authenticator secret is never returned to the renderer", probe.authSecretLeaked === false);
+    check("a real TOTP code is produced", probe.authCodeShape === true, String(probe.authCode));
+    check("the account can be removed over IPC", probe.authRemoved === true);
+    check("a key pair is generated over IPC", probe.keyMade?.ok === true, JSON.stringify(probe.keyMade?.error));
+    check("the key is listed once", probe.keyCount === 1, String(probe.keyCount));
+    check("private key material is never returned to the renderer", probe.keyPrivateLeaked === false);
+    check("private key export is refused without confirmation", probe.keyExportDenied === "BAD_INPUT", String(probe.keyExportDenied));
+    check("private key export succeeds with confirmation", probe.keyExportAllowed === true);
+    check("a guest session cannot read authenticator accounts", probe.guestAuthDenied === "SESSION_REQUIRED", String(probe.guestAuthDenied));
+    check("a guest session cannot read the key store", probe.guestKeyDenied === "SESSION_REQUIRED", String(probe.guestKeyDenied));
     check("renderer produced no console errors", consoleErrors.length === 0, consoleErrors.slice(0, 3).join(" | "));
   } catch (err) {
     check("runtime check completed without throwing", false, err.message);

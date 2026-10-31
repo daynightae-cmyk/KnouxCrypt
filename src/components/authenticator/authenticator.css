@@ -96,6 +96,29 @@
   line-height: 1.4;
   color: #dfbbff;
 }
+.auth-real-code {
+  font-size: 6.3cqw;
+  letter-spacing: 0.28em;
+  line-height: 1.4;
+  color: #f0d9ff;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 12px rgba(190, 120, 255, 0.45);
+}
+.auth-import-uri {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 12px 0;
+}
+.auth-import-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(168, 104, 255, 0.35);
+  background: rgba(58, 30, 92, 0.35);
+}
 .auth-demo-ring {
   position: relative;
   width: 44px;

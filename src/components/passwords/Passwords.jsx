@@ -386,6 +386,7 @@ export function PasswordDetail() {
           <p className="password-demo-label">
             {t(persisted ? "Encrypted with your vault key" : "Public sample account")}
           </p>
+          <CapabilityCard id="PASSWORD_DETAIL" />
           <label>
             {t("Account name")}
             <input

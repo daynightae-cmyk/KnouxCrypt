@@ -201,3 +201,169 @@ test("store failures never leak a filesystem path or stack trace", async () => {
   const serialized = JSON.stringify(res);
   assert.equal(/\/tmp\/|\/home\/|at Object\.|\.cjs:\d+/.test(serialized), false, serialized);
 });
+
+// ---- tasks 09-12: password detail, authenticator, key forge ---------------
+
+test("the authenticator and key channels are registered", () => {
+  setupService();
+  for (const channel of [
+    CHANNELS.AUTH_ADD,
+    CHANNELS.AUTH_LIST,
+    CHANNELS.AUTH_CODE,
+    CHANNELS.AUTH_REMOVE,
+    CHANNELS.KEY_GENERATE,
+    CHANNELS.KEY_LIST,
+    CHANNELS.KEY_EXPORT_PRIVATE,
+    CHANNELS.KEY_REMOVE,
+  ]) {
+    assert.ok(handlers.has(channel), `${channel} is registered`);
+  }
+});
+
+test("an authenticator account round-trips and returns a real code", async () => {
+  setupService();
+  const enroll = await call(CHANNELS.ENROLL, { password: PASSWORD });
+  const sid = enroll.data.sessionId;
+
+  // The RFC 4226 shared secret, so the code is checkable against the standard.
+  const added = await call(CHANNELS.AUTH_ADD, {
+    sessionId: sid,
+    account: { name: "Example", issuer: "Knoux", secret: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ" },
+  });
+  assert.equal(added.ok, true, JSON.stringify(added.error));
+  assert.ok(added.data.id);
+
+  const listed = await call(CHANNELS.AUTH_LIST, { sessionId: sid });
+  assert.equal(listed.data.accounts.length, 1);
+  assert.equal(listed.data.accounts[0].name, "Example");
+  // The secret must never be part of the list payload.
+  assert.equal(Object.hasOwn(listed.data.accounts[0], "secret"), false);
+
+  const code = await call(CHANNELS.AUTH_CODE, { sessionId: sid, id: added.data.id });
+  assert.equal(code.ok, true, JSON.stringify(code.error));
+  assert.match(code.data.code, /^\d{6}$/);
+  assert.ok(code.data.remaining >= 1 && code.data.remaining <= 30);
+
+  const removed = await call(CHANNELS.AUTH_REMOVE, { sessionId: sid, id: added.data.id });
+  assert.equal(removed.data.removed, true);
+  assert.equal((await call(CHANNELS.AUTH_LIST, { sessionId: sid })).data.accounts.length, 0);
+});
+
+test("the auth list never exposes the secret to the renderer", async () => {
+  setupService();
+  const enroll = await call(CHANNELS.ENROLL, { password: PASSWORD });
+  const sid = enroll.data.sessionId;
+  await call(CHANNELS.AUTH_ADD, {
+    sessionId: sid,
+    account: { name: "Example", secret: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ" },
+  });
+  const listed = await call(CHANNELS.AUTH_LIST, { sessionId: sid });
+  assert.equal(/GEZDGNBV/.test(JSON.stringify(listed)), false, "the secret leaked into the list payload");
+});
+
+test("a malformed authenticator secret is refused at the boundary", async () => {
+  setupService();
+  const enroll = await call(CHANNELS.ENROLL, { password: PASSWORD });
+  const sid = enroll.data.sessionId;
+  const res = await call(CHANNELS.AUTH_ADD, {
+    sessionId: sid,
+    account: { name: "Bad", secret: "not-base32!!" },
+  });
+  assert.equal(res.ok, false);
+  assert.equal(res.error.code, CODES.BAD_INPUT);
+});
+
+test("a duplicate authenticator account is refused", async () => {
+  setupService();
+  const enroll = await call(CHANNELS.ENROLL, { password: PASSWORD });
+  const sid = enroll.data.sessionId;
+  const account = { name: "Example", secret: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ" };
+  assert.equal((await call(CHANNELS.AUTH_ADD, { sessionId: sid, account })).ok, true);
+  const again = await call(CHANNELS.AUTH_ADD, { sessionId: sid, account });
+  assert.equal(again.ok, false);
+  assert.equal(again.error.code, CODES.BAD_INPUT);
+});
+
+test("an unknown authenticator id returns NOT_FOUND, not a code", async () => {
+  setupService();
+  const enroll = await call(CHANNELS.ENROLL, { password: PASSWORD });
+  const res = await call(CHANNELS.AUTH_CODE, { sessionId: enroll.data.sessionId, id: "missing" });
+  assert.equal(res.ok, false);
+  assert.equal(res.error.code, CODES.NOT_FOUND);
+});
+
+test("a key is generated, listed without private material and removed", async () => {
+  setupService();
+  const enroll = await call(CHANNELS.ENROLL, { password: PASSWORD });
+  const sid = enroll.data.sessionId;
+
+  const made = await call(CHANNELS.KEY_GENERATE, {
+    sessionId: sid,
+    request: { algorithm: "ED25519", name: "Signing key", purpose: "signing" },
+  });
+  assert.equal(made.ok, true, JSON.stringify(made.error));
+  assert.match(made.data.publicPem, /BEGIN PUBLIC KEY/);
+  assert.match(made.data.fingerprint, /^[0-9a-f]{64}$/);
+
+  const listed = await call(CHANNELS.KEY_LIST, { sessionId: sid });
+  assert.equal(listed.data.keys.length, 1);
+  assert.equal(listed.data.keys[0].hasPrivate, true);
+  // The inventory must not carry private material.
+  assert.equal(/PRIVATE KEY/.test(JSON.stringify(listed)), false);
+
+  const removed = await call(CHANNELS.KEY_REMOVE, { sessionId: sid, id: made.data.id });
+  assert.equal(removed.data.removed, true);
+});
+
+test("an unsupported key algorithm is refused", async () => {
+  setupService();
+  const enroll = await call(CHANNELS.ENROLL, { password: PASSWORD });
+  const res = await call(CHANNELS.KEY_GENERATE, {
+    sessionId: enroll.data.sessionId,
+    request: { algorithm: "DES", name: "Weak" },
+  });
+  assert.equal(res.ok, false);
+  assert.equal(res.error.code, CODES.BAD_INPUT);
+});
+
+test("private key export requires explicit confirmation", async () => {
+  setupService();
+  const enroll = await call(CHANNELS.ENROLL, { password: PASSWORD });
+  const sid = enroll.data.sessionId;
+  const made = await call(CHANNELS.KEY_GENERATE, {
+    sessionId: sid,
+    request: { algorithm: "P-256", name: "TLS key" },
+  });
+
+  const denied = await call(CHANNELS.KEY_EXPORT_PRIVATE, { sessionId: sid, id: made.data.id, options: {} });
+  assert.equal(denied.ok, false);
+  assert.equal(denied.error.code, CODES.BAD_INPUT);
+
+  const allowed = await call(CHANNELS.KEY_EXPORT_PRIVATE, {
+    sessionId: sid,
+    id: made.data.id,
+    options: { confirm: true },
+  });
+  assert.equal(allowed.ok, true);
+  assert.match(allowed.data.privatePem, /BEGIN PRIVATE KEY/);
+});
+
+test("a guest session is refused by every authenticator and key channel", async () => {
+  setupService();
+  const guest = await call(CHANNELS.GUEST);
+  const sid = guest.data.sessionId;
+  for (const [channel, payload] of [
+    [CHANNELS.AUTH_ADD, { sessionId: sid, account: { name: "x", secret: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ" } }],
+    [CHANNELS.AUTH_LIST, { sessionId: sid }],
+    [CHANNELS.AUTH_CODE, { sessionId: sid, id: "x" }],
+    [CHANNELS.AUTH_REMOVE, { sessionId: sid, id: "x" }],
+    [CHANNELS.KEY_GENERATE, { sessionId: sid, request: { algorithm: "ED25519", name: "x" } }],
+    [CHANNELS.KEY_LIST, { sessionId: sid }],
+    [CHANNELS.KEY_EXPORT_PRIVATE, { sessionId: sid, id: "x", options: { confirm: true } }],
+    [CHANNELS.KEY_REMOVE, { sessionId: sid, id: "x" }],
+  ]) {
+    const res = await call(channel, payload);
+    assert.equal(res.ok, false, `${channel} must refuse a guest`);
+    assert.equal(res.error.code, CODES.SESSION_REQUIRED);
+  }
+});

@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { SCREENS } from "../../config/screens";
 import { useLanguage } from "../../i18n/Language";
 import { StagEmblem } from "../entry/StagEmblem";
-import { Mark, PreviewSheet } from "../security/ScreenUI";
+import { CapabilityCard, Mark, PreviewSheet } from "../security/ScreenUI";
+import { capabilityById } from "../../config/desktopCapabilities";
+import { useVault, VAULT_STATE } from "../../hooks/useVault";
 import "./keys.css";
 
 export const KEY_METADATA = Object.freeze([
@@ -48,7 +50,43 @@ const keyTools = [
 ];
 export function KeyForge() {
   const { t, locale, dir } = useLanguage();
+  const vault = useVault();
+  const persisted = vault.state === VAULT_STATE.UNLOCKED;
+  const sessionKey = vault.session?.sessionId ?? null;
   const [profile, setProfile] = useState(false);
+  const [keys, setKeys] = useState([]);
+  const [status, setStatus] = useState(null);
+  const vaultRef = useRef(vault);
+  vaultRef.current = vault;
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!persisted) {
+      setKeys([]);
+      return () => {
+        cancelled = true;
+      };
+    }
+    vaultRef.current
+      .keyList()
+      .then((res) => {
+        if (cancelled) return;
+        if (res?.ok === false) {
+          setStatus(t("Could not read the key store."));
+          setKeys([]);
+        } else {
+          setStatus(null);
+          setKeys(res?.data?.keys || []);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setStatus(t("Could not read the key store."));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [persisted, sessionKey, t]);
+
   return (
     <main
       className="keys-screen"
@@ -78,6 +116,36 @@ export function KeyForge() {
           <h1>{t("Key Forge")}</h1>
           <p>{t("Your keys. Your control.")}</p>
         </header>
+        <CapabilityCard
+          capability={capabilityById("KEY_FORGE")}
+          fallback={{
+            platformCapability: "Ed25519, P-256/384, RSA-2048/4096, HMAC-256 via Node/OpenSSL",
+            permissionNeeds: "Unlocked vault session",
+            requiresNetwork: false,
+            providerReady: true,
+          }}
+        />
+        {status && (
+          <p className="keys-demo-caption" role="status">
+            {status}
+          </p>
+        )}
+        {persisted && keys.length > 0 && (
+          <section className="keys-service-list" aria-label={t("Stored keys")}>
+            {keys.map((item) => (
+              <article className="keys-service" key={item.id}>
+                <span className="keys-service-icon">
+                  <Mark name="key" />
+                </span>
+                <span>
+                  <strong>{item.name}</strong>
+                  <small>{item.algorithm}</small>
+                  <em dir="ltr">{item.fingerprint.slice(0, 16)}…</em>
+                </span>
+              </article>
+            ))}
+          </section>
+        )}
         <section
           className="keys-service-list"
           aria-label={t("Key Forge services")}
@@ -97,7 +165,9 @@ export function KeyForge() {
           ))}
         </section>
         <Link className="inspection-link" to={SCREENS.FINGERPRINT_VERIFY} state={{returnTo:SCREENS.KEY_DETAILS}}>{t("Fingerprint Verify")}</Link><p className="keys-demo-caption">
-          {t("Visual demo · no device keys or security operations")}
+          {persisted
+            ? t("Keys are generated locally and their private material stays in the encrypted vault.")
+            : t("Visual demo · unlock the vault to generate real keys")}
         </p>
       </div>
       {profile && (
@@ -107,7 +177,7 @@ export function KeyForge() {
         >
           <p>
             {t(
-              "Key Forge is an offline visual demo. No account, device key, hardware protection or cryptographic service is connected.",
+              "Key generation uses Node/OpenSSL for supported algorithms. Hardware-backed keystores are not connected and are not claimed.",
             )}
           </p>
           <Link to={SCREENS.HOME}>{t("Back to Home")}</Link>
