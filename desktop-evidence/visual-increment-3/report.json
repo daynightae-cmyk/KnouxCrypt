@@ -1,0 +1,96 @@
+{
+  "_provenance": {
+    "generatedBy": "CodeRabbit Agent",
+    "taskId": "83d7249a-39b8-4935-8b1b-a450b75d8941"
+  },
+  "baseline": "3c2c6c9a05309b55239f3a724a3bfbf52c2c1ed1",
+  "status": "PARTIAL",
+  "visualWork": [
+    "09_BACKUP_RECOVERY_STUDIO",
+    "10_TOOLS_SECURITY_LABS",
+    "Shared Desktop Shell consistency",
+    "Final visual regression QA"
+  ],
+  "canonicalTaskIds": [
+    "15_BACKUP",
+    "TOOLS catalogue (existing routes 17\u201344; no security service completion claimed)"
+  ],
+  "implementation": [
+    "Backup dataset/destination selections, preview, honest disabled archive/restore actions",
+    "Tools categories, search, tool inspector and all 34 existing unique directory destinations",
+    "Shared desktop titlebar/command/sidebar/route tab/status; persistent atmosphere and existing IPC window controls; fallback mobile screens preserved",
+    "Reviewed user note content translation and route-scroll bugs fixed; original PNG bytes unchanged"
+  ],
+  "files": [
+    "src/App.jsx",
+    "src/components/desktop/DesktopWorkspace.jsx",
+    "src/components/desktop/DesktopUtilities.jsx",
+    "src/components/desktop/desktop.css",
+    "src/components/security/ScreenUI.jsx",
+    "src/i18n/desktop-ar.js",
+    "scripts/check-desktop-workspace.py",
+    "scripts/check-desktop-routes.py"
+  ],
+  "inputs": {
+    "src/App.jsx": "f614e14fa4a06c778530bcd20b7c7e78c42f9b76745a8f50f55bb11f42be826c",
+    "src/components/desktop/DesktopWorkspace.jsx": "1952dffe28d9d9f797741c2bd3b5789049314a239040389829c69af7a2a65d32",
+    "src/components/desktop/DesktopUtilities.jsx": "8a4e61e09c5f7bd0a3b275287fc3139a1d9ef9e559af193b59a4bf4e713f382d",
+    "src/components/desktop/desktop.css": "ec5840804448e75e143932666e774c43f4d88f7b2196d5897145e4693bfe9288",
+    "src/components/security/ScreenUI.jsx": "a2895c6b04387211c888725157e71d55afbb72f46a5037dab949744c1b0e5d56",
+    "src/i18n/desktop-ar.js": "89c2350c3bdddedcfc730d6d65d83f4aabe6cf5251c01ce076aa35ab3bcbc5f1",
+    "scripts/check-desktop-workspace.py": "58b9932dd81c43f64b9c6b307229bf816e0fd3a537debd2a0f94f3c89d274b89",
+    "scripts/check-desktop-routes.py": "2433828c966df34f94d38f7f7a5ec787be0d363e9f436880ea480edce2aff1b1"
+  },
+  "tests": [
+    {
+      "command": "npm run check",
+      "exitCode": 0,
+      "result": "44 AR/EN SSR components, audio tests and Vite build"
+    },
+    {
+      "command": "python3 scripts/check-desktop-workspace.py",
+      "exitCode": 0,
+      "result": "60 desktop route/viewport/locale cases plus interactions, note Home title retained in Arabic, scroll reset, mobile fallback"
+    },
+    {
+      "command": "python3 scripts/check-desktop-routes.py",
+      "exitCode": 0,
+      "result": "88 route/locale combinations at 1440x900; no horizontal overflow; reduced-motion rain check"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "Shared Chromium inspector-banner geometry and screenshot capture via coderabbit-agent-browser",
+      "exitCode": 0,
+      "result": "No text/stag overlap at 1280,1672,1920 widths in EN/AR; 20 screenshots"
+    }
+  ],
+  "review": {
+    "firstPassFindings": 6,
+    "secondPassFindings": 2,
+    "addressed": 8,
+    "note": "Two translation reports overlap. Final two fixes were validated with browser assertions; no zero-finding review claimed."
+  },
+  "screenshots": "workspace output/desktop/increment-3; all slots have EN/AR screenshots under output/desktop",
+  "push": {
+    "status": "BLOCKED_POLICY",
+    "sha": null,
+    "remoteHead": "3ce168973436ba81010ab717d083bcc691fa623a",
+    "reason": "Workspace only allows pushing coderabbit/desktop-workspace-visuals/83d7249a. Owner authorizes only desktop/electron-fullstack-44-services-20261031. No remote write attempted."
+  },
+  "gaps": [
+    "Visuals remain an approximation: cinematic landscape/ribbon complexity, type scale, density and exact reference layouts require refinement",
+    "Backend encryption, authentication, persistence, secure IPC service wiring, OTP, key management and backup not implemented in this turn; no real service is marked complete",
+    "All new security actions without verified service connections remain unavailable",
+    "Windows Electron, actual window controls, installer/portable EXE and DPI unverified",
+    "Existing detailed child routes retain prior visual/demo implementations"
+  ],
+  "nextFourCanonicalTasks": [
+    "01_SPLASH_ENTRY",
+    "02_SECURE_ACCESS_LOGIN",
+    "03_HOME",
+    "04_FILE_CIPHER"
+  ]
+}

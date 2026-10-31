@@ -67,5 +67,9 @@
     "10_TOOLS_SECURITY_LABS",
     "Shared Desktop Shell consistency",
     "Final visual regression QA"
-  ]
+  ],
+  "_provenance": {
+    "generatedBy": "CodeRabbit Agent",
+    "taskId": "83d7249a-39b8-4935-8b1b-a450b75d8941"
+  }
 }

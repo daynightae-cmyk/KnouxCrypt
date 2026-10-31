@@ -26,7 +26,7 @@ function App() {
     <Suspense fallback={<LoadingScreen/>}>
       <Routes>
         {screens.map(({id,suffix,Screen}) => <Route key={id} path={SCREENS[id]+suffix} element={<DesktopRoute id={id}><Screen/></DesktopRoute>}/>)}
-        <Route path={SCREENS.TOOLS} element={<Home tools/>}/>
+        <Route path={SCREENS.TOOLS} element={<DesktopRoute id="TOOLS"><Home tools/></DesktopRoute>}/>
         <Route path="*" element={<LegacyApp/>}/>
       </Routes>
     </Suspense>
