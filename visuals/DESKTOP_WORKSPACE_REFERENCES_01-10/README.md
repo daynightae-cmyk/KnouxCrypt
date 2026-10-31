@@ -8,16 +8,16 @@ All 10 owner-uploaded references are separate 1672×941 images, NOT a collage. N
 
 | Slot | Required PNG | Canonical route / task | SHA-256 |
 |---|---|---|---|
-| 01 | `01_HOME_COMMAND_CENTER.png` | `HOME` / 03 | `c1a2acabe9405d5ce8c573436d80959513ebc6bcbcd29c9856fcd9f6866075ca` |
-| 02 | `02_FILE_CIPHER_WORKBENCH.png` | `FILE_CIPHER` / 04 | `c0590c55a71cc9ac6feb18dc7c9e1e2a4a447a2b8c21fc63ce0af2f2ac54d670` |
-| 03 | `03_SHADOW_VAULT_EXPLORER.png` | `SHADOW_VAULT` / 05 | `c925a3ba91a306e73fd6c17ea1f693e4e9275cab807018cf485bcf91109a9d3e` |
-| 04 | `04_SECURE_NOTES_STUDIO.png` | `NOTES / NOTES_EDITOR` / 06–07 | `5f0d386ada587e047ce217a08ad655d9cce95f07c67fc5b95ac07526f5218c40` |
-| 05 | `05_PASSWORD_MANAGER.png` | `PASSWORDS / PASSWORD_DETAIL` / 08–09 | `cdcb76f3e3b5c809b345c376a4ea87a83d0ed547ff3771ee1c59dafb517a11f4` |
-| 06 | `06_AUTHENTICATOR_DASHBOARD.png` | `AUTHENTICATOR / AUTH_IMPORT` / 10–11 | `09848dd15a44a86b7394ee8096220e411829c9aaf86fd68127ed7c90b4fb43f4` |
-| 07 | `07_KEY_FORGE_LAB.png` | `KEY_FORGE / KEY_DETAILS` / 12–13 | `5e94e12b13ec09cbea77bd93e86dc6d839d47d8db54e8bd63204a257cf4ed540` |
-| 08 | `08_PRIVACY_CENTER.png` | `PRIVACY` / 14 | `cf3b7758cbb4eef06dd4b3a746b0489795e54c635f4bf80c5c62e08e2952bae2` |
-| 09 | `09_BACKUP_RECOVERY_STUDIO.png` | `BACKUP` / 15 | `fa07ab354dcb7b4db6aeae2acaa5673b53ad54a14e83e152e479c020fd320e59` |
-| 10 | `10_TOOLS_SECURITY_LABS.png` | `TOOLS catalogue / labs 17–44` / 17–44 | `eb6bb44d616b907d25f2d5efc98b5c25f37e040c5c252e089fe3641dca97adb8` |
+| 01 | `01_HOME_COMMAND_CENTER.png` | `HOME` / 03 | `c1a2acabe9405d5c669f7b01648e912d88144a056e058881bd637ee799cf2720` |
+| 02 | `02_FILE_CIPHER_WORKBENCH.png` | `FILE_CIPHER` / 04 | `c0590c55a71cc9acd4546324dd469a3709363fdb2316eb2d2fb400f486fe577f` |
+| 03 | `03_SHADOW_VAULT_EXPLORER.png` | `SHADOW_VAULT` / 05 | `c925a3ba91a306e7c876dbc98233ddea85fe677956d4cdc035f926883f2a2d0e` |
+| 04 | `04_SECURE_NOTES_STUDIO.png` | `NOTES / NOTES_EDITOR` / 06–07 | `5f0d386ada587e043b90af5f0f62b0ed8167037807a1064b81d36085d13e4ea7` |
+| 05 | `05_PASSWORD_MANAGER.png` | `PASSWORDS / PASSWORD_DETAIL` / 08–09 | `cdcb76f3e3b5c809a0da464be39ac0dd28f34efafbe74d18677a8c31626ea3c2` |
+| 06 | `06_AUTHENTICATOR_DASHBOARD.png` | `AUTHENTICATOR / AUTH_IMPORT` / 10–11 | `09848dd15a44a86bdfcca43b838a982b3301db406f9fc947425fb4f47271d324` |
+| 07 | `07_KEY_FORGE_LAB.png` | `KEY_FORGE / KEY_DETAILS` / 12–13 | `5e94e12b13ec09cbb1598408f018165370f8b1e8d06294fe54558ec4eeb8fcf9` |
+| 08 | `08_PRIVACY_CENTER.png` | `PRIVACY` / 14 | `cf3b7758cbb4eef0c5eda0fb893233766629b494d93ff3afb57108700c989383` |
+| 09 | `09_BACKUP_RECOVERY_STUDIO.png` | `BACKUP` / 15 | `fa07ab354dcbd7b4df0f765725a0ba59242f3e26a0424ae5e9d918a9ecc491a3` |
+| 10 | `10_TOOLS_SECURITY_LABS.png` | `TOOLS catalogue / labs 17–44` / 17–44 | `eb6bb44d616b907d2885f3327d8749cbd897140274b6c85b31733d284e72b736` |
 
 **Reference fidelity:** Original Android screen and transparent stag-K asset remain brand references, not a reason to replicate mobile widths. Use the new visuals for desktop shell/sidebar/command bar/inspector/layout treatments. Preserve real original assets from the repository.
 
