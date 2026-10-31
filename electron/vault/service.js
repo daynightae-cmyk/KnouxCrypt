@@ -1069,9 +1069,10 @@ class VaultService {
   // ---- tasks 25-28: privacy labs ------------------------------------------
 
   /**
-   * Clipboard Guard (task 25). The guard is real, but arming it needs an
-   * explicit confirmation every time because a timed clear is destructive to
-   * whatever the user copies next. Guest sessions cannot arm it.
+   * Clipboard Guard (task 25). The guard is real: it manages time-limited
+   * leases over the operating-system clipboard and only clears a value it
+   * wrote itself. Arming needs explicit confirmation every time because a
+   * timed clear is destructive to whatever the user copies next.
    */
   clipboardStatus() {
     const base = this.clipboard.status();
@@ -1079,39 +1080,40 @@ class VaultService {
     return { ...base, clearClipboardPreferred: prefs.clearClipboard === true };
   }
 
-  clipboardCopyDemo(sessionId) {
+  clipboardCopy({ sessionId, text, seconds, confirm } = {}) {
     if (sessionId) this.manager.getDek(sessionId);
-    const result = this.clipboard.copyDemo();
-    this._record("clipboard", "Copied the demo placeholder");
+    const result = this.clipboard.copy({ text, seconds, confirm, sessionId });
+    if (result && typeof result.then === "function") {
+      return result.then((lease) => {
+        this._record("clipboard", `Leased clipboard content for ${lease.seconds}s`);
+        return lease;
+      });
+    }
+    this._record("clipboard", `Leased clipboard content for ${result.seconds}s`);
     return result;
   }
 
-  clipboardArm({ sessionId, seconds, confirm } = {}) {
-    if (sessionId) this.manager.getDek(sessionId);
-    const result = this.clipboard.arm({ seconds, confirm, sessionId });
-    this._record("clipboard", `Clipboard clear armed for ${result.armedSeconds}s`);
+  clipboardDisarm(leaseId, reason) {
+    const result = this.clipboard.disarm(leaseId, reason || "user");
+    if (result.disarmed) this._record("clipboard", "Clipboard lease disarmed");
     return result;
   }
 
-  clipboardDisarm(reason) {
-    const result = this.clipboard.disarm(reason || "user");
+  clipboardClearNow(leaseId) {
+    const result = this.clipboard.clearNow(leaseId);
+    this._record("clipboard", "Clipboard lease cleared on demand");
     return result;
   }
 
-  clipboardClearNow() {
-    const result = this.clipboard.clearNow();
-    this._record("clipboard", "Clipboard cleared on demand");
-    return result;
-  }
-
-  clipboardVerifyDemo() {
-    return this.clipboard.verifyDemo();
+  clipboardVerify(leaseId) {
+    return this.clipboard.verify(leaseId);
   }
 
   /**
-   * Secure Random (task 26). Real CSPRNG output. `entropyBits` reports the
-   * theoretical entropy of the requested length; it is not a certification of
-   * the operating-system entropy source, and the UI says so.
+   * Secure Random (task 26). Real CSPRNG output with unbiased rejection
+   * sampling for word and character selection. `entropyBits` reports the
+   * generator's theoretical entropy; it is not a certification of the
+   * operating-system entropy source, and the UI says so.
    */
   randomGenerate({ type, length } = {}) {
     const result = labs.randomBytes({ type, length });
@@ -1120,12 +1122,14 @@ class VaultService {
   }
 
   /**
-   * HMAC Authenticity (task 27). The key is used and discarded: it is never
-   * stored, logged or returned. Only the resulting MAC crosses the IPC boundary.
+   * HMAC Authenticity (task 27). Real HMAC over text or a streamed file. The
+   * key is used and discarded: it is never stored, logged or returned. Only the
+   * resulting MAC crosses the IPC boundary. A match proves integrity and key
+   * knowledge, not sender identity.
    */
-  hmacCompute({ algorithm, message, key, keyEncoding, encoding } = {}) {
-    const result = labs.hmacCompute({ algorithm, message, key, keyEncoding, encoding });
-    this._record("hmac", `Computed a ${result.algorithm} MAC over ${result.messageBytes} bytes`);
+  async hmacCompute({ algorithm, message, key, keyEncoding, encoding, inputPath } = {}) {
+    const result = await labs.hmacCompute({ algorithm, message, key, keyEncoding, encoding, inputPath });
+    this._record("hmac", `Computed a ${result.algorithm} MAC over ${result.messageBytes} bytes (${result.source})`);
     return result;
   }
 
@@ -1142,6 +1146,7 @@ class VaultService {
    */
   async publicKeyQr({ sessionId, keyId, text, errorCorrectionLevel } = {}) {
     let payload = typeof text === "string" ? text.trim() : "";
+    let fingerprint = null;
     if (!payload && keyId) {
       const rawKey = this.manager.getDek(sessionId);
       const { records } = await this.store.list("keys", rawKey);
@@ -1149,11 +1154,12 @@ class VaultService {
       if (!record) throw new VaultError(CODES.NOT_FOUND, "No such key");
       if (!record.publicPem) throw new VaultError(CODES.BAD_INPUT, "That key has no public material to share");
       payload = record.publicPem;
+      fingerprint = record.fingerprint;
       this.manager.touch(sessionId);
     }
     const result = labs.publicKeyQr({ text: payload, errorCorrectionLevel });
     this._record("public-qr", `Rendered a ${result.size}x${result.size} public QR code`);
-    return { ...result, payload };
+    return { ...result, payload, fingerprint };
   }
 }
 

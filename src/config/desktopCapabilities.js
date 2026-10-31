@@ -406,6 +406,70 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
     displayStatusReason:
       "Only JPEG is rewritten, and it is rewritten byte-exactly. GPS, capture date and camera details share one EXIF block, so the UI says that removing one removes all three rather than implying per-field control. Other formats are refused, not faked.",
   },
+  {
+    id: "CLIPBOARD_GUARD",
+    title: "Clipboard Guard",
+    platformCapability:
+      "Time-limited clipboard leases over the real Electron clipboard. A value is placed on the clipboard with an explicit lease, and the lease clears it on expiry or on demand, but only when the clipboard still holds the exact value this app wrote.",
+    permissionNeeds: ["Clipboard read/write access (granted by Electron at runtime)", "Explicit per-copy confirmation"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch07-privacy-labs.test.cjs (lease clears an unchanged clipboard, a user-copied replacement is left untouched and reported as skipped, arming without confirmation is refused, out-of-range timers are refused, the real expiry timer clears on its own, revoking the owning session disarms the lease, verify returns booleans only, and an unsupported platform fails closed)",
+      "tests/vault-ipc.test.cjs (consent is enforced at the IPC boundary, a truthy string is not accepted as consent, status/verify/clear round-trip through the real channel contract, and a headless build without an adapter fails closed)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "The guard clears only a value it wrote itself and skips when the clipboard changed, so it never erases unrelated content. It cannot promise global clipboard erasure: another application may have copied the value, the OS may keep a history, and clipboard managers are outside this process's control. The UI states that limit.",
+  },
+  {
+    id: "SECURE_RANDOM",
+    title: "Secure Random",
+    platformCapability:
+      "Generate hex, URL-safe base64, passphrases and passwords from the operating-system CSPRNG (crypto.randomBytes), with unbiased rejection sampling for word and character selection and reported entropy.",
+    permissionNeeds: ["None beyond running the application"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch07-privacy-labs.test.cjs (hex length and charset, URL-safe base64 uniqueness, passphrase words drawn only from the validated 256-word list, passwords free of ambiguous characters, entropy computed from the generator, rejection sampling discards out-of-range bytes, an 8000-draw uniformity band, bad type/length refusal, and a source scan proving Math.random is absent)",
+      "tests/vault-ipc.test.cjs (the channel validates type and length and returns real CSPRNG bytes)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Output comes from crypto.randomBytes and selection uses rejection sampling, so it is unbiased. The reported entropy is the generator's theoretical entropy, not a certification of the OS entropy pool; the UI labels it as such rather than claiming a validated RNG.",
+  },
+  {
+    id: "HMAC_AUTHENTICITY",
+    title: "HMAC Authenticity",
+    platformCapability:
+      "Compute HMAC-SHA-256/384/512 over text or a streamed file, and compare two tags in constant time. Large files are streamed in 1 MiB chunks so memory use stays bounded.",
+    permissionNeeds: ["The shared key (used and discarded)", "Read access to the file when hashing a file"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch07-privacy-labs.test.cjs (RFC 4231 case 1 vectors for SHA-256/384/512, RFC 4231 cases 3 and 4, the 4-byte case-2 key refused by the minimum-key policy, a 3 MiB streamed file matching Node's own HMAC over the same bytes, NOT_FOUND for a missing file, message-and-file conflict refused, constant-time comparison mismatches, short key/weak algorithm/empty message refused, and the key never echoed back)",
+      "tests/vault-ipc.test.cjs (the channel validates algorithm, key length and payload, and never returns the key)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "A matching tag proves the data was not altered and that the comparer knows the key. It does not prove who sent it, because anyone holding the key can produce the same tag. The UI distinguishes integrity and key knowledge from sender identity rather than calling a match 'authentic'.",
+  },
+  {
+    id: "PUBLIC_KEY_QR",
+    title: "Public Key QR",
+    platformCapability:
+      "Render a real, scannable QR matrix from public key material (a stored vault key's public PEM, or pasted public text), with the key fingerprint shown alongside. Private key material is refused.",
+    permissionNeeds: ["Unlocked vault session only to select a stored key", "No elevated privileges"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch07-privacy-labs.test.cjs (the generated matrix decodes back to the exact payload through an independent QR reader, a stored key renders its public PEM with its fingerprint and no private material, private key material refused, empty and oversized payloads refused, unknown key id NOT_FOUND, and a secret-only key refused)",
+      "tests/vault-ipc.test.cjs (the channel refuses private key material at the boundary)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "The matrix is produced by the vetted qrcode encoder and verified by decoding it again. A QR of a public key shares public material only; it is not an identity claim and the fingerprint is shown so a reader can verify it out of band. Encoding a private key is refused, not merely discouraged.",
+  },
 ]);
 
 export function capabilityById(id) {

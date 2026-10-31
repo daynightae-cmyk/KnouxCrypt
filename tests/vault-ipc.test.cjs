@@ -63,6 +63,7 @@ const EVENT_ONLY = new Set([
   CHANNELS.REVOKED,
   CHANNELS.TRANSFER_REQUEST,
   CHANNELS.TRANSFER_STATE,
+  CHANNELS.CLIPBOARD_STATE,
 ]);
 
 test("all vault channels are registered", () => {
@@ -382,4 +383,115 @@ test("a guest session is refused by every authenticator and key channel", async 
     assert.equal(res.ok, false, `${channel} must refuse a guest`);
     assert.equal(res.error.code, CODES.SESSION_REQUIRED);
   }
+});
+
+// ---- Batch 07 (tasks 25-28) over the real IPC surface ----------------------
+
+test("random-generate validates the payload and returns real bytes", async () => {
+  setupService();
+  const res = await call(CHANNELS.RANDOM_GENERATE, { type: "hex", length: 16 });
+  assert.equal(res.ok, true);
+  assert.match(res.data.value, /^[0-9a-f]{32}$/);
+  assert.equal(res.data.entropyBits, 128);
+  assert.equal(res.data.source, "crypto.randomBytes");
+
+  const bad = await call(CHANNELS.RANDOM_GENERATE, { type: "hex", length: 1 });
+  assert.equal(bad.ok, false);
+  assert.equal(bad.error.code, CODES.BAD_INPUT);
+});
+
+test("hmac-compute validates the key, algorithm and payload at the boundary", async () => {
+  setupService();
+  const ok = await call(CHANNELS.HMAC_COMPUTE, { algorithm: "SHA-256", message: "hello", key: "0123456789abcdef" });
+  assert.equal(ok.ok, true);
+  assert.equal(ok.data.mac.length, 64);
+
+  const short = await call(CHANNELS.HMAC_COMPUTE, { algorithm: "SHA-256", message: "hello", key: "abc" });
+  assert.equal(short.ok, false);
+  assert.equal(short.error.code, CODES.BAD_INPUT);
+
+  const weak = await call(CHANNELS.HMAC_COMPUTE, { algorithm: "MD5", message: "hello", key: "0123456789abcdef" });
+  assert.equal(weak.ok, false);
+  assert.equal(weak.error.code, CODES.BAD_INPUT);
+});
+
+test("hmac-compute never echoes the key in its result", async () => {
+  setupService();
+  const secret = "0123456789abcdef0123456789abcdef";
+  const res = await call(CHANNELS.HMAC_COMPUTE, { algorithm: "SHA-256", message: "hello", key: secret });
+  assert.equal(res.ok, true);
+  assert.equal(JSON.stringify(res.data).includes(secret), false);
+});
+
+test("public-qr refuses private key material at the IPC boundary", async () => {
+  setupService();
+  const res = await call(CHANNELS.PUBLIC_QR, { text: "-----BEGIN PRIVATE KEY-----\nAAAA\n-----END PRIVATE KEY-----" });
+  assert.equal(res.ok, false);
+  assert.equal(res.error.code, CODES.BAD_INPUT);
+});
+
+test("clipboard-copy requires consent and a registered lease clears it", async () => {
+  setupService();
+  const noConsent = await call(CHANNELS.CLIPBOARD_COPY, { text: "x", seconds: 15 });
+  assert.equal(noConsent.ok, false);
+  assert.equal(noConsent.error.code, CODES.CONSENT_REQUIRED);
+
+  // Without an Electron clipboard adapter the channel fails closed, which is
+  // the correct behaviour for a headless or unsupported platform.
+  const headless = await call(CHANNELS.CLIPBOARD_COPY, { text: "x", seconds: 15, confirm: true });
+  assert.equal(headless.ok, false);
+  assert.equal(headless.error.code, CODES.UNSUPPORTED_FORMAT);
+});
+
+test("clipboard status reports the injected adapter's capability", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "knoux-ipc-clip-"));
+  let text = "";
+  const manager = new VaultSessionManager({ enrollmentPath: path.join(dir, "e.json") });
+  const engine = new VaultEngine({ kdfParams: { kdfId: KDF.RAW_KEY }, chunkSize: 4096 });
+  const service = new VaultService({
+    userDataPath: dir,
+    manager,
+    engine,
+    clipboardAdapter: { writeText: (v) => (text = v), readText: () => text, clear: () => (text = "") },
+  });
+  registerVaultIpc(service, () => null);
+
+  const status = await call(CHANNELS.CLIPBOARD_STATUS);
+  assert.equal(status.ok, true);
+  assert.equal(status.data.supported, true);
+  assert.equal(status.data.armed, false);
+
+  await call(CHANNELS.ENROLL, { password: PASSWORD });
+  const copy = await call(CHANNELS.CLIPBOARD_COPY, { text: "leased", seconds: 15, confirm: true });
+  assert.equal(copy.ok, true);
+  assert.equal(copy.data.state, "armed");
+
+  const verify = await call(CHANNELS.CLIPBOARD_VERIFY, { leaseId: copy.data.leaseId });
+  assert.equal(verify.ok, true);
+  assert.equal(verify.data.present, true);
+  assert.equal(JSON.stringify(verify.data).includes("leased"), false);
+
+  const cleared = await call(CHANNELS.CLIPBOARD_CLEAR_NOW, { leaseId: copy.data.leaseId });
+  assert.equal(cleared.ok, true);
+  assert.equal(text, "");
+});
+
+test("clipboard-copy rejects a truthy non-boolean consent flag", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "knoux-ipc-clip2-"));
+  let text = "";
+  const manager = new VaultSessionManager({ enrollmentPath: path.join(dir, "e.json") });
+  const engine = new VaultEngine({ kdfParams: { kdfId: KDF.RAW_KEY }, chunkSize: 4096 });
+  const service = new VaultService({
+    userDataPath: dir,
+    manager,
+    engine,
+    clipboardAdapter: { writeText: (v) => (text = v), readText: () => text, clear: () => (text = "") },
+  });
+  registerVaultIpc(service, () => null);
+  await call(CHANNELS.ENROLL, { password: PASSWORD });
+
+  const res = await call(CHANNELS.CLIPBOARD_COPY, { text: "x", seconds: 15, confirm: "yes" });
+  assert.equal(res.ok, false);
+  assert.equal(res.error.code, CODES.CONSENT_REQUIRED);
+  assert.equal(text, "", "a truthy string must never place content on the clipboard");
 });

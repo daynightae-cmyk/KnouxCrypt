@@ -75,8 +75,7 @@ const CHANNELS = Object.freeze({
   PROGRESS: "vault:progress",
   REVOKED: "vault:revoked",
   CLIPBOARD_STATUS: "vault:clipboard-status",
-  CLIPBOARD_COPY_DEMO: "vault:clipboard-copy-demo",
-  CLIPBOARD_ARM: "vault:clipboard-arm",
+  CLIPBOARD_COPY: "vault:clipboard-copy",
   CLIPBOARD_DISARM: "vault:clipboard-disarm",
   CLIPBOARD_CLEAR_NOW: "vault:clipboard-clear-now",
   CLIPBOARD_VERIFY: "vault:clipboard-verify",
@@ -713,21 +712,14 @@ function registerVaultIpc(service, getWindow) {
   ipcMain.handle(CHANNELS.CLIPBOARD_STATUS, safe(async () => service.clipboardStatus()));
 
   ipcMain.handle(
-    CHANNELS.CLIPBOARD_COPY_DEMO,
-    safe(async (event, payload) => {
-      const p = payload ? requireObject(payload) : {};
-      return service.clipboardCopyDemo(typeof p.sessionId === "string" ? p.sessionId : undefined);
-    }),
-  );
-
-  ipcMain.handle(
-    CHANNELS.CLIPBOARD_ARM,
+    CHANNELS.CLIPBOARD_COPY,
     safe(async (event, payload) => {
       const p = requireObject(payload);
-      return service.clipboardArm({
+      return service.clipboardCopy({
         sessionId: typeof p.sessionId === "string" ? p.sessionId : undefined,
-        seconds: Number(p.seconds),
-        // Confirmation is a strict boolean: a truthy string must not arm it.
+        text: requireString(p.text, "text", 64 * 1024),
+        seconds: Number.isInteger(p.seconds) ? p.seconds : 30,
+        // Consent is a strict boolean: a truthy string must not lease.
         confirm: p.confirm === true,
       });
     }),
@@ -737,12 +729,28 @@ function registerVaultIpc(service, getWindow) {
     CHANNELS.CLIPBOARD_DISARM,
     safe(async (event, payload) => {
       const p = payload ? requireObject(payload) : {};
-      return service.clipboardDisarm(typeof p.reason === "string" ? p.reason : undefined);
+      return service.clipboardDisarm(
+        typeof p.leaseId === "string" ? p.leaseId : undefined,
+        typeof p.reason === "string" ? p.reason : undefined,
+      );
     }),
   );
 
-  ipcMain.handle(CHANNELS.CLIPBOARD_CLEAR_NOW, safe(async () => service.clipboardClearNow()));
-  ipcMain.handle(CHANNELS.CLIPBOARD_VERIFY, safe(async () => service.clipboardVerifyDemo()));
+  ipcMain.handle(
+    CHANNELS.CLIPBOARD_CLEAR_NOW,
+    safe(async (event, payload) => {
+      const p = payload ? requireObject(payload) : {};
+      return service.clipboardClearNow(typeof p.leaseId === "string" ? p.leaseId : undefined);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.CLIPBOARD_VERIFY,
+    safe(async (event, payload) => {
+      const p = payload ? requireObject(payload) : {};
+      return service.clipboardVerify(typeof p.leaseId === "string" ? p.leaseId : undefined);
+    }),
+  );
 
   ipcMain.handle(
     CHANNELS.RANDOM_GENERATE,
@@ -759,14 +767,16 @@ function registerVaultIpc(service, getWindow) {
     CHANNELS.HMAC_COMPUTE,
     safe(async (event, payload) => {
       const p = requireObject(payload);
-      return service.hmacCompute({
+      const request = {
         algorithm: typeof p.algorithm === "string" ? p.algorithm : "SHA-256",
-        message: typeof p.message === "string" ? p.message.slice(0, 4 * 1024 * 1024) : "",
         // The key is passed through untouched; it is never logged or echoed back.
         key: typeof p.key === "string" ? p.key.slice(0, 8192) : "",
         keyEncoding: typeof p.keyEncoding === "string" ? p.keyEncoding : "utf8",
         encoding: p.encoding === "base64" ? "base64" : "hex",
-      });
+      };
+      if (typeof p.message === "string") request.message = p.message.slice(0, 4 * 1024 * 1024);
+      if (typeof p.inputPath === "string") request.inputPath = p.inputPath;
+      return service.hmacCompute(request);
     }),
   );
 

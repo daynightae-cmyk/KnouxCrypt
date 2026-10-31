@@ -1,18 +1,48 @@
-# Round 25–28 — implemented demo screens, visual acceptance deferred
+# Round 25–28 — real privacy-lab services
 
 ## Applied changes
-New LabScreens.jsx/labs.css, App routes, shared registry, Arabic catalogue, Tools links and QR/random cross-links from key/share/password UI. Existing app and work preserved.
-- 25 `/tools/clipboard-guard`: local timer choices, mask/notification previews, fixed public-sample copy and explanatory Enable action. Never reads/monitors/clears clipboard or requests silent permissions. Secure Clipboard remains holding route for mission 44.
-- 26 `/tools/random`: Hex/Base64/passphrase sample modes, size slider, deterministic read-only DEMO result and public copy. No secure RNG/entropy claim; not real bytes/encoding.
-- 27 `/tools/hmac`: fictional message, read-only masked public key, algorithm/display labels and static DEMO-HMAC result, string-only compare with no authenticity conclusion.
-- 28 `/key-forge/public-qr`: display/scanner modes, geometric decorative QR-like artwork and shared original stag, fictional public identity/fingerprint and Save explanation. Explicitly not a functioning QR encoder; no camera, key storage/export or trust.
+The four screens were previously demo-only. They are now wired to the vault's real
+services through `useVault` and the `vault:*` IPC channels. Existing app, visuals,
+routes, Arabic catalogue and cross-links are preserved.
+- 25 `/tools/clipboard-guard`: real time-limited clipboard leases over the Electron
+  clipboard (`electron/vault/clipboard.js`). Copy requires explicit consent, the
+  service clears only the exact value it wrote, and it skips (and reports) when the
+  clipboard changed. Verify returns booleans and a length, never the text. Timer
+  choices 15/30/60/120s. It states plainly that it cannot promise global erasure.
+- 26 `/tools/random`: real CSPRNG output (`crypto.randomBytes`) for hex, URL-safe
+  base64, passphrase and password, with unbiased rejection sampling and reported
+  entropy labelled as theoretical.
+- 27 `/tools/hmac`: real HMAC-SHA-256/384/512 over text or a streamed file (1 MiB
+  chunks, bounded memory), constant-time comparison, and a UI that distinguishes
+  integrity + key knowledge from sender identity.
+- 28 `/key-forge/public-qr`: real scannable QR matrix via `qrcode`, rendered as an
+  SVG with a white quiet zone, decodable back to the payload. Private key material
+  is refused. Fingerprint is shown so it can be verified out of band.
 
-## Checks
-`npm run build` passes (existing module-type warning); no configured lint/typecheck scripts.
-Temporary jsdom test: PASS 25 mask/public-copy and no-protection notice; PASS 26 deterministic readonly sample/size/type reset; PASS 27 read-only key/empty guard/placeholder compare/reset; PASS 28 simulated scanner and no-export Save notice. Clipboard mocked to check only public sample writes; native dialog mocked. Not a device/browser screenshot test.
-`git diff --check` passes. Reduced-motion CSS included; no physical keyboard/native focus/clipboard permission visual test.
+Capability cards `CLIPBOARD_GUARD`, `SECURE_RANDOM`, `HMAC_AUTHENTICITY` and
+`PUBLIC_KEY_QR` were added to `src/config/desktopCapabilities.js` with the required
+fields and real test evidence; `scripts/check-capabilities.cjs` enforces the claim.
+
+## Checks (real command output)
+- `node --test tests/batch07-privacy-labs.test.cjs` — 32/32 pass (RFC 4231 vectors,
+  lease ownership/skip/expiry/revocation, streamed-vs-memory HMAC equality,
+  rejection sampling, QR round-trip through an independent reader, negative tests).
+- `node --test tests/vault-ipc.test.cjs` — 31/31 pass (channel contract, consent at
+  the boundary, fail-closed without an adapter).
+- `npm test` — 317/317 pass.
+- `npm run check` — routes, audio, capabilities, dependency security, Electron
+  lifecycle and Electron runtime all PASS (exit 0).
+- `npm run check:electron:runtime` — real `file://` renderer + sandboxed preload;
+  batch 07 probes pass over IPC (secure random, streamed HMAC, QR matrix, clipboard
+  status/consent/clear).
+- `npm run check:security` — 15 findings, 0 critical, 0 high, 0 runtime-reachable;
+  14 packaging-toolchain only, 1 documented acceptance (`minimatch`).
 
 ## Reference / screenshot status
-All four canonical TASK/PNG references inspected. Contact sheet explicitly contains approved references, not runtime screenshots. Illustrations/QR glyphs/proportions are first-pass approximations, not pixel acceptance. Known preview billing/account restriction and no localhost browser tool prevent new running screenshots; owner requested continued source progress with later review. Exact RTL wrapping, typography, responsive geometry, lighting and motion require actual rendered comparisons when available.
+Browser QA and Windows runtime verification are distinct from these headless
+checks. The runtime check exercises the real Electron stack but cannot prove a
+scannable QR on a physical camera or a real Windows EXE. Exact RTL wrapping,
+typography, responsive geometry and motion still need rendered comparison when a
+browser/Windows host is available.
 
-Next round: 29 Vault Collections, 30 Document Viewer, 31 Key Rotation, 32 Ciphertext Package Inspector. No production/billing mutation or automatic merge.
+Next round: 29 Vault Collections, 30 Document Viewer, 31 Key Rotation, 32 Ciphertext Package Inspector.

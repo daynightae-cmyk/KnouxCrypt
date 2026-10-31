@@ -25,9 +25,18 @@ const RANDOM_TYPES = Object.freeze({
   hex: { label: "Hex", encoding: "hex" },
   base64: { label: "Base64", encoding: "base64" },
   passphrase: { label: "Passphrase", encoding: "words" },
+  password: { label: "Password", encoding: "chars" },
 });
 
 const RANDOM_LIMITS = Object.freeze({ min: 8, max: 64, default: 32 });
+
+// The password alphabet is a printable ASCII set with the easily-confused
+// characters removed so a generated password can be read aloud and retyped.
+const PASSWORD_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*()-_=+[]{}";
+
+// Entropy of a generated password is length * log2(alphabet). It is a property
+// of the generator, not a claim about the strength of a user's stored password.
+const PASSWORD_ALPHABET_BITS = Math.log2(PASSWORD_ALPHABET.length);
 
 const PASSPHRASE_WORDS = Object.freeze([
   "abacus", "abbey", "ablaze", "abrupt", "absorb", "accent", "accord", "acorn",
@@ -104,6 +113,20 @@ function randomBytes({ type = "hex", length = RANDOM_LIMITS.default } = {}) {
       source: "crypto.randomBytes",
     };
   }
+  if (type === "password") {
+    const chars = Array.from(
+      { length: size },
+      () => PASSWORD_ALPHABET[uniformBelow(PASSWORD_ALPHABET.length)],
+    );
+    return {
+      type,
+      length: size,
+      value: chars.join(""),
+      bytes: null,
+      entropyBits: Number((size * PASSWORD_ALPHABET_BITS).toFixed(2)),
+      source: "crypto.randomBytes",
+    };
+  }
   const bytes = crypto.randomBytes(size);
   const value = type === "base64" ? bytes.toString("base64url") : bytes.toString("hex");
   return {
@@ -131,9 +154,17 @@ const HMAC_ALGORITHMS = Object.freeze({
 const HMAC_MIN_KEY_BYTES = 16;
 const HMAC_MAX_KEY_BYTES = 4096;
 const HMAC_MAX_MESSAGE_BYTES = 4 * 1024 * 1024;
+const HMAC_STREAM_CHUNK = 1024 * 1024;
 
-/** Compute a real keyed digest. The key is never returned. */
-function hmacCompute({ algorithm = "SHA-256", message, key, keyEncoding = "utf8", encoding = "hex" } = {}) {
+/**
+ * Compute a real keyed digest over text, an in-memory message, or a file that
+ * is streamed in chunks so a large file is never read whole into memory.
+ *
+ * The key is never returned. A matching MAC shows integrity and key knowledge;
+ * it does not identify the sender, because anyone holding the key can produce
+ * the same MAC. The UI states that limit rather than implying authenticity.
+ */
+function hmacCompute({ algorithm = "SHA-256", message, key, keyEncoding = "utf8", encoding = "hex", inputPath, signal } = {}) {
   const digest = HMAC_ALGORITHMS[algorithm];
   if (!digest) throw badInput(`Unsupported HMAC algorithm "${algorithm}"`);
   if (encoding !== "hex" && encoding !== "base64") throw badInput("The digest is rendered as hex or base64");
@@ -144,10 +175,16 @@ function hmacCompute({ algorithm = "SHA-256", message, key, keyEncoding = "utf8"
   }
   if (keyBytes.length > HMAC_MAX_KEY_BYTES) throw badInput("The key is too long");
 
-  const messageBytes = Buffer.from(String(message ?? ""), "utf8");
-  if (messageBytes.length === 0) throw badInput("A message is required");
-  if (messageBytes.length > HMAC_MAX_MESSAGE_BYTES) throw badInput("The message is too long");
+  const hasFile = typeof inputPath === "string" && inputPath.length > 0;
+  const hasMessage = typeof message === "string" && message.length > 0;
+  if (hasFile === hasMessage) {
+    throw badInput("Provide either a message or a file path, not both");
+  }
 
+  if (hasFile) return hmacFile({ algorithm, digest, keyBytes, encoding, inputPath, signal });
+
+  const messageBytes = Buffer.from(message, "utf8");
+  if (messageBytes.length > HMAC_MAX_MESSAGE_BYTES) throw badInput("The message is too long");
   const mac = crypto.createHmac(digest, keyBytes).update(messageBytes).digest();
   return {
     algorithm,
@@ -156,6 +193,44 @@ function hmacCompute({ algorithm = "SHA-256", message, key, keyEncoding = "utf8"
     mac: encoding === "base64" ? mac.toString("base64") : mac.toString("hex"),
     messageBytes: messageBytes.length,
     keyBytes: keyBytes.length,
+    source: "text",
+  };
+}
+
+/** Stream a file through the HMAC so memory use stays bounded. */
+async function hmacFile({ algorithm, digest, keyBytes, encoding, inputPath, signal }) {
+  const fsp = require("fs/promises");
+  const { VaultError, CODES } = require("./errors");
+  let handle;
+  try {
+    handle = await fsp.open(inputPath, "r");
+  } catch (err) {
+    if (err.code === "ENOENT") throw new VaultError(CODES.NOT_FOUND, "The file was not found");
+    throw new VaultError(CODES.IO_FAILED, "The file could not be read");
+  }
+  const hmac = crypto.createHmac(digest, keyBytes);
+  const buffer = Buffer.alloc(HMAC_STREAM_CHUNK);
+  let total = 0;
+  try {
+    for (;;) {
+      if (signal && signal.aborted) throw new VaultError(CODES.CANCELLED, "The operation was cancelled");
+      const { bytesRead } = await handle.read(buffer, 0, buffer.length, null);
+      if (bytesRead === 0) break;
+      hmac.update(buffer.subarray(0, bytesRead));
+      total += bytesRead;
+    }
+  } finally {
+    await handle.close().catch(() => {});
+  }
+  const mac = hmac.digest();
+  return {
+    algorithm,
+    encoding,
+    digest,
+    mac: encoding === "base64" ? mac.toString("base64") : mac.toString("hex"),
+    messageBytes: total,
+    keyBytes: keyBytes.length,
+    source: "file",
   };
 }
 
@@ -245,6 +320,8 @@ module.exports = {
   RANDOM_LIMITS,
   PASSPHRASE_WORDS,
   PASSPHRASE_BITS,
+  PASSWORD_ALPHABET,
+  PASSWORD_ALPHABET_BITS,
   uniformBelow,
   randomBytes,
   HMAC_ALGORITHMS,
