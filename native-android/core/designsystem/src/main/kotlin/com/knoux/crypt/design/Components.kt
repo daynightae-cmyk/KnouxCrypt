@@ -126,6 +126,9 @@ fun StagHero(
             contentScale = ContentScale.Fit,
             modifier = Modifier.fillMaxSize(),
         )
+        // Living eyes, antler travel, motes and sparks drawn over the untouched
+        // artwork; the overlay aligns to the same fitted square as the image.
+        LivingStagOverlay(Modifier.fillMaxSize(), animated = animated)
     }
 }
 

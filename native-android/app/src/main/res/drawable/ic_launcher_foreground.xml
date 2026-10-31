@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Adaptive-icon foreground: the approved stag PNG, unmodified, inset so the
+    launcher mask never crops the antlers. No background, plate or framing is
+    drawn here; the adaptive background supplies the obsidian colour.
+-->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/knoux_stag"
+    android:insetLeft="20%"
+    android:insetTop="20%"
+    android:insetRight="20%"
+    android:insetBottom="20%" />
