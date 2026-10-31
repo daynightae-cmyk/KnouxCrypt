@@ -68,6 +68,16 @@ const VAULT_CHANNELS = Object.freeze({
   PICK_OUTPUT: "vault:pick-output",
   PICK_DIRECTORY: "vault:pick-directory",
   PICK_INPUTS: "vault:pick-inputs",
+  CLIPBOARD_STATUS: "vault:clipboard-status",
+  CLIPBOARD_COPY_DEMO: "vault:clipboard-copy-demo",
+  CLIPBOARD_ARM: "vault:clipboard-arm",
+  CLIPBOARD_DISARM: "vault:clipboard-disarm",
+  CLIPBOARD_CLEAR_NOW: "vault:clipboard-clear-now",
+  CLIPBOARD_VERIFY: "vault:clipboard-verify",
+  RANDOM_GENERATE: "vault:random-generate",
+  HMAC_COMPUTE: "vault:hmac-compute",
+  HMAC_COMPARE: "vault:hmac-compare",
+  PUBLIC_QR: "vault:public-qr",
 });
 
 // Only these main -> renderer channels may be subscribed to.
@@ -76,6 +86,7 @@ const ALLOWED_EVENTS = Object.freeze([
   "vault:revoked",
   "vault:transfer-request",
   "vault:transfer-state",
+  "vault:clipboard-state",
   "vault-locked",
   "encrypt-new-file",
 ]);
@@ -138,6 +149,16 @@ const vault = {
   transferRequests: () => invoke(VAULT_CHANNELS.TRANSFER_REQUESTS),
   transferRespond: (request) => invoke(VAULT_CHANNELS.TRANSFER_RESPOND, request),
   transferSend: (request) => invoke(VAULT_CHANNELS.TRANSFER_SEND, request),
+  clipboardStatus: () => invoke(VAULT_CHANNELS.CLIPBOARD_STATUS),
+  clipboardCopyDemo: (sessionId) => invoke(VAULT_CHANNELS.CLIPBOARD_COPY_DEMO, { sessionId }),
+  clipboardArm: (request) => invoke(VAULT_CHANNELS.CLIPBOARD_ARM, request),
+  clipboardDisarm: (reason) => invoke(VAULT_CHANNELS.CLIPBOARD_DISARM, { reason }),
+  clipboardClearNow: () => invoke(VAULT_CHANNELS.CLIPBOARD_CLEAR_NOW),
+  clipboardVerify: () => invoke(VAULT_CHANNELS.CLIPBOARD_VERIFY),
+  randomGenerate: (request) => invoke(VAULT_CHANNELS.RANDOM_GENERATE, request),
+  hmacCompute: (request) => invoke(VAULT_CHANNELS.HMAC_COMPUTE, request),
+  hmacCompare: (left, right) => invoke(VAULT_CHANNELS.HMAC_COMPARE, { left, right }),
+  publicKeyQr: (request) => invoke(VAULT_CHANNELS.PUBLIC_QR, request),
   pickInputFile: () => invoke(VAULT_CHANNELS.PICK_INPUT),
   pickInputFiles: (options) => invoke(VAULT_CHANNELS.PICK_INPUTS, options),
   pickOutputFile: (options) => invoke(VAULT_CHANNELS.PICK_OUTPUT, options),
@@ -146,6 +167,7 @@ const vault = {
   onRevoked: (callback) => subscribe("vault:revoked", callback),
   onTransferRequest: (callback) => subscribe("vault:transfer-request", callback),
   onTransferState: (callback) => subscribe("vault:transfer-state", callback),
+  onClipboardState: (callback) => subscribe("vault:clipboard-state", callback),
 };
 
 function subscribe(channel, callback) {
