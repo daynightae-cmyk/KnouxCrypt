@@ -164,7 +164,11 @@ fun KnouxNavHost(
             )
         }
         composable("recovery") {
-            RecoveryScreen(onBack = { nav.popBackStack() })
+            RecoveryScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
         }
         composable(
             route = "tool/{toolId}",

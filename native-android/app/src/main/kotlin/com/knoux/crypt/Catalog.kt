@@ -37,7 +37,7 @@ object Catalog {
         ServiceDef("KEY_FORGE", "Key Forge", "مصنع المفاتيح", "Generate and manage encryption keys", "أنشئ وأدر مفاتيح التشفير", ServiceArt.KEY, "key_forge", ServiceStatus.IMPLEMENTED, true),
         ServiceDef("AUTHENTICATOR", "Authenticator", "المصادقة", "2FA codes, always with you", "رموز التحقق دائمًا معك", ServiceArt.AUTHENTICATOR, "authenticator", ServiceStatus.IMPLEMENTED, true),
         ServiceDef("PRIVACY", "Privacy Center", "مركز الخصوصية", "Control your privacy & security", "تحكّم بخصوصيتك وأمانك", ServiceArt.PRIVACY, "privacy", ServiceStatus.IMPLEMENTED, false),
-        ServiceDef("BACKUP", "Recovery", "الاستعادة", "Back up and restore access", "أنشئ نسخة واستعد الوصول", ServiceArt.RECOVERY, "recovery", ServiceStatus.BLOCKED, true),
+        ServiceDef("BACKUP", "Recovery", "الاستعادة", "Encrypted data backup & restore", "نسخ واستعادة البيانات المشفرة", ServiceArt.RECOVERY, "recovery", ServiceStatus.IMPLEMENTED, true),
     )
 
     val extras: List<ServiceDef> = listOf(

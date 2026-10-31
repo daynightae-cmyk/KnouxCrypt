@@ -525,6 +525,18 @@ class SecurityBoundaryTest {
             emit(snapshot(kind).size)
         }
 
+        override suspend fun all(): List<SecretEntity> = rows.value.sortedBy { it.updatedAt }
+
+        override suspend fun ids(): List<String> = rows.value.map { it.id }
+
+        override suspend fun insertAll(entities: List<SecretEntity>) {
+            val existing = rows.value.map { it.id }.toSet()
+            if (entities.any { it.id in existing }) {
+                throw IllegalStateException("UNIQUE constraint failed: secrets.id")
+            }
+            rows.value = rows.value + entities
+        }
+
         private fun snapshot(kind: String) = rows.value.filter { it.kind == kind }
     }
 

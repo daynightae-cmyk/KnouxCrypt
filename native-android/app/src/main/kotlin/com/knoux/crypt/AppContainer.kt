@@ -8,6 +8,7 @@ import com.knoux.crypt.data.SessionManager
 import com.knoux.crypt.data.SettingsRepository
 import com.knoux.crypt.data.UnlockManager
 import com.knoux.crypt.data.UnlockManagers
+import com.knoux.crypt.data.VaultBackupManager
 import com.knoux.crypt.data.VaultFileCipher
 
 /** Constructor-based dependency container; no service locator or reflection. */
@@ -21,4 +22,5 @@ class AppContainer(context: Context) {
     val secrets = SecretRepository(database.secrets(), session)
     val settings = SettingsRepository(appContext)
     val vaultFiles = VaultFileCipher(session)
+    val backups = VaultBackupManager(database.secrets(), session)
 }

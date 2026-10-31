@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Room
@@ -40,6 +42,16 @@ interface SecretDao {
 
     @Query("SELECT COUNT(*) FROM secrets WHERE kind = :kind")
     fun count(kind: String): Flow<Int>
+
+    @Query("SELECT * FROM secrets ORDER BY updatedAt ASC")
+    suspend fun all(): List<SecretEntity>
+
+    @Query("SELECT id FROM secrets")
+    suspend fun ids(): List<String>
+
+    /** One Room transaction: any conflict aborts the whole restore. */
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertAll(entities: List<SecretEntity>)
 }
 
 @Database(entities = [SecretEntity::class], version = 1, exportSchema = true)
