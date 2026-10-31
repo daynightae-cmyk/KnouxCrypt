@@ -13,6 +13,8 @@ import { ExperienceSettings } from './ExperienceSettings';
 import { useMotionPreferences } from '../shell/MotionPreferences';
 import {CipherJourney} from './CipherJourney';
 import {DesktopBackup,DesktopTools} from './DesktopUtilities';
+import {useVault,VAULT_STATE} from '../../hooks/useVault';
+import {ERROR_COPY,formatBytes as bytes} from '../security/cipherCopy';
 import {DesktopPasswords, DesktopAuthenticator, DesktopKeyForge, DesktopPrivacy} from './DesktopSecurity';
 
 const artwork = import.meta.glob('../../assets/service-*.webp', {eager:true, import:'default'});
@@ -56,12 +58,47 @@ export function DesktopHome() {
   return <main className="dw-page dw-home" data-screen="HOME"><div className="dw-home-center"><section className="dw-home-hero"><h1>KNOUX <em>CRYPT</em></h1><p>{t('Private Encryption Suite')}</p><div className="dw-brand-line"/><h2>{t('Your private workspace')}</h2><small>{t('Choose a service to begin')}</small></section><ServiceGrid/></div><aside className="dw-inspector"><Panel title="System Status"><dl>{['Encryption Engine','Vault Protection','Key Management','2FA Services'].map(label=><div key={label}><dt>{t(label)}</dt><dd>{t('Not verified')}</dd></div>)}</dl><p className="dw-muted">{t('Protection is reported only after a real service succeeds.')}</p></Panel><Panel title="Quick Actions">{[['FILE_CIPHER','New Encrypted File','file'],['SHADOW_VAULT','Open Vault','folder'],['NOTES','Create Secure Note','file'],['KEY_FORGE','Generate Key','key']].map(([id,label,icon])=><Link className="dw-action-row" key={id} to={SCREENS[id]}><Mark name={icon}/>{t(label)}<span>›</span></Link>)}</Panel><StagBanner title="Privacy. Security. Control." caption="Your data stays local."/></aside></main>;
 }
 export function DesktopFileCipher() {
-  const {t}=useLanguage();const input=useRef(null);
-  const {updateQueue}=useWorkspaceActivity();
-  const [mode,setMode]=useState('encrypt');const [files,setFiles]=useState([]);const [selected,setSelected]=useState(null);
-  useEffect(()=>{updateQueue(files.length);return()=>updateQueue(0);},[files.length,updateQueue]);
-  function add(list){const next=Array.from(list||[]);const same=(a,b)=>a.name===b.name&&a.size===b.size&&a.lastModified===b.lastModified;const merged=[...files];for(const f of next)if(!merged.some(o=>same(o,f)))merged.push(f);setFiles(merged);setSelected(next[0]?merged.find(o=>same(o,next[0])):null);}
-  return <main className="dw-page" data-screen="FILE_CIPHER"><PageHeading title="File Cipher" caption="Encrypt and decrypt with authenticated protection."><div className="dw-segments">{['encrypt','decrypt'].map(m=><button key={m} aria-pressed={mode===m} onClick={()=>setMode(m)}>{t(m==='encrypt'?'Encrypt':'Decrypt')}</button>)}</div><span className="dw-badge">AES-256-GCM</span></PageHeading><div className="dw-split"><div className="dw-main-column"><Panel title="Select Files"><button className="dw-add-files" onClick={()=>input.current.click()}>{t('Add Files')} ＋</button><input ref={input} hidden type="file" multiple onChange={e=>{add(e.target.files);e.target.value='';}}/><div className="dw-dropzone" onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();add(e.dataTransfer.files);}}><StagEmblem ignite/><h2>{t('Drag & Drop Files Here')}</h2><p>{t('or click to browse and select files')}</p><button className="dw-primary" onClick={()=>input.current.click()}><Mark name="folder"/>{t('Select Files')}</button><small>{t('Selection reads metadata only. No upload.')}</small></div><div className="dw-destination"><Mark name="folder"/><div><strong>{t('Destination')}</strong><p>{t('Chosen through the desktop save dialog when processing.')}</p></div></div></Panel><div className="dw-two-panels"><Panel title="Queue"><div className="dw-panel-actions"><span>{files.length} {t('files')}</span><button onClick={()=>{setFiles([]);setSelected(null);}} disabled={!files.length}>{t('Clear All')}</button></div>{files.length?files.map((f,i)=><div className="dw-file-row" key={`${f.name}-${i}`}><button onClick={()=>setSelected(f)}><Mark name="file"/><span>{f.name}<small>{f.size.toLocaleString()} {t('bytes')} · {t('Not processed')}</small></span></button><button aria-label={`${t('Remove')} ${f.name}`} onClick={()=>{setFiles(all=>all.filter(x=>x!==f));if(selected===f)setSelected(null);}}>×</button></div>):<p className="dw-empty">{t('No files selected')}</p>}</Panel><Panel title="Recent Files"><p className="dw-empty">{t('No completed operations in this session.')}</p><Link to={SCREENS.PACKAGE_INSPECTOR}>{t('Package Inspector')} ›</Link></Panel></div></div><aside className="dw-inspector"><Panel title="Inspector">{selected?<><div className="dw-selected-file"><Mark name="file"/><strong>{selected.name}</strong></div><dl>{[['Size',`${selected.size.toLocaleString()} bytes`],['Type',selected.type||'—'],['Modified',new Date(selected.lastModified).toLocaleString()]].map(([k,v])=><div key={k}><dt>{t(k)}</dt><dd>{v}</dd></div>)}</dl></>:<p className="dw-empty">{t('Select a file to inspect its metadata.')}</p>}<hr/><h3>{t('Encryption Settings')}</h3><label>{t('Algorithm')}<select disabled><option>AES-256-GCM</option></select></label><p className="dw-muted">{t('The file encryption engine is not connected. Files have not been encrypted or saved.')}</p><button className="dw-primary" disabled>{t(mode==='encrypt'?'Encrypt File(s)':'Decrypt File(s)')}</button></Panel></aside></div></main>;
+  const {t}=useLanguage();
+  const vault=useVault();
+  const [mode,setMode]=useState('encrypt');
+  const [inputPath,setInputPath]=useState(null);
+  const [outputPath,setOutputPath]=useState(null);
+  const [result,setResult]=useState(null);
+  const opId=useRef(null);
+  const unlocked=vault.state===VAULT_STATE.UNLOCKED;
+  const busy=vault.busy;
+  const percent=vault.progress?.total?Math.min(100,Math.round(vault.progress.processed/vault.progress.total*100)):0;
+  const errorMessage=vault.error?ERROR_COPY[vault.error.code]||vault.error.message:null;
+  async function chooseInput(){setResult(null);const r=await vault.pickInputFile();if(r?.ok&&!r.data.cancelled&&r.data.path){setInputPath(r.data.path);setOutputPath(null);}}
+  async function chooseOutput(){const r=await vault.pickOutputFile({title:mode==='encrypt'?t('Save encrypted container as'):t('Save decrypted file as'),defaultPath:inputPath||undefined});if(r?.ok&&!r.data.cancelled&&r.data.path)setOutputPath(r.data.path);}
+  async function run(){if(!unlocked||!inputPath||!outputPath)return;setResult(null);const id=`${mode}-${Date.now()}`;opId.current=id;const payload={inputPath,outputPath,operationId:id};const res=mode==='encrypt'?await vault.encryptFile(payload):await vault.decryptFile(payload);setResult(res?.ok?{ok:true,mode,outputPath:res.data.outputPath,meta:res.data.meta}:{ok:false,mode,code:res?.error?.code});}
+  async function cancel(){if(opId.current)await vault.cancel(opId.current);}
+  const stateLabel=!vault.available?t('Vault engine unavailable'):vault.state===VAULT_STATE.GUEST?t('Guest preview — cannot encrypt'):unlocked?t('Vault unlocked'):t('Vault locked');
+  return <main className="dw-page" data-screen="FILE_CIPHER" data-vault-state={vault.state}>
+    <PageHeading title="File Cipher" caption="Encrypt and decrypt with authenticated protection."><div className="dw-segments">{['encrypt','decrypt'].map(m=><button key={m} aria-pressed={mode===m} onClick={()=>{setMode(m);setResult(null);}}>{t(m==='encrypt'?'Encrypt':'Decrypt')}</button>)}</div><span className="dw-badge">{t(stateLabel)}</span></PageHeading>
+    <div className="dw-split"><div className="dw-main-column"><Panel title="Select File">
+      <div className="dw-panel-actions"><span data-testid="file-cipher-state">{t(stateLabel)}</span></div>
+      <button className="dw-add-files" onClick={chooseInput} disabled={!vault.available}>{t('Choose File')} ＋</button>
+      {inputPath&&<div className="dw-selected-file"><Mark name="file"/><strong dir="ltr">{inputPath.split(/[\\/]/).pop()}</strong></div>}
+      <p className="dw-muted" dir="ltr">{inputPath||t('No file selected.')}</p>
+      <button className="dw-add-files" onClick={chooseOutput} disabled={!vault.available}>{t(outputPath?'Change destination':'Choose destination')}</button>
+      <p className="dw-muted" dir="ltr">{outputPath||t('No destination chosen.')}</p>
+      {!unlocked&&<p className="dw-muted" role="status">{t('Unlock the vault from Secure Access to enable file operations.')}</p>}
+      {errorMessage&&<p className="dw-muted" role="alert" data-cipher-error={vault.error?.code}>{t(errorMessage)}</p>}
+      {busy&&<div className="dw-destination" role="status" aria-live="polite" data-cipher-progress={percent}><Mark name="clock"/><div><strong>{t(mode==='encrypt'?'Encrypting…':'Decrypting…')}</strong><p>{percent}% · {bytes(vault.progress?.processed)} / {bytes(vault.progress?.total)}</p></div><button onClick={cancel}>{t('Cancel')}</button></div>}
+      {result?.ok&&<div className="dw-destination" role="status" data-cipher-result="success"><Mark name="shield"/><div><strong>{t(result.mode==='encrypt'?'Encrypted successfully':'Decrypted and verified')}</strong><p dir="ltr">{result.outputPath}</p><p>{t('Original size')}: {bytes(result.meta?.origSize)} · {t('SHA-256')}: <bdi dir="ltr">{(result.meta?.plaintextSha256||'').slice(0,16)}…</bdi></p></div></div>}
+      {result&&!result.ok&&<div className="dw-destination" role="alert" data-cipher-result="failure"><Mark name="info"/><div><strong>{t('Operation did not complete')}</strong><p>{t(ERROR_COPY[result.code]||'The operation failed.')}</p></div></div>}
+      <button className="dw-primary" disabled={!vault.available||busy||!inputPath||!outputPath||!unlocked} onClick={run}><Mark name={mode==='encrypt'?'lock':'unlock'}/>{t(mode==='encrypt'?'Encrypt File':'Decrypt File')}</button>
+    </Panel></div>
+    <aside className="dw-inspector"><Panel title="Inspector"><dl>
+      <div><dt>{t('Algorithm')}</dt><dd>AES-256-GCM</dd></div>
+      <div><dt>{t('Key derivation')}</dt><dd>{vault.status?.engine?.kdf||'HKDF-SHA256'}</dd></div>
+      <div><dt>{t('Container')}</dt><dd>{vault.status?.engine?.format||'KNXVLT01'}</dd></div>
+      <div><dt>{t('Session')}</dt><dd>{t(vault.session?(vault.session.guest?'Guest':'Authenticated'):'Locked')}</dd></div>
+    </dl>
+    <p className="dw-muted">{t('Encryption runs in the desktop process. Files are written atomically and existing files are never overwritten silently.')}</p>
+    {!unlocked&&<Link className="dw-primary" to={SCREENS.SECURE_ACCESS_LOGIN} state={{returnTo:SCREENS.HOME}}>{t('Unlock Vault')}</Link>}
+    </Panel></aside></div></main>;
 }
 export function DesktopVault() {
   const {t}=useLanguage();const [collection,setCollection]=useState('All Items');const [view,setView]=useState('grid');const [query,setQuery]=useState('');

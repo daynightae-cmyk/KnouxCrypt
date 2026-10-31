@@ -256,53 +256,17 @@ export const SecurityProvider: React.FC<{ children: ReactNode }> = ({
   // Load system information
   const loadSystemInfo = async () => {
     try {
-      if (window.electronAPI) {
-        const info = await window.electronAPI.invoke("get-system-info");
+      if (window.electronAPI?.legacy?.isSupported) {
+        const info = await window.electronAPI.legacy.invoke("get-system-info");
         setSystemInfo(info);
         if (info?.drives) {
           setDisks(info.drives);
         }
       } else {
-        // Fallback mock data for development
-        const mockSystemInfo: SystemInfo = {
-          platform: "win32",
-          release: "10.0.22000",
-          arch: "x64",
-          totalMemory: 16 * 1024 * 1024 * 1024,
-          freeMemory: 8 * 1024 * 1024 * 1024,
-          cpus: [],
-          uefiSecureBoot: true,
-          drives: [
-            {
-              caption: "C:",
-              size: 500 * 1024 * 1024 * 1024,
-              freeSpace: 200 * 1024 * 1024 * 1024,
-              fileSystem: "NTFS",
-              driveType: 3,
-              volumeName: "Windows",
-              description: "Local Fixed Disk",
-              encryptionStatus: "unencrypted",
-              mounted: false,
-              deviceID: "\\\\.\\PHYSICALDRIVE0",
-            },
-            {
-              caption: "D:",
-              size: 1000 * 1024 * 1024 * 1024,
-              freeSpace: 800 * 1024 * 1024 * 1024,
-              fileSystem: "NTFS",
-              driveType: 3,
-              volumeName: "Data",
-              description: "Local Fixed Disk",
-              encryptionStatus: "unencrypted",
-              mounted: false,
-              deviceID: "\\\\.\\PHYSICALDRIVE1",
-            },
-          ],
-          veracryptInstalled: false,
-          timestamp: Date.now(),
-        };
-        setSystemInfo(mockSystemInfo);
-        setDisks(mockSystemInfo.drives);
+        // No disk/volume provider exists in this build. Report nothing rather
+        // than fabricating drive letters and encryption statuses.
+        setSystemInfo(null);
+        setDisks([]);
       }
     } catch (error) {
       console.error("Failed to load system info:", error);
@@ -313,8 +277,8 @@ export const SecurityProvider: React.FC<{ children: ReactNode }> = ({
   const refreshDisks = useCallback(async () => {
     console.log("Context: Refreshing disks...");
     try {
-      if (window.electronAPI) {
-        const systemData = await window.electronAPI.invoke("get-system-info");
+      if (window.electronAPI?.legacy?.isSupported) {
+        const systemData = await window.electronAPI.legacy.invoke("get-system-info");
         const fetchedDisks: DiskInfo[] = systemData?.drives || [];
 
         // Update disk statuses: Check mounted status for each disk
@@ -359,8 +323,8 @@ export const SecurityProvider: React.FC<{ children: ReactNode }> = ({
     setIsLoadingAI(true);
     setAIRecommendations(null);
     try {
-      if (window.electronAPI) {
-        await window.electronAPI.invoke("run-ai-analysis", disk);
+      if (window.electronAPI?.legacy?.isSupported) {
+        await window.electronAPI.legacy.invoke("run-ai-analysis", disk);
       } else {
         // Mock AI analysis for development
         await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -413,8 +377,8 @@ export const SecurityProvider: React.FC<{ children: ReactNode }> = ({
     });
 
     try {
-      if (window.electronAPI) {
-        await window.electronAPI.invoke("encrypt-drive", {
+      if (window.electronAPI?.legacy?.isSupported) {
+        await window.electronAPI.legacy.invoke("encrypt-drive", {
           disk: { caption: disk.caption },
           password: password,
           algorithm: finalSettings.algorithm,
@@ -480,8 +444,8 @@ export const SecurityProvider: React.FC<{ children: ReactNode }> = ({
     });
 
     try {
-      if (window.electronAPI) {
-        await window.electronAPI.invoke("decrypt-drive", {
+      if (window.electronAPI?.legacy?.isSupported) {
+        await window.electronAPI.legacy.invoke("decrypt-drive", {
           disk: { caption: disk.caption },
           password: password,
         });
@@ -520,8 +484,8 @@ export const SecurityProvider: React.FC<{ children: ReactNode }> = ({
     });
 
     try {
-      if (window.electronAPI) {
-        await window.electronAPI.invoke("mount-volume", {
+      if (window.electronAPI?.legacy?.isSupported) {
+        await window.electronAPI.legacy.invoke("mount-volume", {
           disk: { caption: disk.caption },
           password: password,
           driveLetter: driveLetter,
@@ -565,8 +529,8 @@ export const SecurityProvider: React.FC<{ children: ReactNode }> = ({
     });
 
     try {
-      if (window.electronAPI) {
-        await window.electronAPI.invoke("unmount-volume", {
+      if (window.electronAPI?.legacy?.isSupported) {
+        await window.electronAPI.legacy.invoke("unmount-volume", {
           disk: { caption: disk.caption, mountLetter: disk.mountLetter },
         });
       } else {
@@ -605,7 +569,7 @@ export const SecurityProvider: React.FC<{ children: ReactNode }> = ({
 
   // IPC event listeners for real-time updates
   useEffect(() => {
-    if (!window.electronAPI) return;
+    if (!window.electronAPI?.legacy?.isSupported) return;
 
     const handleOperationProgress = (event: any, data: any) => {
       if (data.type === "encryption") updateOperationState("encryption", data);
@@ -670,29 +634,29 @@ export const SecurityProvider: React.FC<{ children: ReactNode }> = ({
       console.error("Operation error:", data);
     };
 
-    window.electronAPI.on("operation-progress", handleOperationProgress);
-    window.electronAPI.on("ai-analysis-result", handleAIResult);
-    window.electronAPI.on("disk-status-update", handleDiskStatusUpdate);
-    window.electronAPI.on("tool-status-update", handleToolStatus);
-    window.electronAPI.on("operation-complete", handleOperationComplete);
-    window.electronAPI.on("operation-error", handleOperationError);
+    window.electronAPI.legacy.on("operation-progress", handleOperationProgress);
+    window.electronAPI.legacy.on("ai-analysis-result", handleAIResult);
+    window.electronAPI.legacy.on("disk-status-update", handleDiskStatusUpdate);
+    window.electronAPI.legacy.on("tool-status-update", handleToolStatus);
+    window.electronAPI.legacy.on("operation-complete", handleOperationComplete);
+    window.electronAPI.legacy.on("operation-error", handleOperationError);
 
     return () => {
-      window.electronAPI.removeListener(
+      window.electronAPI.legacy.removeListener(
         "operation-progress",
         handleOperationProgress,
       );
-      window.electronAPI.removeListener("ai-analysis-result", handleAIResult);
-      window.electronAPI.removeListener(
+      window.electronAPI.legacy.removeListener("ai-analysis-result", handleAIResult);
+      window.electronAPI.legacy.removeListener(
         "disk-status-update",
         handleDiskStatusUpdate,
       );
-      window.electronAPI.removeListener("tool-status-update", handleToolStatus);
-      window.electronAPI.removeListener(
+      window.electronAPI.legacy.removeListener("tool-status-update", handleToolStatus);
+      window.electronAPI.legacy.removeListener(
         "operation-complete",
         handleOperationComplete,
       );
-      window.electronAPI.removeListener(
+      window.electronAPI.legacy.removeListener(
         "operation-error",
         handleOperationError,
       );

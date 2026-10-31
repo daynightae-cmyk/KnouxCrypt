@@ -8,7 +8,9 @@ export default defineConfig({
     host: "0.0.0.0",
   },
 
-  base: "/",
+  // Relative base is required for the packaged Electron renderer, which is
+  // loaded over file:// and cannot resolve absolute /assets/* URLs.
+  base: "./",
   define: {
     global: "globalThis",
   },
@@ -26,10 +28,13 @@ export default defineConfig({
       assetsDir: "assets",
       rollupOptions: {
         output: {
-          manualChunks: {
-            vendor: ["react", "react-dom"],
-            motion: ["framer-motion"],
-            router: ["react-router-dom"],
+          // Rolldown (Vite 8) requires manualChunks to be a function.
+          manualChunks(id) {
+            if (!id.includes("node_modules")) return undefined;
+            if (id.includes("framer-motion")) return "motion";
+            if (id.includes("react-router")) return "router";
+            if (id.includes("react-dom") || id.includes("/react/")) return "vendor";
+            return undefined;
           },
         },
       },
@@ -37,5 +42,10 @@ export default defineConfig({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
+  },
+  test: {
+    environment: "node",
+    include: ["tests/**/*.test.{js,ts}"],
+    globals: true,
   },
 });

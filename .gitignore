@@ -5,3 +5,4 @@ dist/
 .env
 .env.local
 mise.local.toml
+.agent_tmp/
