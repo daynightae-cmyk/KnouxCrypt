@@ -94,3 +94,16 @@ activation test. Do not place secrets in the APK or repository.
 - TASK 25 Clipboard Guard and TASK 44 Secure Clipboard are source-implemented on the
   TASK 42 managed-lease service; both remain DEVICE_UNVERIFIED. They never claim
   guaranteed clipboard erasure and never silently clear foreign clipboard text.
+
+## 2026-11-01 — experience batch and TASK 11
+
+- **Camera permission** is requested at runtime only when “Scan with camera” is used; it is not
+  granted at install and nothing else uses it. If denied, the screen says so and link/image import
+  still work.
+- **Main merge withheld by instruction.** The living-stag, audio, adaptive-icon and TASK 11 changes
+  are committed on `android/native-implementation-20261031` only. Review and authorise the merge.
+- **Owner-only checks** for this batch: watch the stag eyes/motes/sparks and reduced-motion freeze,
+  listen to the ambient bed and interface sounds (including a call or another audio app stealing
+  focus), view the adaptive launcher icon, and — with an unlocked session — try camera scan,
+  image import, duplicate Skip/Replace and cancel.
+- No new external credentials or paid services were introduced.

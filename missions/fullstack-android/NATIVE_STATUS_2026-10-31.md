@@ -58,7 +58,7 @@ Test distribution (current): security 58 (FileEnvelope 13 + KNF2 8 + Hashing 3 +
 | 08 | Passwords | **BUILD_VERIFIED + codec TESTED**; sensitive-copy clipboard timeout wired; autofill/device open |
 | 09 | Password detail | **SOURCE_IMPLEMENTED + JVM_TESTED (17 new) + RULES DEVICE_VERIFIED (3 instrumented Room tests) — SCREEN DEVICE_UNVERIFIED / AUDIT_PENDING**: `password_detail/{recordId}` route, live-capability load with LOADING/READY/MISSING/UNREADABLE/LOCKED states, masked secret with 60 s freshness gate and 15 s auto-hide, managed-lease copy, validated origin, plaintext-free bounded history, session-only access log, real SecureRandom generator |
 | 10 | Authenticator | **BUILD_VERIFIED + TOTP TESTED (RFC 6238)**; device clock/UI open |
-| 11 | Auth import | PLANNED |
+| 11 | Auth import | **SOURCE_IMPLEMENTED + JVM_TESTED (13) + RULES DEVICE_VERIFIED (1 instrumented) — UI DEVICE_UNVERIFIED**: otpauth TOTP + bounded migration protobuf parser, ZXing image picker, CameraX scanner, per-account preview, duplicate Skip/Replace, atomic batch commit, typed refusals for HOTP/MD5/malformed |
 | 12 | Key Forge | **BUILD_VERIFIED** (ephemeral key only); persistent keyring open |
 | 13 | Key details | PLANNED |
 | 14 | Privacy Center | **BUILD_VERIFIED** (UI); security review open |
@@ -92,7 +92,7 @@ Test distribution (current): security 58 (FileEnvelope 13 + KNF2 8 + Hashing 3 +
 | 42 | Session privacy controls | **BUILD_VERIFIED + JVM_TESTED policy (2) — DEVICE_UNVERIFIED**: configurable auto-lock, screen-off lock, clipboard timeout + lock clear, screenshot policy, app-switch cover, mutation/revocation serialization |
 | 43 | File integrity tool | **BUILD_VERIFIED + JVM_TESTED (hash vectors) — DEVICE_UNVERIFIED**: streaming SHA-256, checksum validation, match/mismatch evidence, cancel, in-memory reports, dedicated `file_integrity` route reusing Hash & Integrity |
 | 44 | Secure clipboard | **BUILD_VERIFIED + JVM_TESTED (policy) — DEVICE_UNVERIFIED**: managed copy action, hidden staged value, timeout/clear, guard linkage; no guaranteed erasure |
-| 45 | Final integration/verification | **SOURCE-LEVEL AUDIT DONE / DEVICE PARTIALLY VERIFIED / RELEASE_BLOCKED / AUDIT_PENDING**: 34 Tools destinations (17 implemented / 17 design-only) plus the non-catalog `password_detail` route; 179 JVM tests and 10 instrumented tests passing on one Android 15 handset; device/signing/audit/visual gates remain open |
+| 45 | Final integration/verification | **SOURCE-LEVEL AUDIT DONE / DEVICE PARTIALLY VERIFIED / RELEASE_BLOCKED / AUDIT_PENDING**: 34 Tools destinations (17 implemented / 17 design-only) plus the non-catalog `password_detail` and `auth_import` routes; 196 JVM tests and 11 instrumented tests passing on one Android 15 handset; device/signing/audit/visual gates remain open |
 
 Catalog accounting: 34 destinations total = **17 IMPLEMENTED**, **0 BLOCKED**, **17 DESIGN_ONLY** (Recovery is implemented for encrypted data export/restore; gate recovery remains out of scope. Key rotation is an internal Account wizard, not a new Tools destination. Password Audit is a Tools destination added by TASK 36). Eight Home cards preserved in the accepted order.
 
@@ -127,6 +127,31 @@ Catalog accounting: 34 destinations total = **17 IMPLEMENTED**, **0 BLOCKED**, *
 2. **Remaining vertical slices:** 05 Vault/Shadow Vault, 07 Notes editor, 11 Auth import (dependency-ready), 19 Signatures, 21 Archive, 28 QR, 30 Document viewer, 33 Autofill, remaining design-only services.
 3. **Device gate:** follow `DEVICE_VERIFICATION_CHECKLIST.md`; install `app-debug.apk`, run all instrumented classes (access, Keystore record/KDK1/KNF2, Room migration), test privacy timing/clipboard/screen capture, HMAC/file integrity/package inspector, then capture Compose screenshots at 360/390/441 widths in EN/AR and compare against canonical references.
 4. **Quality gate:** detekt/ktlint, dependency locking, CVE scan, R8 shrinking (BouncyCastle adds 3.18 MB), and a real CI workflow (the PR14 template remains uninstalled).
+
+## Living stag, cinematic audio, adaptive icon, TASK 11 import — 2026-11-01
+
+- **Living stag**: additive eye halos/slits at measured asset coordinates with two independent
+  random cycles, antler travelling light, ≤10 motes and one restrained spark; runs only while the
+  screen is started, frozen under reduced motion, artwork untouched. Details in
+  `NATIVE_EXPERIENCE_EVIDENCE_2026-11-01.md`.
+- **Audio**: original synthesised 19.5 s ambient bed + five interface one-shots, looping
+  MediaPlayer with fades and audio-focus handling, SoundPool taps, persisted opt-in settings
+  (master default **off**), Privacy Center controls and an honest preview. Success sounds play only
+  after the domain call succeeds.
+- **Launcher**: adaptive icon with the approved stag inset over obsidian, monochrome layer included.
+- **TASK 11 import**: strict `otpauth://totp` parser and bounded Google Authenticator migration
+  decoder, QR via ZXing (image) and CameraX (live, permission-gated), preview with per-item
+  Skip/Replace for duplicates, multi-page batches committed only when complete, and an atomic
+  Room `@Upsert` batch behind one authorization boundary. Typed refusals for HOTP/MD5/unknown
+  digits/malformed payloads; no secrets logged, no network permission.
+- Verification: **196 JVM tests, 0 failures** (security 90 / data 89 / app 17; +25 this batch);
+  lint 0 errors; `:core:data:connectedDebugAndroidTest` **11/11 PASS** on the itel S686LN including
+  the import batch; clean APK **19,683,839 bytes, SHA-256 `0509758a…c7fd4f0`**, installed and
+  cold-started with an empty crash buffer.
+- Known gaps: stag visuals, audio character/focus behaviour, launcher rendering, camera preview,
+  picker flow and RTL for the import screen are **IMPLEMENTED_UNVERIFIED** — the owner was not
+  available for the unlocked screen or an on-device listen. No merge into `main` was performed for
+  this batch; it is isolated on the branch for owner review.
 
 ## Bilingual failures, quieter Keystore, and TASK 09 password detail — 2026-11-01 (`f20937b` + this commit)
 
