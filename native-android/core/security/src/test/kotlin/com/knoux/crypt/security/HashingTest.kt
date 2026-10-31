@@ -51,3 +51,47 @@ class HashingTest {
         assertFalse(Hashing.constantTimeEquals(byteArrayOf(1), byteArrayOf(1, 2)))
     }
 }
+
+class HmacTest {
+    @Test
+    fun rfc4231HmacSha256Vectors() {
+        // RFC 4231 test case 1.
+        assertEquals(
+            "b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7",
+            Hashing.toHex(Hashing.hmacSha256("0b".repeat(20).hexBytes(), "Hi There".toByteArray())),
+        )
+        // RFC 4231 test case 2.
+        assertEquals(
+            "5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843",
+            Hashing.toHex(Hashing.hmacSha256("Jefe".toByteArray(), "what do ya want for nothing?".toByteArray())),
+        )
+        // Streaming path must equal the in-memory path.
+        val key = "0b".repeat(20).hexBytes()
+        val message = "Hi There".toByteArray()
+        val streamed = Hashing.hmacSha256(key, java.io.ByteArrayInputStream(message), message.size.toLong())
+        assertEquals(
+            "b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7",
+            Hashing.toHex(streamed),
+        )
+        try {
+            Hashing.hmacSha256(key, java.io.ByteArrayInputStream(message), message.size.toLong() + 1)
+            throw AssertionError("Size mismatch accepted")
+        } catch (_: java.io.IOException) {
+        }
+    }
+
+    @Test
+    fun changedMessageOrWrongKeyChangesTagAndComparisonIsValueCorrect() {
+        val key = ByteArray(32) { (it + 1).toByte() }
+        val first = Hashing.hmacSha256(key, "message".toByteArray())
+        val changed = Hashing.hmacSha256(key, "message!".toByteArray())
+        val wrongKey = Hashing.hmacSha256(ByteArray(32) { (it + 2).toByte() }, "message".toByteArray())
+        assertFalse(first.contentEquals(changed))
+        assertFalse(first.contentEquals(wrongKey))
+        assertTrue(Hashing.constantTimeEquals(first, first.copyOf()))
+        assertFalse(Hashing.constantTimeEquals(first, changed))
+    }
+
+    private fun String.hexBytes(): ByteArray =
+        chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+}

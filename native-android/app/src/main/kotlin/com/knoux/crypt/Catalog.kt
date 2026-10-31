@@ -52,7 +52,7 @@ object Catalog {
         ServiceDef("METADATA_CLEANER", "Metadata Cleaner", "منظف البيانات الوصفية", "Strip metadata before sharing", "أزل البيانات الوصفية قبل المشاركة", ServiceArt.ENCRYPT, null, ServiceStatus.DESIGN_ONLY, false),
         ServiceDef("CLIPBOARD_GUARD", "Clipboard Guard", "حارس الحافظة", "Clear sensitive clipboard content", "امسح محتوى الحافظة الحساس", ServiceArt.PRIVACY, null, ServiceStatus.DESIGN_ONLY, false),
         ServiceDef("SECURE_RANDOM", "Secure Random Studio", "مولّد العشوائية الآمن", "Generate audited-source random values", "أنشئ قيمًا عشوائية آمنة", ServiceArt.KEY, "random", ServiceStatus.IMPLEMENTED, false),
-        ServiceDef("HMAC_AUTHENTICITY", "HMAC Authenticity Lab", "مختبر HMAC", "Prove message authenticity with HMAC", "أثبت أصالة الرسالة باستخدام HMAC", ServiceArt.KEY, null, ServiceStatus.DESIGN_ONLY, false),
+        ServiceDef("HMAC_AUTHENTICITY", "HMAC Authenticity Lab", "مختبر HMAC", "Prove message authenticity with HMAC", "أثبت أصالة الرسالة باستخدام HMAC", ServiceArt.KEY, "hmac", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("PUBLIC_KEY_QR", "Public Key QR", "رمز المفتاح العام", "Share a public key as a QR code", "شارك مفتاحًا عامًا كرمز QR", ServiceArt.KEY, null, ServiceStatus.DESIGN_ONLY, false),
         ServiceDef("COLLECTIONS", "Collections", "المجموعات", "Group vault items by project", "جمّع عناصر الخزنة حسب المشروع", ServiceArt.VAULT, null, ServiceStatus.DESIGN_ONLY, true),
         ServiceDef("DOCUMENT_VIEWER", "Document Viewer", "عارض المستندات", "Open decrypted documents in memory", "افتح المستندات المفكوكة في الذاكرة", ServiceArt.VAULT, null, ServiceStatus.DESIGN_ONLY, true),

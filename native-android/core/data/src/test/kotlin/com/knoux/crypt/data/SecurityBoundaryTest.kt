@@ -234,6 +234,28 @@ class SecurityBoundaryTest {
     }
 
     @Test
+    fun inFlightFileDecryptionAbortsAfterLock() = runBlocking {
+        val fixture = Fixture()
+        fixture.enroll()
+        val access = fixture.access()!!
+        val cipher = VaultFileCipher(fixture.session)
+        val plaintext = ByteArray(3 * 64 * 1024) { (it % 251).toByte() }
+        val sealed = ByteArrayOutputStream()
+        cipher.encrypt(access, ByteArrayInputStream(plaintext), sealed, plaintext.size.toLong())
+
+        expect<VaultLockedException> {
+            cipher.decrypt(
+                access,
+                ByteArrayInputStream(sealed.toByteArray()),
+                ByteArrayOutputStream(),
+            ) { progress ->
+                if (progress.processedBytes > 0) runBlocking { fixture.session.lock() }
+            }
+        }
+        assertFalse(fixture.session.isUnlocked)
+    }
+
+    @Test
     fun invalidatedBiometricGateIsNonDestructiveAndReportsRecovery() = runBlocking {
         val fixture = Fixture()
         fixture.enroll()

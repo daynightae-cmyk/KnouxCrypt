@@ -13,6 +13,7 @@ import com.knoux.crypt.ui.AccountScreen
 import com.knoux.crypt.ui.AuthenticatorScreen
 import com.knoux.crypt.ui.FileCipherScreen
 import com.knoux.crypt.ui.HashIntegrityScreen
+import com.knoux.crypt.ui.HmacLabScreen
 import com.knoux.crypt.ui.HomeScreen
 import com.knoux.crypt.ui.KeyDerivationScreen
 import com.knoux.crypt.ui.KeyForgeScreen
@@ -132,6 +133,9 @@ fun KnouxNavHost(
         }
         composable("file_integrity") {
             HashIntegrityScreen(onBack = { nav.popBackStack() }, isFileIntegrityRoute = true)
+        }
+        composable("hmac") {
+            HmacLabScreen(onBack = { nav.popBackStack() })
         }
         composable("random") {
             SecureRandomScreen(onBack = { nav.popBackStack() })

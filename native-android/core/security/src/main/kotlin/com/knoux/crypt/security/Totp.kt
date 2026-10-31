@@ -128,6 +128,35 @@ object Hashing {
         return mac.doFinal(message)
     }
 
+    /**
+     * Streams a message through HMAC-SHA-256 without buffering it. A declared
+     * total size, when non-negative, must match exactly; progress counts input
+     * bytes and carries no key material. The caller owns the key zeroization.
+     */
+    fun hmacSha256(
+        key: ByteArray,
+        input: java.io.InputStream,
+        totalBytes: Long = -1,
+        onProgress: (Long) -> Unit = {},
+    ): ByteArray {
+        require(key.isNotEmpty()) { "Empty HMAC key" }
+        val mac = Mac.getInstance("HmacSHA256")
+        mac.init(SecretKeySpec(key, "HmacSHA256"))
+        val buffer = ByteArray(BUFFER)
+        var processed = 0L
+        while (true) {
+            val read = input.read(buffer)
+            if (read < 0) break
+            mac.update(buffer, 0, read)
+            processed += read
+            onProgress(processed)
+        }
+        if (totalBytes >= 0 && processed != totalBytes) {
+            throw java.io.IOException("Input size changed while computing HMAC")
+        }
+        return mac.doFinal()
+    }
+
     fun toHex(bytes: ByteArray): String = buildString(bytes.size * 2) {
         for (byte in bytes) {
             val value = byte.toInt() and 0xff

@@ -380,6 +380,40 @@ class VaultKeyRotationTest {
     }
 
     @Test
+    fun legacyKnf1FileSurvivesTwoRotationsAndRootRetirementIsRejected() = runBlocking {
+        val fixture = Fixture()
+        fixture.enroll()
+        val access = fixture.access()!!
+        val rootBefore = fixture.vault.masterKey().encoded!!.copyOf()
+        val plaintext = "legacy KNF1 across two rotations".toByteArray()
+        val legacy = ByteArrayOutputStream()
+        FileEnvelope(chunkSize = 1024).encrypt(
+            ByteArrayInputStream(plaintext),
+            legacy,
+            fixture.vault.masterKey(),
+            FileEnvelope.KeySource.DEVICE,
+            "knoux.file.device.v1".toByteArray(),
+            plaintext.size.toLong(),
+        )
+
+        fixture.rotateAll(access)
+        fixture.rotateAll(access)
+        assertEquals(2, fixture.registry.active)
+        assertTrue(fixture.vault.masterKey().encoded!!.contentEquals(rootBefore))
+
+        val restored = ByteArrayOutputStream()
+        VaultFileCipher(fixture.session).decrypt(
+            access,
+            ByteArrayInputStream(legacy.toByteArray()),
+            restored,
+        )
+        assertTrue(restored.toByteArray().contentEquals(plaintext))
+
+        expect<IllegalArgumentException> { fixture.keys.retireDataKey(access, LEGACY_KEY_VERSION) }
+        assertTrue(fixture.vault.masterKey().encoded!!.contentEquals(rootBefore))
+    }
+
+    @Test
     fun legacyKnf1DeviceFileStillDecryptsThroughProductionCipher() = runBlocking {
         val fixture = Fixture()
         fixture.enroll()

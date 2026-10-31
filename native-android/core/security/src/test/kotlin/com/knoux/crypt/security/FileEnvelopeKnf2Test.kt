@@ -95,6 +95,43 @@ class FileEnvelopeKnf2Test {
     }
 
     @Test
+    fun firstChunkTagTamperEmitsNoPlaintext() {
+        val envelope = sealWrapped(ByteArray(4096) { it.toByte() })
+        val header = FileEnvelope().readHeader(ByteArrayInputStream(envelope))
+        val tampered = envelope.clone()
+        // First ciphertext byte follows the authenticated KNF2 header.
+        tampered[header.raw.size] = (tampered[header.raw.size].toInt() xor 1).toByte()
+        val output = ByteArrayOutputStream()
+        try {
+            FileEnvelope(chunkSize = 1024).decryptDevice(
+                ByteArrayInputStream(tampered),
+                output,
+                context,
+                keyProvider = { fileKey },
+            )
+            fail("Tampered first chunk accepted")
+        } catch (_: GeneralSecurityException) {
+        }
+        assertEquals(0, output.size())
+    }
+
+    @Test
+    fun wrappedKeyHeaderTruncationAndLengthTamperFailClosed() {
+        val full = sealWrapped(ByteArray(1024))
+        val header = FileEnvelope().readHeader(ByteArrayInputStream(full))
+        for (cut in listOf(10, 20, header.raw.size - 5)) {
+            rejected { openWrapped(full.copyOf(cut)) }
+        }
+        val absurdLength = full.clone()
+        // KNF2 wrapped-length field is the final int of the 11-byte prefix.
+        absurdLength[7] = 0x7f
+        absurdLength[8] = 0x7f
+        absurdLength[9] = 0x7f
+        absurdLength[10] = 0x7f
+        rejected { openWrapped(absurdLength) }
+    }
+
+    @Test
     fun legacyKnf1DeviceFileStillDecryptsThroughDevicePath() {
         val data = ByteArray(2048) { (it * 5).toByte() }
         val legacy = ByteArrayOutputStream()

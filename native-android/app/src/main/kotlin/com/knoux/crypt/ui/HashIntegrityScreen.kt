@@ -247,6 +247,15 @@ fun HashIntegrityScreen(onBack: () -> Unit, isFileIntegrityRoute: Boolean = fals
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(top = 6.dp),
                     )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        tr(
+                            "Integrity comparison only: a match does not prove the file's origin, authenticity or safety.",
+                            "مقارنة سلامة فقط: التطابق لا يثبت مصدر الملف أو أصالته أو سلامته.",
+                        ),
+                        color = KnouxColors.Warn,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
                     Spacer(Modifier.height(8.dp))
                     KnouxGhostButton(
                         tr("Record verification evidence", "تسجيل دليل التحقق"),
