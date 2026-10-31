@@ -81,6 +81,72 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
     displayStatusReason:
       "Real authenticated encryption with negative tests for corrupted files, wrong passwords, aborted writes, revoked sessions and path conflicts, exercised in a real Electron process. Windows EXE runtime verification is still pending.",
   },
+  {
+    id: "SHADOW_VAULT",
+    title: "Shadow Vault",
+    platformCapability:
+      "Reads real record counts from the encrypted vault record store while a session is unlocked. Media/photo import is NOT implemented.",
+    permissionNeeds: [],
+    requiresNetwork: false,
+    providerReady: false,
+    realTestEvidence: [
+      "tests/vault-store.test.cjs (encrypted store read/write, tamper and truncation rejection, guest and revoked session refusal)",
+      "scripts/electron-runtime-check.cjs (real Electron process: no plaintext secret remains in the store file)",
+    ],
+    displayStatus: DISPLAY_STATUS.PARTIAL,
+    displayStatusReason:
+      "The gallery is a labelled reference layout and no media is read. Only the record-store counts are real, and media import remains unavailable rather than simulated.",
+  },
+  {
+    id: "NOTES",
+    title: "Secure Notes",
+    platformCapability:
+      "Notes are persisted in the encrypted vault record store (AES-256-GCM container, atomic write) when a session is unlocked; otherwise an in-memory, labelled preview set is shown.",
+    permissionNeeds: [],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/vault-store.test.cjs (note records round trip, no plaintext on disk, tamper rejection, guest refusal)",
+      "tests/vault-ipc.test.cjs (store channels validated over IPC)",
+      "scripts/electron-runtime-check.cjs (real Electron process: note written, read back and removed over the live IPC bridge)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Note create/update/delete write through the real encrypted store and are covered by automated tests and a real Electron process. The desktop UI persists only while the vault is unlocked.",
+  },
+  {
+    id: "NOTES_EDITOR",
+    title: "Notes Editor",
+    platformCapability:
+      "Editing a note updates the corresponding record in the encrypted vault record store; a locked vault keeps the editor read-only against preview data.",
+    permissionNeeds: [],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/vault-store.test.cjs (record update replaces rather than duplicates)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Edits are persisted as encrypted records with the same tamper detection as the File Cipher container.",
+  },
+  {
+    id: "PASSWORDS",
+    title: "Passwords",
+    platformCapability:
+      "Credential records are stored in the encrypted vault record store; the generator uses the platform CSPRNG with rejection sampling.",
+    permissionNeeds: [],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/vault-store.test.cjs (credential records are stored separately from notes, no plaintext on disk)",
+      "tests/password-generator.test.cjs (CSPRNG output length, pool coverage, no modulo bias, distinct values)",
+      "tests/vault-ipc.test.cjs (credential store channels validated over IPC)",
+      "scripts/electron-runtime-check.cjs (real Electron process: credential written to the encrypted store over the live IPC bridge)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Credential storage and generation are real and tested. Autofill, password auditing and browser integration remain unimplemented previews and are labelled as such.",
+  },
 ]);
 
 export function capabilityById(id) {

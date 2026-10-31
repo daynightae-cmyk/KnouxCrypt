@@ -2,7 +2,12 @@ import { useLanguage } from "../../i18n/Language";
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { SCREENS } from "../../config/screens";
-import { ScreenFrame, ScreenHeader, Mark, IconButton, PreviewSheet } from "./ScreenUI";
+import { useVault, VAULT_STATE } from "../../hooks/useVault";
+import { ScreenFrame, ScreenHeader, Mark, IconButton, PreviewSheet, CapabilityCard } from "./ScreenUI";
+
+function VaultCapabilityPanel() {
+  return <CapabilityCard id="SHADOW_VAULT" />;
+}
 const artwork=import.meta.glob('../../assets/vault-thumb-*.webp',{eager:true,import:'default'});
 const samples=[['Photos',24],['Photos',8],['Videos',6],['Photos',12],['Photos',18],['Audio',4],['Files',7],['Videos',9]].map(([category,count],id)=>({id,category,count}));
 const categoryIcon={Photos:'photo',Videos:'video',Audio:'audio',Files:'file'};
@@ -20,15 +25,50 @@ function LockedTile({sample,onOpen}) {
 }
 export function ShadowVault() {
   const { t, locale, dir } = useLanguage();
+  const vault = useVault();
+  const persisted = vault.state === VAULT_STATE.UNLOCKED;
+  const sessionKey = vault.session?.sessionId ?? null;
+  const [stored, setStored] = useState(null);
+  // `useVault()` returns a new object on every render, so it must not be an
+  // effect dependency. The ref always points at the current bridge client.
+  const vaultRef = useRef(vault);
+  vaultRef.current = vault;
+
+  // Only a real unlocked session can report real stored-item counts.
+  useEffect(() => {
+    let cancelled = false;
+    if (!persisted) {
+      setStored(null);
+      return () => {
+        cancelled = true;
+      };
+    }
+    Promise.all([vaultRef.current.storeList("notes"), vaultRef.current.storeList("passwords")])
+      .then(([notes, passwords]) => {
+        if (cancelled) return;
+        if (notes?.ok === false || passwords?.ok === false) {
+          setStored(null);
+          return;
+        }
+        setStored((notes?.data?.records?.length || 0) + (passwords?.data?.records?.length || 0));
+      })
+      .catch(() => {
+        if (!cancelled) setStored(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [persisted, sessionKey]);
 
  const [category,setCategory]=useState('Photos');const [filterActive,setFilterActive]=useState(false);const [sheet,setSheet]=useState(null);const [selected,setSelected]=useState(null);const [search,setSearch]=useState('');
  function open(title,sample){setSelected(sample||null);setSheet(title);}
  const visible=filterActive?samples.filter(s=>s.category===category):samples;
  return <ScreenFrame type="vault-screen"><ScreenHeader title={t("SHADOW")} accent="VAULT" caption="BY KNOUX CRYPT"><IconButton icon="search" label="Search vault demos" onClick={()=>open('Search vault')}/><IconButton icon="dots" label="Vault tools" onClick={()=>open('Vault tools')}/></ScreenHeader>
  <p className="vault-tagline">{t("YOUR SECRETS. YOUR SPACE.")}</p>
+ <VaultCapabilityPanel/>
  <div className="vault-tabs" role="tablist" aria-label={t("Media category")}>{Object.keys(categoryIcon).map(c=><button role="tab" key={c} aria-selected={category===c} tabIndex={category===c?0:-1} data-category={c} className={category===c?'active':''} onClick={()=>{setCategory(c);setFilterActive(true);}} onKeyDown={e=>{const keys=Object.keys(categoryIcon);let index=keys.indexOf(c);if(e.key==='ArrowRight')index=(index+1)%4;else if(e.key==='ArrowLeft')index=(index+3)%4;else return;e.preventDefault();setCategory(keys[index]);setFilterActive(true);e.currentTarget.parentElement.querySelector(`[data-category="${keys[index]}"]`).focus();}}><Mark name={categoryIcon[c]}/>{t(c)}</button>)}</div>
  <section className={`vault-gallery ${filterActive?'vault-filtered':''}`} aria-label={t(filterActive?`${category} demo collections`:'Reference demo collections')}>{visible.map(s=><LockedTile key={s.id} sample={s} onOpen={open}/>)}</section>
- <section className="vault-usage"><Mark name="database"/><div><strong>{t("Encrypted Vault")}</strong><p>{t("12 demo items ")}<span>{t("•")}</span>{t(" 3.2 GB")}</p></div><div className="vault-meter"><div role="meter" aria-label={t("Illustrative vault usage")} aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"><i/></div><small>{t("40% used")}</small></div></section>
+ <section className="vault-usage" data-persisted={persisted}><Mark name="database"/><div><strong>{t(persisted?"Encrypted record store":"Encrypted Vault")}</strong>{persisted?<p>{stored===null?t("Reading the encrypted store…"):`${stored} ${t(stored===1?"encrypted record":"encrypted records")}`}</p>:<p>{t("12 demo items ")}<span>{t("•")}</span>{t(" 3.2 GB")}</p>}</div>{persisted?<small>{t("Media import is not implemented yet.")}</small>:<div className="vault-meter"><div role="meter" aria-label={t("Illustrative vault usage")} aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"><i/></div><small>{t("40% used")}</small></div>}</section>
  <button className="security-primary vault-import" onClick={()=>open('Import securely')}><Mark name="upload"/>{t("Import Securely")}<Mark name="chevron"/></button>
  <p className="vault-disclaimer"><Mark name="info"/>{t("Original files are not automatically removed from your device.")}</p>
  <nav className="vault-bottom" aria-label={t("Vault navigation")}><button aria-current="page" onClick={()=>{setCategory('Photos');setFilterActive(false);}}><Mark name="home"/>{t("Vault")}</button><Link to={SCREENS.TOOLS}><Mark name="shield"/>{t("Secure Tools")}</Link><button onClick={()=>open('Vault settings')}><Mark name="settings"/>{t("Settings")}</button></nav>

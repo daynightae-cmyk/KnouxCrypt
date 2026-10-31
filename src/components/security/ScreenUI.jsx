@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { StagEmblem } from "../entry/StagEmblem";
 import { SCREENS } from "../../config/screens";
 import "./security.css";
+import { capabilityById } from "../../config/desktopCapabilities";
 
 export function Mark({ name = "shield", ...props }) {
   const { t, locale, dir } = useLanguage();
@@ -53,3 +54,24 @@ export function PreviewSheet({ title, children, onClose, label = "VISUAL DEMO", 
 export function IconButton({ icon, label, ...props }) {
   const { t, locale, dir } = useLanguage();
 return <button type="button" className="security-icon-button" aria-label={t(label)} {...props}><Mark name={icon}/></button>;}
+
+/**
+ * Honest capability card. Every field comes from the central capability
+ * registry, so a screen cannot claim a capability the service does not have.
+ */
+export function CapabilityCard({ id, className = "security-capability" }) {
+  const { t } = useLanguage();
+  const card = capabilityById(id);
+  if (!card) return null;
+  return (
+    <section className={className} data-status={card.displayStatus} aria-label={t("Capability")}>
+      <strong>{t(card.title)}</strong>
+      <p>{t(card.platformCapability)}</p>
+      <dl>
+        <div><dt>{t("Status")}</dt><dd>{t(card.displayStatus)}</dd></div>
+        <div><dt>{t("Network")}</dt><dd>{t(card.requiresNetwork ? "Required" : "Not required")}</dd></div>
+        <div><dt>{t("Provider ready")}</dt><dd>{t(card.providerReady ? "Yes" : "No")}</dd></div>
+      </dl>
+    </section>
+  );
+}

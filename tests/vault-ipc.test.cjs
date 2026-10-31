@@ -130,3 +130,74 @@ test("file pickers never leak paths when cancelled", async () => {
   assert.equal(res.data.cancelled, true);
   assert.equal(res.data.path, null);
 });
+
+// ---- tasks 05-08: encrypted record store over IPC -------------------------
+
+test("store channels reject an unknown collection before touching the service", async () => {
+  setupService();
+  const enroll = await call(CHANNELS.ENROLL, { password: PASSWORD });
+  const res = await call(CHANNELS.STORE_LIST, { sessionId: enroll.data.sessionId, collection: "secrets" });
+  assert.equal(res.ok, false);
+  assert.equal(res.error.code, CODES.BAD_INPUT);
+});
+
+test("store channels reject a non-object record", async () => {
+  setupService();
+  const enroll = await call(CHANNELS.ENROLL, { password: PASSWORD });
+  const res = await call(CHANNELS.STORE_PUT, {
+    sessionId: enroll.data.sessionId,
+    collection: "notes",
+    record: ["not", "an", "object"],
+  });
+  assert.equal(res.ok, false);
+  assert.equal(res.error.code, CODES.BAD_INPUT);
+});
+
+test("a store round trip works entirely through IPC", async () => {
+  setupService();
+  const enroll = await call(CHANNELS.ENROLL, { password: PASSWORD });
+  const sid = enroll.data.sessionId;
+
+  const put = await call(CHANNELS.STORE_PUT, {
+    sessionId: sid,
+    collection: "notes",
+    record: { id: "ipc-1", title: "Over IPC", body: "secret", category: "Work" },
+  });
+  assert.equal(put.ok, true);
+  assert.equal(put.data.created, true);
+
+  const list = await call(CHANNELS.STORE_LIST, { sessionId: sid, collection: "notes" });
+  assert.equal(list.ok, true);
+  assert.equal(list.data.records[0].title, "Over IPC");
+
+  const removed = await call(CHANNELS.STORE_REMOVE, { sessionId: sid, collection: "notes", id: "ipc-1" });
+  assert.equal(removed.data.removed, true);
+
+  const after = await call(CHANNELS.STORE_LIST, { sessionId: sid, collection: "notes" });
+  assert.deepEqual(after.data.records, []);
+});
+
+test("a guest session is refused by every store channel", async () => {
+  setupService();
+  const guest = await call(CHANNELS.GUEST);
+  const sid = guest.data.sessionId;
+
+  for (const [channel, payload] of [
+    [CHANNELS.STORE_LIST, { sessionId: sid, collection: "notes" }],
+    [CHANNELS.STORE_PUT, { sessionId: sid, collection: "notes", record: { id: "g" } }],
+    [CHANNELS.STORE_REMOVE, { sessionId: sid, collection: "notes", id: "g" }],
+    [CHANNELS.STORE_CLEAR, { sessionId: sid, collection: "notes" }],
+  ]) {
+    const res = await call(channel, payload);
+    assert.equal(res.ok, false, `${channel} must refuse a guest`);
+    assert.equal(res.error.code, CODES.SESSION_REQUIRED);
+  }
+});
+
+test("store failures never leak a filesystem path or stack trace", async () => {
+  setupService();
+  const res = await call(CHANNELS.STORE_LIST, { sessionId: "not-a-real-session", collection: "notes" });
+  assert.equal(res.ok, false);
+  const serialized = JSON.stringify(res);
+  assert.equal(/\/tmp\/|\/home\/|at Object\.|\.cjs:\d+/.test(serialized), false, serialized);
+});

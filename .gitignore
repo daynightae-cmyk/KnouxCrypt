@@ -6,3 +6,4 @@ dist/
 .env.local
 mise.local.toml
 .agent_tmp/
+.knoux-gen-*/

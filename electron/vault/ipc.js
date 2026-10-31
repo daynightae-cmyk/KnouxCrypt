@@ -24,11 +24,31 @@ const CHANNELS = Object.freeze({
   CANCEL: "vault:cancel",
   INSPECT: "vault:inspect",
   ACTIVITY: "vault:activity",
+  STORE_LIST: "vault:store-list",
+  STORE_PUT: "vault:store-put",
+  STORE_REMOVE: "vault:store-remove",
+  STORE_CLEAR: "vault:store-clear",
   PICK_INPUT: "vault:pick-input",
   PICK_OUTPUT: "vault:pick-output",
   PROGRESS: "vault:progress",
   REVOKED: "vault:revoked",
 });
+
+const STORE_COLLECTIONS = Object.freeze(["notes", "passwords"]);
+
+function requireCollection(value) {
+  if (!STORE_COLLECTIONS.includes(value)) {
+    throw new VaultError(CODES.BAD_INPUT, `collection must be one of ${STORE_COLLECTIONS.join(", ")}`);
+  }
+  return value;
+}
+
+function requireRecord(value) {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    throw new VaultError(CODES.BAD_INPUT, "record must be an object");
+  }
+  return value;
+}
 
 function requireString(value, field, max = 8192) {
   if (typeof value !== "string" || value.length === 0 || value.length > max) {
@@ -166,6 +186,46 @@ function registerVaultIpc(service, getWindow) {
   );
 
   ipcMain.handle(CHANNELS.ACTIVITY, safe(async () => ({ activity: service.activity.slice(0, 20) })));
+
+  ipcMain.handle(
+    CHANNELS.STORE_LIST,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.storeList(requireString(p.sessionId, "sessionId"), requireCollection(p.collection));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.STORE_PUT,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.storePut(
+        requireString(p.sessionId, "sessionId"),
+        requireCollection(p.collection),
+        requireRecord(p.record),
+      );
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.STORE_REMOVE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.storeRemove(
+        requireString(p.sessionId, "sessionId"),
+        requireCollection(p.collection),
+        requireString(p.id, "id", 128),
+      );
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.STORE_CLEAR,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.storeClear(requireString(p.sessionId, "sessionId"), requireCollection(p.collection));
+    }),
+  );
 
   ipcMain.handle(
     CHANNELS.PICK_INPUT,

@@ -163,6 +163,23 @@ export function useVault() {
   );
   const cancel = useCallback((operationId) => (api ? api.cancel(operationId) : null), [api]);
 
+  const storeList = useCallback(
+    (collection) => run((a) => a.storeList(session?.sessionId, collection)),
+    [run, session],
+  );
+  const storePut = useCallback(
+    (collection, record) => run((a) => a.storePut(session?.sessionId, collection, record)),
+    [run, session],
+  );
+  const storeRemove = useCallback(
+    (collection, id) => run((a) => a.storeRemove(session?.sessionId, collection, id)),
+    [run, session],
+  );
+  const storeClear = useCallback(
+    (collection) => run((a) => a.storeClear(session?.sessionId, collection)),
+    [run, session],
+  );
+
   const state = !available
     ? VAULT_STATE.UNAVAILABLE
     : session?.guest
@@ -195,6 +212,10 @@ export function useVault() {
     pickOutputFile,
     inspect,
     cancel,
+    storeList,
+    storePut,
+    storeRemove,
+    storeClear,
   };
 }
 
