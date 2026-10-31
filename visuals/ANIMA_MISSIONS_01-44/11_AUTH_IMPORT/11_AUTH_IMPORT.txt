@@ -1,0 +1,25 @@
+ANIMA IMAGE-TO-APP | LINK SCREEN 11 (AUTH_IMPORT) TO THE CURRENT KNOUX CRYPT APP SHELL FIRST.
+
+[UNIVERSAL_ANIMA_ENGINEERING_V2_START]
+MANDATORY APP-INTEGRATION + PIXEL-LOCK + MOTION RULES, FOR THIS SCREEN:
+1) SAME APP: Reuse existing Anima React project, AppShell, stag-K, routes, Back and all approved screens. No new app, clone or remote assets. Mandatory flow: SPLASH_ENTRY -> SECURE_ACCESS_LOGIN -> HOME; later screens join this registry.
+2) REFERENCE FIRST: The single attached image defines the actual live viewport, visual hierarchy, gradients, lettering, icons, glass surfaces, geometry, and spacing. Do NOT use the screenshot as one flat clickable bitmap; text and controls must be real accessible React components. Do not add a phone frame, stray sections or visible badges not present in the image. Illustrative artwork may use local layers. Preserve all prior finished screens.
+3) SHARED RESPONSIVE GEOMETRY: Match Splash's screen coordinate system, viewport proportions and horizontal gutters across all screens. Use min-height:100dvh, CSS Grid/Flex, a shared 8px spacing rhythm and safe-area insets; never force an arbitrary fixed-height artboard. For centered Splash/Auth-like compositions, optically center the WHOLE content group between top and bottom safe areas, balancing outer whitespace. For content-dense lists, align as shown in the reference and scroll naturally. On short screens or open keyboards allow scrolling instead of shrinking or clipping content.
+4) ZERO COLLISIONS: Keep stag-K aspect ratio and visible artwork unchanged; give logo, KNOUX CRYPT wordmark, subtitle, heading, fields, cards and navigation separate collision-free layout regions. No text-over-logo, transform-based fake alignment, negative-margin crowding, cut-off footer, or overlapping cards. Use real layout gap (about 24-40px between logo art and brand wordmark when appropriate), adjusted to visible image bounds; glow may extend over empty background only.
+5) CINEMATIC PURPLE MOTION: Keep the static reference accurate. Add sparse purple fire-like embers, tiny drifting sparks, energy arcs and soft depth BEHIND content. Follow this screen's DISTINCTIVE MOTION: Splash stag eye/antler ignition; Auth focus/biometric rings; Home orbit; File Cipher sealed-file rail; Vault shutter; Notes page-fold; Passwords reveal; 2FA timer; Key Forge keys; Privacy shield; Recovery rings. Other screens animate their own controls, not generic pulses. Few particles; pointer-events:none; transform/opacity effects; readable text; reduced-motion; sound OFF.
+6) REAL LOCAL INTERACTION: Every visible CTA, input, tab, filter, list item, icon button, toggle, close action and bottom-nav control responds through local React state; provide focus, pressed, selected, expanded or disabled feedback as relevant. A deferred secure operation opens a clear VISUAL DEMO sheet, never a fake completed security result. Do not implement real crypto, auth, OAuth, biometrics, OTP, filesystem, cloud, key storage or backend.
+7) QA: Compare rendered frame to reference. Test vertical balance, logo/text clearance, mobile width, keyboard, scroll, controls, Back and reduced motion. Fix defects; report only actually tested changes.
+[UNIVERSAL_ANIMA_ENGINEERING_V2_END]
+
+CURRENT SCREEN 11 - 2FA IMPORT / AUTHORIZED MIGRATION
+Screen route ID: AUTH_IMPORT. Existing mission references: 15.
+
+REFERENCE ANCHORS: Top logo and 2FA IMPORT headline; three import-type cards and encrypted backup indicator; manual entry, supported export preview and sample account checklist; Import Selected Accounts bottom CTA.
+
+SCREEN INTERACTIONS: Selectable import source, local mock-file chooser, account checkboxes, error-preview sheet for unsupported format, optional skip; no scanning or import of real seeds.
+
+DISTINCTIVE MOTION: A three-stage dark violet import-rail highlights selected step, never shows fake completed import.
+
+ROUTING: Reach from AUTHENTICATOR Import Accounts; back returns AUTHENTICATOR unchanged.
+
+Import options are a UI outline, not an actual authenticator migration. Never parse private QR content or show real export seeds. A selected sample account list can change local state only. On unsupported source choose explanatory placeholder. Preserve accordion structure and number of blocks.

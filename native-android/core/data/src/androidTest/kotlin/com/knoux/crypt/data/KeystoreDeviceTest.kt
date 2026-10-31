@@ -1,0 +1,115 @@
+package com.knoux.crypt.data
+
+import android.security.keystore.KeyInfo
+import com.knoux.crypt.security.FileEnvelope
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import java.security.GeneralSecurityException
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.security.KeyStore
+import javax.crypto.Cipher
+import javax.crypto.SecretKeyFactory
+import javax.crypto.spec.SecretKeySpec
+import javax.crypto.spec.GCMParameterSpec
+import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
+import org.junit.Test
+import org.junit.runner.RunWith
+
+/**
+ * Instrumented Keystore probes. Compiles on the JVM but needs real Android
+ * hardware for results; no device or emulator was available when this file was
+ * added. Never report these as passing without device evidence.
+ */
+@RunWith(AndroidJUnit4::class)
+class KeystoreDeviceTest {
+    @Test
+    fun masterKeyRoundTripsAnAuthenticatedRecord() {
+        val keystore = KeystoreManager()
+        val key = keystore.masterKey()
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(Cipher.ENCRYPT_MODE, key)
+        val iv = cipher.iv
+        val plaintext = "knoux-device-check".toByteArray()
+        val sealed = cipher.doFinal(plaintext)
+
+        val opening = Cipher.getInstance("AES/GCM/NoPadding")
+        opening.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(128, iv))
+        assertArrayEquals(plaintext, opening.doFinal(sealed))
+    }
+
+    @Test
+    fun dataKeyWrappingRoundTripsUnderTheRealKeystoreRoot() {
+        val keystore = KeystoreManager()
+        val root = keystore.masterKey()
+        val wrapper = DataKeyWrapper()
+        val dek = SecretKeySpec(ByteArray(32) { (it * 3 + 1).toByte() }, "AES")
+        val wrapped = wrapper.wrap(root, version = 7, dek = dek)
+        val opened = wrapper.unwrap(root, expectedVersion = 7, blob = wrapped)
+        assertArrayEquals(dek.encoded, opened.encoded)
+
+        val tampered = wrapped.clone()
+        tampered[tampered.size - 1] = (tampered[tampered.size - 1].toInt() xor 1).toByte()
+        try {
+            wrapper.unwrap(root, expectedVersion = 7, blob = tampered)
+            fail("Tampered wrapped DEK was accepted")
+        } catch (_: GeneralSecurityException) {
+        } catch (_: IllegalArgumentException) {
+        }
+        try {
+            wrapper.unwrap(root, expectedVersion = 8, blob = wrapped)
+            fail("Wrong wrapped DEK version was accepted")
+        } catch (_: IllegalArgumentException) {
+        }
+    }
+
+    @Test
+    fun recordEncryptionUsesAProviderChosenIvWithTheRealRoot() {
+        val root = KeystoreManager().masterKey()
+        val codec = SecretCodec(root)
+        val payload = """{"title":"device","body":"provider-iv"}"""
+        val blob = codec.encrypt(SecretKinds.NOTE, "device-record", payload)
+        assertEquals(payload, codec.decrypt(SecretKinds.NOTE, "device-record", blob, keyVersion = 0))
+    }
+
+    @Test
+    fun knf2DeviceFileUsesWrappedPerFileDekWithTheRealRoot() {
+        val root = KeystoreManager().masterKey()
+        val wrapper = DataKeyWrapper()
+        val fileKey = SecretKeySpec(ByteArray(32) { (it * 5 + 3).toByte() }, "AES")
+        val wrapped = wrapper.wrap(root, version = 1, dek = fileKey)
+        val plaintext = ByteArray(4096) { (it * 7).toByte() }
+        val sealed = ByteArrayOutputStream()
+        FileEnvelope(chunkSize = 1024).encryptWrappedDevice(
+            ByteArrayInputStream(plaintext),
+            sealed,
+            fileKey,
+            wrapped,
+            "knoux.file.device.v1".toByteArray(),
+            plaintext.size.toLong(),
+        )
+        val restored = ByteArrayOutputStream()
+        FileEnvelope(chunkSize = 1024).decryptDevice(
+            ByteArrayInputStream(sealed.toByteArray()),
+            restored,
+            "knoux.file.device.v1".toByteArray(),
+            keyProvider = { fileKey },
+        )
+        assertArrayEquals(plaintext, restored.toByteArray())
+    }
+
+    @Test
+    fun gateKeyIsUserAuthenticationBound() {
+        val keystore = KeystoreManager()
+        keystore.createGateIfNeeded(GateSlot.PRIMARY)
+        val stored = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+        assertTrue(stored.containsAlias(VaultKeyAliases.GATE_PRIMARY))
+        val key = stored.getKey(VaultKeyAliases.GATE_PRIMARY, null) as javax.crypto.SecretKey
+        val factory = SecretKeyFactory.getInstance(key.algorithm, "AndroidKeyStore")
+        val info = factory.getKeySpec(key, KeyInfo::class.java) as KeyInfo
+        @Suppress("DEPRECATION")
+        assertTrue(info.isUserAuthenticationRequired)
+    }
+}
