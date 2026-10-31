@@ -28,14 +28,14 @@ Classification: **DOMAIN_IMPLEMENTED + INTEGRATED + TESTED_LOCAL (RFC vectors) +
 
 | Check | Command | Result |
 |---|---|---|
-| Security tests (fresh) | `./gradlew :core:security:test --rerun-tasks --no-daemon -Dorg.gradle.jvmargs=-Xmx1024m...` | **PASS, exit 0 — 54 tests**; `HmacTest` 2 |
+| Security tests (fresh) | `./gradlew :core:security:test --rerun-tasks --no-daemon -Dorg.gradle.jvmargs=-Xmx1024m...` | **PASS, exit 0 — 58 tests**; `HmacTest` 2 |
 | Data tests (fresh) | `./gradlew :core:data:testDebugUnitTest --rerun-tasks ...` | **PASS, exit 0 — 63 tests** |
 | App tests (fresh) | `./gradlew :app:testDebugUnitTest --rerun-tasks ...` | **PASS, exit 0 — 11 tests**; job gate/stream cancellation/policy |
-| Aggregate JVM | result XML count | **128 tests, 0 skipped, 0 failures, 0 errors** |
+| Aggregate JVM | result XML count | **132 tests, 0 skipped, 0 failures, 0 errors** |
 | Lint | `:core:data:lintDebug :app:lintDebug --no-daemon` | **PASS, 0 errors** (10 app/8 core warnings) |
 | androidTest compile | `:app:compileDebugAndroidTestKotlin :core:data:compileDebugAndroidTestKotlin --no-daemon` | **PASS (compiled, NOT RUN)** |
-| Debug APK | `:app:assembleDebug --no-daemon` | **PASS, exit 0 — 17,714,701 bytes** |
-| APK SHA-256 | `sha256sum` | `40259ea5ee7aac869c30fba1687eaed0dca823ac9ba9f4622f3b001ae0526dd2` |
+| Debug APK | `:app:assembleDebug --no-daemon` | **PASS, exit 0 — 17,728,991 bytes** |
+| APK SHA-256 | `sha256sum` | `1dc5d6fca021d4b7fd399284c1e5302daf77ce40856d88ad3328ad4febd03e3e` |
 | Device | `D:/Android/sdk/platform-tools/adb.exe devices`; Hypervisor | Empty; `HypervisorPresent=False` |
 
 HMAC tests include RFC 4231 cases 1 and 2, streaming vs in-memory equality, size mismatch,

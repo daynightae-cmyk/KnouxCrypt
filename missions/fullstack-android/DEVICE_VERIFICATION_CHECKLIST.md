@@ -111,6 +111,9 @@ wrapped DEK; App data cleared (expected unrecoverable without backup).
   passphrase modes.
 - File integrity: known file/correct digest; wrong digest; invalid 64-hex input; cancel
   mid-hash; corrupt URI; 4 GB file if storage allows; copy evidence report.
+- Package Inspector: a real KNF1 legacy, KNF2 device file, KNP1/KNP2 text envelope, unknown
+  magic, truncated header, forged wrapped length and absurd Argon2 cost. Confirm the screen
+  never claims authenticity without a key.
 - Revoke SAF URI permission if possible; expected typed error, no crash or fake result.
 
 ## 7. Visual and accessibility acceptance
