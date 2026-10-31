@@ -4,9 +4,31 @@ This is an execution checklist, not a mission pack and not a completion claim.
 Everything below remains **DEVICE_UNVERIFIED** until the commands/tests actually run on
 hardware and the raw results are recorded in the mission evidence.
 
-Current source baseline: branch `android/native-implementation-20261031`, HEAD
-`800ce31` plus the current review-fix commit. The Windows host has no device:
-`D:/Android/sdk/platform-tools/adb.exe devices` is empty and `HypervisorPresent=False`.
+## Hardware status — first real run 2026-11-01
+
+A device is now attached: **itel S686LN, Android 15 / API 35, arm64-v8a, TEE Keystore,
+strong fingerprint available**. Full raw results are in
+`DEVICE_VERIFICATION_2026-11-01_ITEL_S686LN.md` and
+`device-evidence/knoux-crypt-android-2026-11-01-itel-s686ln/`.
+
+Closed by that run (single handset, no audit): sections 1–2 partially — the 8 instrumented
+tests (`:core:data` 7, `:app` 1) executed and passed on hardware; provider-generated IV with the
+real root, KDK1 wrapped-DEK roundtrip, KNF2 device file, `gateKeyIsUserAuthenticationBound`,
+Room v1→v2 migration and the TASK 36 audit over real Room rows are DEVICE_VERIFIED. The auth-bound
+gate also behaved correctly end to end: the SystemUI biometric sheet stayed pending 20 s with the
+vault locked and nothing was minted; only an owner fingerprint touch opened a session.
+Section 4's screenshot policy is measured effective (app layer 0.36 % non-black, capture blocked
+while the biometric sheet is up).
+
+Still open on this device: canonical visual-parity PNGs (capture must be toggled off first),
+key rotation end to end, SAF backup/restore, clipboard lease timing and vendor behaviour, package
+inspector against a real file, screen-off auto-lock timing, TalkBack / 200 % font / 4 GB hashing.
+Every unlock requires the owner's finger, so the authenticated items are owner-participation
+gated, not automation-gated.
+
+Current source baseline: branch `android/native-implementation-20261031` and `main` both at
+`8320726` (TASK 36 consolidated). Earlier entries in this file that say "no device" describe the
+pre-2026-11-01 state.
 
 ## 0. Preconditions
 
