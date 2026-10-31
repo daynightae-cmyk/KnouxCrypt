@@ -84,6 +84,30 @@ const CHANNELS = Object.freeze({
   HMAC_COMPUTE: "vault:hmac-compute",
   HMAC_COMPARE: "vault:hmac-compare",
   PUBLIC_QR: "vault:public-qr",
+  // Tasks 29-32: collections, protected viewer, key rotation, package inspector.
+  COLLECTIONS_TREE: "vault:collections-tree",
+  COLLECTIONS_GET: "vault:collections-get",
+  COLLECTIONS_CREATE: "vault:collections-create",
+  COLLECTIONS_RENAME: "vault:collections-rename",
+  COLLECTIONS_REMOVE: "vault:collections-remove",
+  COLLECTIONS_ADD_ITEM: "vault:collections-add-item",
+  COLLECTIONS_MOVE_ITEM: "vault:collections-move-item",
+  COLLECTIONS_COPY_ITEM: "vault:collections-copy-item",
+  COLLECTIONS_REMOVE_ITEM: "vault:collections-remove-item",
+  COLLECTIONS_EXPORT_ITEM: "vault:collections-export-item",
+  COLLECTIONS_SEARCH: "vault:collections-search",
+  VIEWER_OPEN: "vault:viewer-open",
+  VIEWER_READ_CHUNK: "vault:viewer-read-chunk",
+  VIEWER_CLOSE: "vault:viewer-close",
+  VIEWER_STATUS: "vault:viewer-status",
+  VIEWER_SWEEP: "vault:viewer-sweep",
+  ROTATION_PREFLIGHT: "vault:rotation-preflight",
+  ROTATION_STATUS: "vault:rotation-status",
+  ROTATION_START: "vault:rotation-start",
+  ROTATION_RESUME: "vault:rotation-resume",
+  ROTATION_ROLLBACK: "vault:rotation-rollback",
+  PACKAGE_INSPECT: "vault:package-inspect",
+  PACKAGE_VERIFY: "vault:package-verify",
 });
 
 const STORE_COLLECTIONS = Object.freeze(["notes", "passwords", "authenticator", "keys"]);
@@ -798,6 +822,218 @@ function registerVaultIpc(service, getWindow) {
       if (typeof p.text === "string") request.text = p.text.slice(0, 4096);
       if (typeof p.errorCorrectionLevel === "string") request.errorCorrectionLevel = p.errorCorrectionLevel;
       return service.publicKeyQr(request);
+    }),
+  );
+
+  // ---- tasks 29-32: collections, viewer, rotation, package inspector -------
+
+  ipcMain.handle(
+    CHANNELS.COLLECTIONS_TREE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.collectionsTree(requireString(p.sessionId, "sessionId"));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.COLLECTIONS_GET,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.collectionsGet(requireString(p.sessionId, "sessionId"), requireString(p.id, "id", 128));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.COLLECTIONS_CREATE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const request = { name: requireString(p.name, "name", 256) };
+      if (typeof p.parentId === "string" && p.parentId) request.parentId = p.parentId;
+      if (Array.isArray(p.tags)) request.tags = p.tags.slice(0, 24).map((t) => String(t).slice(0, 64));
+      return service.collectionsCreate(requireString(p.sessionId, "sessionId"), request);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.COLLECTIONS_RENAME,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const patch = {};
+      if (p.name !== undefined) patch.name = requireString(p.name, "name", 256);
+      if (Array.isArray(p.tags)) patch.tags = p.tags.slice(0, 24).map((t) => String(t).slice(0, 64));
+      return service.collectionsRename(requireString(p.sessionId, "sessionId"), requireString(p.id, "id", 128), patch);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.COLLECTIONS_REMOVE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.collectionsRemove(requireString(p.sessionId, "sessionId"), requireString(p.id, "id", 128), {
+        recursive: p.recursive === true,
+        confirm: p.confirm === true,
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.COLLECTIONS_ADD_ITEM,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const request = {
+        collectionId: requireString(p.collectionId, "collectionId", 128),
+        inputPath: requireString(p.inputPath, "inputPath", 4096),
+      };
+      if (typeof p.name === "string" && p.name) request.name = p.name.slice(0, 256);
+      if (Array.isArray(p.tags)) request.tags = p.tags.slice(0, 24).map((t) => String(t).slice(0, 64));
+      if (p.onDuplicate === "replace" || p.onDuplicate === "keep" || p.onDuplicate === "rename") {
+        request.onDuplicate = p.onDuplicate;
+      }
+      return service.collectionsAddItem(requireString(p.sessionId, "sessionId"), request);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.COLLECTIONS_MOVE_ITEM,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.collectionsMoveItem(requireString(p.sessionId, "sessionId"), {
+        itemId: requireString(p.itemId, "itemId", 128),
+        toCollectionId: requireString(p.toCollectionId, "toCollectionId", 128),
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.COLLECTIONS_COPY_ITEM,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.collectionsCopyItem(requireString(p.sessionId, "sessionId"), {
+        itemId: requireString(p.itemId, "itemId", 128),
+        toCollectionId: requireString(p.toCollectionId, "toCollectionId", 128),
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.COLLECTIONS_REMOVE_ITEM,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.collectionsRemoveItem(requireString(p.sessionId, "sessionId"), requireString(p.itemId, "itemId", 128));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.COLLECTIONS_EXPORT_ITEM,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.collectionsExportItem(requireString(p.sessionId, "sessionId"), {
+        itemId: requireString(p.itemId, "itemId", 128),
+        outputPath: requireString(p.outputPath, "outputPath", 4096),
+        confirm: p.confirm === true,
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.COLLECTIONS_SEARCH,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const query = {};
+      if (typeof p.query === "string") query.query = p.query.slice(0, 256);
+      if (typeof p.tag === "string") query.tag = p.tag.slice(0, 64);
+      return service.collectionsSearch(requireString(p.sessionId, "sessionId"), query);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.VIEWER_OPEN,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const request = { inputPath: requireString(p.inputPath, "inputPath", 4096) };
+      if (typeof p.displayName === "string" && p.displayName) request.displayName = p.displayName.slice(0, 256);
+      return service.viewerOpen(requireString(p.sessionId, "sessionId"), request);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.VIEWER_READ_CHUNK,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.viewerReadChunk(requireString(p.docId, "docId", 64), {
+        offset: Number.isInteger(p.offset) ? p.offset : 0,
+        length: Number.isInteger(p.length) ? p.length : undefined,
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.VIEWER_CLOSE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.viewerClose(requireString(p.docId, "docId", 64));
+    }),
+  );
+
+  ipcMain.handle(CHANNELS.VIEWER_STATUS, safe(async () => service.viewerStatus()));
+
+  ipcMain.handle(CHANNELS.VIEWER_SWEEP, safe(async () => service.viewerSweep()));
+
+  ipcMain.handle(
+    CHANNELS.ROTATION_PREFLIGHT,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.rotationPreflight(requireString(p.sessionId, "sessionId"));
+    }),
+  );
+
+  ipcMain.handle(CHANNELS.ROTATION_STATUS, safe(async () => service.rotationStatus()));
+
+  ipcMain.handle(
+    CHANNELS.ROTATION_START,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const request = {
+        newPassword: requireString(p.newPassword, "newPassword", 4096),
+        confirm: p.confirm === true,
+      };
+      if (p.mode === "rewrap" || p.mode === "reencrypt") request.mode = p.mode;
+      return service.rotationStart(requireString(p.sessionId, "sessionId"), request);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.ROTATION_RESUME,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.rotationResume(requireString(p.sessionId, "sessionId"), {
+        newPassword: requireString(p.newPassword, "newPassword", 4096),
+        confirm: p.confirm === true,
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.ROTATION_ROLLBACK,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.rotationRollback(p.confirm === true);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.PACKAGE_INSPECT,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.packageInspect(requireString(p.inputPath, "inputPath", 4096));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.PACKAGE_VERIFY,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.packageVerify(requireString(p.sessionId, "sessionId"), requireString(p.inputPath, "inputPath", 4096));
     }),
   );
 

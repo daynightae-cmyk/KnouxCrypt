@@ -385,6 +385,97 @@ export function useVault() {
     [run, session],
   );
 
+  // ---- tasks 29-32: collections, viewer, rotation, package inspector ------
+
+  const collectionsTree = useCallback(
+    () => (api ? api.collectionsTree(session?.sessionId) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api, session],
+  );
+  const collectionsGet = useCallback(
+    (id) => (api ? api.collectionsGet(session?.sessionId, id) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api, session],
+  );
+  const collectionsCreate = useCallback(
+    (request) => run((a) => a.collectionsCreate({ ...request, sessionId: session?.sessionId })),
+    [run, session],
+  );
+  const collectionsRename = useCallback(
+    (id, patch) => run((a) => a.collectionsRename(session?.sessionId, id, patch)),
+    [run, session],
+  );
+  const collectionsRemove = useCallback(
+    (id, options) => run((a) => a.collectionsRemove(session?.sessionId, id, options)),
+    [run, session],
+  );
+  const collectionsAddItem = useCallback(
+    (request) => run((a) => a.collectionsAddItem({ ...request, sessionId: session?.sessionId })),
+    [run, session],
+  );
+  const collectionsMoveItem = useCallback(
+    (request) => run((a) => a.collectionsMoveItem({ ...request, sessionId: session?.sessionId })),
+    [run, session],
+  );
+  const collectionsCopyItem = useCallback(
+    (request) => run((a) => a.collectionsCopyItem({ ...request, sessionId: session?.sessionId })),
+    [run, session],
+  );
+  const collectionsRemoveItem = useCallback(
+    (itemId) => run((a) => a.collectionsRemoveItem(session?.sessionId, itemId)),
+    [run, session],
+  );
+  const collectionsExportItem = useCallback(
+    (request) => run((a) => a.collectionsExportItem({ ...request, sessionId: session?.sessionId })),
+    [run, session],
+  );
+  const collectionsSearch = useCallback(
+    (query) => run((a) => a.collectionsSearch(session?.sessionId, query)),
+    [run, session],
+  );
+  const viewerOpen = useCallback(
+    (request) => run((a) => a.viewerOpen({ ...request, sessionId: session?.sessionId })),
+    [run, session],
+  );
+  const viewerReadChunk = useCallback(
+    (docId, options) => (api ? api.viewerReadChunk(docId, options) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const viewerClose = useCallback(
+    (docId) => (api ? api.viewerClose(docId) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const viewerStatus = useCallback(
+    () => (api ? api.viewerStatus() : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const rotationPreflight = useCallback(
+    () => run((a) => a.rotationPreflight(session?.sessionId)),
+    [run, session],
+  );
+  const rotationStatus = useCallback(
+    () => (api ? api.rotationStatus() : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const rotationStart = useCallback(
+    (request) => run((a) => a.rotationStart({ ...request, sessionId: session?.sessionId })),
+    [run, session],
+  );
+  const rotationResume = useCallback(
+    (request) => run((a) => a.rotationResume({ ...request, sessionId: session?.sessionId })),
+    [run, session],
+  );
+  const rotationRollback = useCallback(
+    (confirm) => run((a) => a.rotationRollback(confirm)),
+    [run],
+  );
+  const packageInspect = useCallback(
+    (inputPath) => (api ? api.packageInspect(inputPath) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const packageVerify = useCallback(
+    (inputPath) => run((a) => a.packageVerify(session?.sessionId, inputPath)),
+    [run, session],
+  );
+
   const state = !available
     ? VAULT_STATE.UNAVAILABLE
     : session?.guest
@@ -471,6 +562,28 @@ export function useVault() {
     hmacCompute,
     hmacCompare,
     publicKeyQr,
+    collectionsTree,
+    collectionsGet,
+    collectionsCreate,
+    collectionsRename,
+    collectionsRemove,
+    collectionsAddItem,
+    collectionsMoveItem,
+    collectionsCopyItem,
+    collectionsRemoveItem,
+    collectionsExportItem,
+    collectionsSearch,
+    viewerOpen,
+    viewerReadChunk,
+    viewerClose,
+    viewerStatus,
+    rotationPreflight,
+    rotationStatus,
+    rotationStart,
+    rotationResume,
+    rotationRollback,
+    packageInspect,
+    packageVerify,
   };
 }
 

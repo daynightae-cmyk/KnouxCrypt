@@ -221,6 +221,13 @@
   border-radius: 10px;
   background: #50301922;
 }
+.vt-error {
+  color: #ff9d9d !important;
+  padding: 12px;
+  border: 1px solid #a04b4b77;
+  border-radius: 10px;
+  background: #3a141422;
+}
 .vaulttools-screen .security-primary {
   font-size: 14px;
   margin-top: 18px;

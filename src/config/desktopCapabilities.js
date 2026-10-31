@@ -470,6 +470,70 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
     displayStatusReason:
       "The matrix is produced by the vetted qrcode encoder and verified by decoding it again. A QR of a public key shares public material only; it is not an identity claim and the fingerprint is shown so a reader can verify it out of band. Encoding a private key is refused, not merely discouraged.",
   },
+  {
+    id: "COLLECTIONS",
+    title: "Vault Collections",
+    platformCapability:
+      "Nested, encrypted collections. Metadata (names, tags, item names) is sealed inside the vault store; item files are encrypted into real AES-256-GCM containers on disk.",
+    permissionNeeds: ["Unlocked vault session only", "No elevated privileges"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch08-vaulttools.test.cjs (nesting and depth limits, tags normalised, an item is encrypted at rest and decrypts byte-for-byte, duplicate names renamed rather than overwritten, move keeps the blob and copy re-encrypts under a fresh nonce, a non-empty collection needs a confirmed recursive delete, search runs over decrypted metadata with no plaintext index on disk, locked-state reads denied, guest sessions refused)",
+      "tests/vault-ipc.test.cjs (channels registered and payloads validated)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Collections and items are stored with the same authenticated container format as the File Cipher. Reads require an unlocked session; a revoked or guest session is refused. Search is performed in memory over decrypted metadata, so no plaintext index is written to disk.",
+  },
+  {
+    id: "DOCUMENT_VIEWER",
+    title: "Protected Document Viewer",
+    platformCapability:
+      "Decrypt a supported document (text, image, PDF) into a private mode-0600 temporary file, show bounded content and delete the plaintext on close, on lock and on quit. Stale files from a crash are swept at startup.",
+    permissionNeeds: ["Unlocked vault session only", "No elevated privileges"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch08-vaulttools.test.cjs (open keeps exactly one private temp file, close deletes it, a revoked session closes every open document and removes the plaintext, the startup sweep clears orphaned files, unsupported formats refused, large documents paged through bounded chunks)",
+      "tests/vault-ipc.test.cjs (viewer channels registered and validated)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "The viewer decrypts to an owner-only temp file and deletes it deterministically; this is verified by tests. It does not claim to prevent OS-level screen capture, which no in-process viewer can do.",
+  },
+  {
+    id: "VAULT_KEY_ROTATION",
+    title: "Vault Key Rotation",
+    platformCapability:
+      "Two real rotation modes: rewrap re-wraps the data-encryption key under a new password, and reencrypt rewrites every stored container under a fresh key. Journaled, verified against the new password and rolled back on failure.",
+    permissionNeeds: ["Unlocked vault session only", "Explicit confirmation", "No elevated privileges"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch08-vaulttools.test.cjs (rewrap keeps data readable and only changes the wrapper, reencrypt rewrites containers and the old key can no longer open them, the old password stops working, confirmation and length are enforced, a failed reencrypt rolls the enrollment back so the old password still opens the vault, a completed reencrypt refuses a rollback, preflight refuses while a rotation is pending)",
+      "tests/vault-ipc.test.cjs (rotation channels registered and validated)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Rotation is a real key operation with a journal, a post-rotation reopen check and a rollback path, all covered by tests. There is no spinner: every stage maps to a filesystem action that either succeeds or is rolled back.",
+  },
+  {
+    id: "PACKAGE_INSPECTOR",
+    title: "Ciphertext Package Inspector",
+    platformCapability:
+      "Parse a container header without a key (reported as unauthenticated claims) and stream-verify the whole package against the vault key: header MAC, per-chunk GCM tags, trailing content MAC and plaintext digest.",
+    permissionNeeds: ["Unlocked vault session only for authenticated verification", "Header parsing needs no session"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch08-vaulttools.test.cjs (header inspection reports unauthenticated claims and never claims decryptability, a non-vault file is NOT_A_VAULT, verification succeeds with the right key, a tampered byte and a truncated file both fail, a foreign key fails, an unsupported version is refused)",
+      "tests/vault-ipc.test.cjs (package channels registered and validated)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "The inspector distinguishes an unauthenticated header claim from an authenticated verification, and it never claims decryptability without performing the authenticated check. Verification never writes plaintext; only a digest is recomputed.",
+  },
 ]);
 
 export function capabilityById(id) {

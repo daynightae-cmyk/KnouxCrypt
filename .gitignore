@@ -7,3 +7,6 @@ dist/
 mise.local.toml
 .agent_tmp/
 .knoux-gen-*/
+
+# Local agent working memory
+.openhands/

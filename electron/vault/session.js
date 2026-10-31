@@ -177,6 +177,20 @@ class VaultSessionManager {
     return session.dek;
   }
 
+  /**
+   * Swap the DEK a live session is using (task 31). Used after a reencrypt
+   * rotation so the session reads the newly written containers. The old key
+   * buffer is zeroed so it cannot be reused by mistake.
+   */
+  replaceDek(sessionId, newDek) {
+    const session = this.validate(sessionId);
+    if (session.guest) throw new VaultError(CODES.SESSION_REQUIRED, "Guest preview sessions have no vault key");
+    if (!Buffer.isBuffer(newDek) || newDek.length !== KEY_LEN) throw badInput("A 32-byte vault key is required");
+    if (session.dek && session.dek !== newDek) session.dek.fill(0);
+    session.dek = newDek;
+    return true;
+  }
+
   touch(sessionId) {
     const session = this.sessions.get(sessionId);
     if (session && !session.revoked) {
@@ -270,6 +284,65 @@ class VaultSessionManager {
     for (const [id, session] of [...this.sessions.entries()]) {
       if (session.expiresAt <= t) this.revoke(id, "idle-timeout");
     }
+  }
+
+  /**
+   * Rewrap the enrollment's data-encryption key under a new password (task 31).
+   *
+   * Only the wrapper changes: the DEK is supplied by the caller from a live,
+   * unlocked session, so no stored container needs to be re-encrypted and the
+   * old password is never needed again. The new record is written to a temp
+   * file and renamed over the old one; the previous record is returned so the
+   * caller can roll back if a later step fails.
+   */
+  async rewrapDek(newPassword, { dek, iterations } = {}) {
+    if (typeof newPassword !== "string" || newPassword.length < 8) {
+      throw badInput("The new password must be at least 8 characters");
+    }
+    if (!Buffer.isBuffer(dek) || dek.length !== KEY_LEN) {
+      throw badInput("A live vault key is required to rotate the enrollment");
+    }
+    const previous = await this._readEnrollment();
+
+    const nextIterations = Number(iterations) || previous.iterations || DEFAULT_PBKDF2_ITERATIONS;
+    const salt = randomSalt();
+    const kdfParams = { kdfId: KDF.PBKDF2_SHA256, iterations: nextIterations };
+    const master = deriveMasterKey(newPassword, salt, kdfParams);
+    const { encKey, macKey } = expandKeys(master, salt);
+    const wrapNonce = crypto.randomBytes(WRAP_NONCE_LEN);
+    const wrappedDek = wrapDek(dek, encKey, wrapNonce);
+    const verifier = hkdf(macKey, salt, VERIFIER_INFO, 32).toString("hex");
+
+    const record = {
+      version: ENROLLMENT_VERSION,
+      kdfId: kdfParams.kdfId,
+      iterations: nextIterations,
+      salt: salt.toString("base64"),
+      wrapNonce: wrapNonce.toString("base64"),
+      wrappedDek: wrappedDek.toString("base64"),
+      verifier,
+      name: previous.name || "Local vault",
+      createdAt: previous.createdAt,
+      rotatedAt: new Date(this.now()).toISOString(),
+      rotationCount: (Number(previous.rotationCount) || 0) + 1,
+    };
+
+    const tmp = `${this.enrollmentPath}.rotate.${crypto.randomBytes(4).toString("hex")}.tmp`;
+    await fsp.mkdir(path.dirname(this.enrollmentPath), { recursive: true });
+    await fsp.writeFile(tmp, JSON.stringify(record, null, 2), { mode: 0o600 });
+    await fsp.chmod(tmp, 0o600).catch(() => {});
+    await fsp.rename(tmp, this.enrollmentPath);
+    return { record, previous, rotatedAt: record.rotatedAt, rotationCount: record.rotationCount };
+  }
+
+  /** Put a previous enrollment record back, used when a rotation is rolled back. */
+  async restoreEnrollment(previous) {
+    if (!previous || typeof previous !== "object") throw badInput("A previous enrollment record is required");
+    const tmp = `${this.enrollmentPath}.restore.${crypto.randomBytes(4).toString("hex")}.tmp`;
+    await fsp.writeFile(tmp, JSON.stringify(previous, null, 2), { mode: 0o600 });
+    await fsp.chmod(tmp, 0o600).catch(() => {});
+    await fsp.rename(tmp, this.enrollmentPath);
+    return { restored: true };
   }
 
   async _readEnrollment() {

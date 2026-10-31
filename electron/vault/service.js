@@ -24,6 +24,9 @@ const archive = require("./archive");
 const metadata = require("./metadata");
 const { TransferService } = require("./transfer");
 const { ClipboardGuard, DEMO_PLACEHOLDER, TIMER_CHOICES } = require("./clipboard");
+const { CollectionService } = require("./collections");
+const { DocumentViewer } = require("./documentviewer");
+const { RotationService } = require("./rotation");
 const labs = require("./labs");
 
 // Explicitly supported key algorithms. Anything absent is refused rather than
@@ -147,6 +150,31 @@ class VaultService {
         },
       });
 
+    // Tasks 29-32: collections, protected viewer, key rotation, package
+    // inspector. Each owns its own subdirectory under the vault store root.
+    this.collections =
+      options.collections ||
+      new CollectionService({
+        store: this.store,
+        engine: this.engine,
+        root: path.join(options.userDataPath || ".", "vault-collections"),
+      });
+    this.viewer =
+      options.viewer ||
+      new DocumentViewer({
+        engine: this.engine,
+        root: path.join(options.userDataPath || ".", "vault-documents"),
+      });
+    this.rotation =
+      options.rotation ||
+      new RotationService({
+        manager: this.manager,
+        store: this.store,
+        engine: this.engine,
+        userDataPath: options.userDataPath,
+        collections: this.collections,
+      });
+
     // The session manager is the single choke point for every revocation path
     // (user lock, lock-all, idle sweep, quit), so forward its notification,
     // stop any open transfer listener and disarm any clipboard timer at the
@@ -155,6 +183,8 @@ class VaultService {
       this._emitRevoked(event.sessionId, event.reason);
       this.transfer.stop().catch(() => {});
       this.clipboard.onSessionRevoked(event.sessionId);
+      // A revoked session must not leave decrypted documents on disk.
+      this.viewer.closeAll(event.sessionId).catch(() => {});
     };
   }
 
@@ -1160,6 +1190,226 @@ class VaultService {
     const result = labs.publicKeyQr({ text: payload, errorCorrectionLevel });
     this._record("public-qr", `Rendered a ${result.size}x${result.size} public QR code`);
     return { ...result, payload, fingerprint };
+  }
+
+  // ---- task 29: private vault collections ---------------------------------
+
+  /** Every method below takes the DEK from the live session; guests are refused. */
+  async collectionsTree(sessionId) {
+    const rawKey = this.manager.getDek(sessionId);
+    this.manager.touch(sessionId);
+    return this.collections.tree(rawKey);
+  }
+
+  async collectionsGet(sessionId, id) {
+    const rawKey = this.manager.getDek(sessionId);
+    this.manager.touch(sessionId);
+    return this.collections.get(rawKey, id);
+  }
+
+  async collectionsCreate(sessionId, request = {}) {
+    const rawKey = this.manager.getDek(sessionId);
+    const result = await this.collections.create(rawKey, request);
+    this.manager.touch(sessionId);
+    this._record("collection-create", `Created collection "${result.name}"`);
+    return result;
+  }
+
+  async collectionsRename(sessionId, id, patch = {}) {
+    const rawKey = this.manager.getDek(sessionId);
+    const result = await this.collections.rename(rawKey, id, patch);
+    this.manager.touch(sessionId);
+    this._record("collection-rename", "Renamed a collection");
+    return result;
+  }
+
+  async collectionsRemove(sessionId, id, options = {}) {
+    const rawKey = this.manager.getDek(sessionId);
+    const result = await this.collections.remove(rawKey, id, options);
+    this.manager.touch(sessionId);
+    this._record("collection-remove", `Removed ${result.collections} collection(s)`);
+    return result;
+  }
+
+  async collectionsAddItem(sessionId, request = {}) {
+    const rawKey = this.manager.getDek(sessionId);
+    const operationId = request.operationId || crypto.randomBytes(8).toString("hex");
+    const controller = new AbortController();
+    this.operations.set(operationId, controller);
+    try {
+      const result = await this.collections.addItem(rawKey, {
+        ...request,
+        operationId,
+        onProgress: (p) => this._emitProgress(operationId, "encrypt", p),
+      });
+      this.manager.touch(sessionId);
+      this._record("collection-item-add", `Encrypted an item into a collection`);
+      return { ...result, operationId };
+    } finally {
+      this.operations.delete(operationId);
+    }
+  }
+
+  async collectionsMoveItem(sessionId, request = {}) {
+    const rawKey = this.manager.getDek(sessionId);
+    const result = await this.collections.moveItem(rawKey, request);
+    this.manager.touch(sessionId);
+    this._record("collection-item-move", "Moved an item between collections");
+    return result;
+  }
+
+  async collectionsCopyItem(sessionId, request = {}) {
+    const rawKey = this.manager.getDek(sessionId);
+    const operationId = request.operationId || crypto.randomBytes(8).toString("hex");
+    const controller = new AbortController();
+    this.operations.set(operationId, controller);
+    try {
+      const result = await this.collections.copyItem(rawKey, { ...request, operationId });
+      this.manager.touch(sessionId);
+      this._record("collection-item-copy", "Copied an item between collections");
+      return { ...result, operationId };
+    } finally {
+      this.operations.delete(operationId);
+    }
+  }
+
+  async collectionsRemoveItem(sessionId, itemId) {
+    const rawKey = this.manager.getDek(sessionId);
+    const result = await this.collections.removeItem(rawKey, itemId);
+    this.manager.touch(sessionId);
+    this._record("collection-item-remove", "Removed an item from a collection");
+    return result;
+  }
+
+  async collectionsExportItem(sessionId, request = {}) {
+    const rawKey = this.manager.getDek(sessionId);
+    const operationId = request.operationId || crypto.randomBytes(8).toString("hex");
+    const controller = new AbortController();
+    this.operations.set(operationId, controller);
+    try {
+      const result = await this.collections.exportItem(rawKey, { ...request, operationId });
+      this.manager.touch(sessionId);
+      this._record("collection-item-export", "Exported a collection item as plaintext");
+      return result;
+    } finally {
+      this.operations.delete(operationId);
+    }
+  }
+
+  async collectionsSearch(sessionId, query = {}) {
+    const rawKey = this.manager.getDek(sessionId);
+    this.manager.touch(sessionId);
+    return this.collections.search(rawKey, query);
+  }
+
+  // ---- task 30: protected document viewer ---------------------------------
+
+  async viewerOpen(sessionId, request = {}) {
+    const rawKey = this.manager.getDek(sessionId);
+    const operationId = request.operationId || crypto.randomBytes(8).toString("hex");
+    const controller = new AbortController();
+    this.operations.set(operationId, controller);
+    try {
+      const result = await this.viewer.open(rawKey, { ...request, sessionId, operationId });
+      this.manager.touch(sessionId);
+      this._record("viewer-open", `Opened a protected ${result.kind} document`);
+      return { ...result, operationId };
+    } finally {
+      this.operations.delete(operationId);
+    }
+  }
+
+  async viewerReadChunk(docId, options = {}) {
+    return this.viewer.readChunk(docId, options);
+  }
+
+  async viewerClose(docId) {
+    const result = await this.viewer.close(docId);
+    this._record("viewer-close", "Closed a protected document");
+    return result;
+  }
+
+  viewerStatus() {
+    return this.viewer.status();
+  }
+
+  /** Sweep plaintext temp files left by a previous process. Called at startup. */
+  async viewerSweep() {
+    const result = await this.viewer.sweep();
+    if (result.removed > 0) this._record("viewer-sweep", `Removed ${result.removed} stale document file(s)`);
+    return result;
+  }
+
+  // ---- task 31: vault key rotation ----------------------------------------
+
+  async rotationPreflight(sessionId) {
+    const rawKey = this.manager.getDek(sessionId);
+    this.manager.touch(sessionId);
+    return this.rotation.preflight(rawKey);
+  }
+
+  async rotationStatus() {
+    const journal = await this.rotation.journal();
+    if (!journal) return { inProgress: false };
+    return {
+      inProgress: true,
+      rotationId: journal.rotationId,
+      mode: journal.mode,
+      stage: journal.stage,
+      startedAt: journal.startedAt,
+      completedCollections: journal.completedCollections,
+      error: journal.error || null,
+    };
+  }
+
+  async rotationStart(sessionId, request = {}) {
+    const result = await this.rotation.rotate(sessionId, request);
+    this.manager.touch(sessionId);
+    this._record("rotation-start", `Rotated the vault key (${result.mode} mode)`);
+    return result;
+  }
+
+  async rotationResume(sessionId, request = {}) {
+    const result = await this.rotation.resume(sessionId, request);
+    this.manager.touch(sessionId);
+    this._record("rotation-resume", "Resumed an interrupted key rotation");
+    return result;
+  }
+
+  async rotationRollback(confirm) {
+    const result = await this.rotation.rollback(confirm);
+    this._record("rotation-rollback", "Rolled back a key rotation");
+    return result;
+  }
+
+  // ---- task 32: ciphertext package inspector ------------------------------
+
+  /** Header-only parse. The result is explicitly unauthenticated. */
+  async packageInspect(inputPath) {
+    const result = await this.engine.inspectPackage(inputPath);
+    this._record("package-inspect", "Parsed a ciphertext package header");
+    return result;
+  }
+
+  /** Authenticated verification with the live vault key. */
+  async packageVerify(sessionId, inputPath) {
+    const rawKey = this.manager.getDek(sessionId);
+    const operationId = crypto.randomBytes(8).toString("hex");
+    const controller = new AbortController();
+    this.operations.set(operationId, controller);
+    try {
+      const result = await this.engine.verifyPackage({
+        inputPath,
+        rawKey,
+        signal: controller.signal,
+        onProgress: (p) => this._emitProgress(operationId, "verify", p),
+      });
+      this.manager.touch(sessionId);
+      this._record("package-verify", `Verified a ciphertext package (${result.frames} frame(s))`);
+      return { ...result, operationId };
+    } finally {
+      this.operations.delete(operationId);
+    }
   }
 }
 
