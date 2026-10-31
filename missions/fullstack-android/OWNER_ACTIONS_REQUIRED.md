@@ -45,7 +45,7 @@ wrapped per-file DEK, and that legacy KNF1 files still open. In Privacy Center,
 exercise every auto-lock timeout, screen-off lock, clipboard timeout and lock
 clear, the FLAG_SECURE toggle, and the app-switch cover. In File Integrity, hash
 a known file, compare correct/wrong references, cancel mid-hash, use a corrupt
-URI, and stream a 4 GB file if available; verify the in-memory report copy. In HMAC Lab, test text/file generation, RFC-style known values if available, wrong/changed tags, empty inputs, cancel mid-file, change key/message while a job runs, Clear Key after starting, and RTL/keyboard. In Clipboard Guard/Secure Clipboard, copy a managed value, wait for expiry, modify the clipboard externally, lock the vault, clear managed vs explicit foreign text, and test process death.
+URI, and stream a 4 GB file if available; verify the in-memory report copy. In HMAC Lab, test text/file generation, RFC-style known values if available, wrong/changed tags, empty inputs, cancel mid-file, change key/message while a job runs, Clear Key after starting, and RTL/keyboard. In Clipboard Guard/Secure Clipboard, copy a managed value, wait for expiry, modify the clipboard externally, lock the vault, clear managed vs explicit foreign text, and test process death. In Package Inspector, inspect valid KNF1/KNF2/KNP1/KNP2 packages plus truncated/forged headers and confirm authenticity is shown as unverified without a key.
 
 **Still unverified until this runs:** same `Cipher` instance returned by
 `BiometricPrompt` (the boundary rejects substitution by identity), Keystore

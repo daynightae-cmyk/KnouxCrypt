@@ -12,6 +12,7 @@
 **HMAC + review hardening commit:** `f82010e1761326fe7262c57f887d16288f320abb`
 **HMAC cancellation commit:** `012456058ca7f4579b93d5dc168a608a910f8977`
 **Clipboard Guard + Secure Clipboard commit:** `25b5acb6cffea6e4cc6423b07370ec5eae726c93`
+**Package Inspector source commit:** `fdbcb81d6974e0efaf6ed3165fc23b4d99397f53`
 **PR #14 reconciliation merge:** `b4fe65c`
 **Main merge (owner-requested consolidation):** `4bdb5614d415b2c8a8c07056af13fd8849b75c02`
 **Base:** `integration/knoux-crypt-android-ready-20261030` @ `8f6f992`
@@ -32,13 +33,13 @@
 | Current security tests (fresh, split) | `./gradlew :core:security:test --rerun-tasks --no-daemon -Dorg.gradle.jvmargs=-Xmx1024m...` | PASS, exit 0 — **54 tests** |
 | Current data tests (fresh, split) | `./gradlew :core:data:testDebugUnitTest --rerun-tasks --no-daemon ...` | PASS, exit 0 — **63 tests** |
 | Current app tests (fresh, split) | `./gradlew :app:testDebugUnitTest --rerun-tasks --no-daemon ...` | PASS, exit 0 — **11 tests** |
-| Aggregate JVM | result XML count | **128 tests, 0 skipped, 0 failures, 0 errors** (security 54, data 63, app 11) |
+| Aggregate JVM | result XML count | **132 tests, 0 skipped, 0 failures, 0 errors** (security 58, data 63, app 11) |
 | Current lint | `./gradlew :core:data:lintDebug :app:lintDebug --no-daemon` | PASS, exit 0 — 0 errors (10 app/8 core warnings) |
-| Current debug APK | `./gradlew :app:compileDebugAndroidTestKotlin :core:data:compileDebugAndroidTestKotlin :app:assembleDebug --no-daemon` | PASS — 17,714,701 bytes, SHA-256 `40259ea5…26dd2` |
+| Current debug APK | `./gradlew :app:compileDebugAndroidTestKotlin :core:data:compileDebugAndroidTestKotlin :app:assembleDebug --no-daemon` | PASS — 17,728,991 bytes, SHA-256 `1dc5d6fc…3e3e` |
 | Combined 1.5 GiB run | single `--rerun-tasks` invocation | **INCONCLUSIVE** — host JVM crashed (malloc/`hs_err`), not a test failure; split runs above are authoritative |
 | Device availability | `adb devices`; `HypervisorPresent` | **No device; False** → no emulator |
 
-Test distribution (current): security 54 (FileEnvelope 13 + KNF2 8 + Hashing 3 + HMAC 2 + Argon2id 3 + Foundation 10 + PassphraseEnvelope 8 + Totp 7); data 63 (SecretCodec 6, SecurityBoundary 26, VaultKeyRotation 16, VaultBackup 10, VaultKeyWrapper 3, SessionPrivacyPolicy 2); app 11 (Catalog 4, HmacJobGate 3, HmacStreamer 2, ClipboardLeasePolicy 2).
+Test distribution (current): security 58 (FileEnvelope 13 + KNF2 8 + Hashing 3 + HMAC 2 + PackageInspector 4 + Argon2id 3 + Foundation 10 + PassphraseEnvelope 8 + Totp 7); data 63 (SecretCodec 6, SecurityBoundary 26, VaultKeyRotation 16, VaultBackup 10, VaultKeyWrapper 3, SessionPrivacyPolicy 2); app 11 (Catalog 4, HmacJobGate 3, HmacStreamer 2, ClipboardLeasePolicy 2).
 
 ## Classification by mission
 
@@ -76,7 +77,7 @@ Test distribution (current): security 54 (FileEnvelope 13 + KNF2 8 + Hashing 3 +
 | 29 | Vault collections | PLANNED |
 | 30 | Document viewer | PLANNED |
 | 31 | Vault key rotation | **SOURCE_IMPLEMENTED + JVM_TESTED (15) — DEVICE_UNVERIFIED / AUDIT_PENDING**: root-wrapped DEK hierarchy, KNC2/room v2, reauth, journal, resumable batches, retirement guard, real wizard; KNF2 device files + legacy KNF1 readable, root retained |
-| 32 | Package inspector | PLANNED (KNF1 reader exists internally) |
+| 32 | Package inspector | **BUILD_VERIFIED + JVM_TESTED (4) — DEVICE_UNVERIFIED**: bounded KNF1/KNF2/KNP1/KNP2 header metadata, structural vs authenticity separation, forged/truncated rejection; SAF UI |
 | 33 | Android autofill | PLANNED |
 | 34 | Offline advisor | PLANNED |
 | 35 | Multi-device pairing | PLANNED |
@@ -89,9 +90,9 @@ Test distribution (current): security 54 (FileEnvelope 13 + KNF2 8 + Hashing 3 +
 | 42 | Session privacy controls | **BUILD_VERIFIED + JVM_TESTED policy (2) — DEVICE_UNVERIFIED**: configurable auto-lock, screen-off lock, clipboard timeout + lock clear, screenshot policy, app-switch cover, mutation/revocation serialization |
 | 43 | File integrity tool | **BUILD_VERIFIED + JVM_TESTED (hash vectors) — DEVICE_UNVERIFIED**: streaming SHA-256, checksum validation, match/mismatch evidence, cancel, in-memory reports, dedicated `file_integrity` route reusing Hash & Integrity |
 | 44 | Secure clipboard | **BUILD_VERIFIED + JVM_TESTED (policy) — DEVICE_UNVERIFIED**: managed copy action, hidden staged value, timeout/clear, guard linkage; no guaranteed erasure |
-| 45 | Final integration/verification | **BLOCKED by device availability** |
+| 45 | Final integration/verification | **SOURCE-LEVEL AUDIT DONE / DEVICE_BLOCKED / RELEASE_BLOCKED / AUDIT_PENDING**: 34 routes and 16 implemented/18 design-only; 132 tests, lint, APK; device/signing/audit/visual gates remain open |
 
-Catalog accounting: 34 destinations total = **15 IMPLEMENTED**, **0 BLOCKED**, **19 DESIGN_ONLY** (Recovery is implemented for encrypted data export/restore; gate recovery remains out of scope. Key rotation is an internal Account wizard, not a new Tools destination). Eight Home cards preserved in the accepted order.
+Catalog accounting: 34 destinations total = **16 IMPLEMENTED**, **0 BLOCKED**, **18 DESIGN_ONLY** (Recovery is implemented for encrypted data export/restore; gate recovery remains out of scope. Key rotation is an internal Account wizard, not a new Tools destination). Eight Home cards preserved in the accepted order.
 
 ## Reality of the implementation
 
@@ -116,9 +117,16 @@ Catalog accounting: 34 destinations total = **15 IMPLEMENTED**, **0 BLOCKED**, *
 ## Safe next actions (dependency-aware)
 
 1. **Device/audit gate:** run the new rotation, Keystore/KNF2 and Room migration instrumentation on real hardware; test privacy timing/clipboard and file-integrity SAF/cancel/4GB; capture AR/EN screenshots; commission independent review. TASK 31/42/43 are source-implemented but DEVICE_UNVERIFIED/AUDIT_PENDING. Root retention for existing external KNF1 files remains documented.
-2. **Vertical slices:** 05 Vault, 07 Notes editor, 09 Password detail, 21 Archive, 32 Package Inspector; the clipboard chain 25/44 is source-complete but device-unverified.
-3. **Device gate:** follow `DEVICE_VERIFICATION_CHECKLIST.md`; install `app-debug.apk`, run all instrumented classes (access, Keystore record/KDK1/KNF2, Room migration), test privacy timing/clipboard/screen capture, HMAC/file integrity, then capture Compose screenshots at 360/390/441 widths in EN/AR and compare against canonical references.
+2. **Remaining vertical slices:** 05 Vault/Shadow Vault, 07 Notes editor, 09 Password detail, 11 Auth import, 19 Signatures, 21 Archive, 28 QR, 30 Document viewer, 33 Autofill, 36 Password audit, remaining design-only services.
+3. **Device gate:** follow `DEVICE_VERIFICATION_CHECKLIST.md`; install `app-debug.apk`, run all instrumented classes (access, Keystore record/KDK1/KNF2, Room migration), test privacy timing/clipboard/screen capture, HMAC/file integrity/package inspector, then capture Compose screenshots at 360/390/441 widths in EN/AR and compare against canonical references.
 4. **Quality gate:** detekt/ktlint, dependency locking, CVE scan, R8 shrinking (BouncyCastle adds 3.18 MB), and a real CI workflow (the PR14 template remains uninstalled).
+
+## Package inspector + TASK 45 source audit — 2026-10-31 (`fdbcb81`)
+
+- New bounded `PackageInspector` parses KNF1/KNF2/KNP1/KNP2 header metadata without keys or decryption; shows structure and explicitly marks AEAD authenticity unverified. 4 JVM parser tests cover valid KNF/KNP, forged wrapped length, truncated and unknown headers.
+- `PACKAGE_INSPECTOR` route is implemented; catalog is 16 implemented / 0 blocked / 18 design-only, with 34 unique destinations and 8 Home cards.
+- TASK 45 evidence records the source-level integration audit and the real blockers: no device, no independent audit, no signing/Play release, no device screenshots, and 18 design-only services. TASK 45 is not complete.
+- Aggregate 132 tests, 0 failures; APK 17,728,991 bytes; lint 0 errors. Device/runtime security remains DEVICE_UNVERIFIED.
 
 ## HMAC cancellation + clipboard guard/action — 2026-10-31 (`0124560`, `25b5acb`)
 

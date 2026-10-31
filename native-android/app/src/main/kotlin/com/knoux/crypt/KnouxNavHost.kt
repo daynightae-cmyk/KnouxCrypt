@@ -19,6 +19,7 @@ import com.knoux.crypt.ui.HomeScreen
 import com.knoux.crypt.ui.KeyDerivationScreen
 import com.knoux.crypt.ui.KeyForgeScreen
 import com.knoux.crypt.ui.NotesScreen
+import com.knoux.crypt.ui.PackageInspectorScreen
 import com.knoux.crypt.ui.PasswordsScreen
 import com.knoux.crypt.ui.PrivacyScreen
 import com.knoux.crypt.ui.RecoveryScreen
@@ -138,6 +139,9 @@ fun KnouxNavHost(
         }
         composable("hmac") {
             HmacLabScreen(onBack = { nav.popBackStack() })
+        }
+        composable("package_inspector") {
+            PackageInspectorScreen(onBack = { nav.popBackStack() })
         }
         composable("clipboard_guard") {
             ClipboardGuardScreen(
