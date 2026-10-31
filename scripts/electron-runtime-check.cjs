@@ -98,6 +98,7 @@ app.whenReady().then(async () => {
     const probe = await win.webContents.executeJavaScript(`(async () => {
       const api = window.electronAPI;
       const out = {};
+      try {
       out.bridge = !!api;
       out.rawIpc = typeof api?.ipcRenderer !== "undefined" || typeof api?.require !== "undefined";
       out.mounted = !!document.querySelector("#root > *");
@@ -264,6 +265,40 @@ app.whenReady().then(async () => {
           remove: ["gps"],
         })
       ).error?.code;
+
+      // Batch 07 (tasks 25-28) over the real runtime IPC surface.
+      out.random = await api.vault.randomGenerate({ type: "hex", length: 16 });
+      out.hmac = await api.vault.hmacCompute({
+        algorithm: "SHA-256",
+        message: "runtime hmac probe",
+        key: "0123456789abcdef0123456789abcdef",
+      });
+      out.hmacNoKeyEcho = !JSON.stringify(out.hmac?.data || {}).includes("0123456789abcdef0123456789abcdef");
+      out.hmacStream = await api.vault.hmacCompute({
+        algorithm: "SHA-256",
+        key: "0123456789abcdef0123456789abcdef",
+        inputPath: base + "/probe-source.bin",
+      });
+      out.hmacShortKey = (
+        await api.vault.hmacCompute({ algorithm: "SHA-256", message: "x", key: "short" })
+      ).error?.code;
+      out.qr = await api.vault.publicKeyQr({ text: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKnouxRuntimePublicKeyProbe" });
+      out.qrPrivate = (await api.vault.publicKeyQr({ text: "-----BEGIN PRIVATE KEY-----AAAA-----END PRIVATE KEY-----" })).error?.code;
+      out.clipboardStatus = await api.vault.clipboardStatus();
+      // The clipboard copy runs on the real OS clipboard; headless Linux has no
+      // display, so either a lease is issued or the platform refusal is recorded.
+      const clipCopy = await api.vault.clipboardCopy({ text: "runtime-clipboard-probe", seconds: 15, confirm: true });
+      out.clipboardCopyOk = clipCopy.ok === true;
+      out.clipboardCopyCode = clipCopy.ok ? null : clipCopy.error?.code;
+      if (clipCopy.ok) {
+        out.clipboardLeaseId = clipCopy.data.leaseId;
+        out.clipboardVerify = await api.vault.clipboardVerify(clipCopy.data.leaseId);
+        out.clipboardClear = await api.vault.clipboardClearNow(clipCopy.data.leaseId);
+      }
+      out.clipboardNoConsent = (
+        await api.vault.clipboardCopy({ text: "x", seconds: 15 })
+      ).error?.code;
+
       // Revocation must reach the renderer without a polling call.
       out.revokedEvent = await new Promise((resolve) => {
         const timer = setTimeout(() => resolve("timeout"), 4000);
@@ -274,6 +309,10 @@ app.whenReady().then(async () => {
         api.vault.lock(enr.data.sessionId, "runtime-check");
       });
       return out;
+      } catch (err) {
+        out.__error = String(err && err.stack ? err.stack : err);
+        return out;
+      }
     })()`);
 
     check("renderer loaded and mounted", probe.mounted === true);
@@ -368,7 +407,27 @@ app.whenReady().then(async () => {
       : null;
     check("the clean copy is still a valid JPEG", metaEoi === "ffd9", String(metaEoi));
     check("a non-JPEG is refused for metadata cleaning", probe.metaNotJpeg === "BAD_INPUT", String(probe.metaNotJpeg));
+    check("secure random returns real bytes over IPC", probe.random?.ok === true && /^[0-9a-f]{32}$/.test(probe.random?.data?.value || ""), JSON.stringify(probe.random?.error));
+    check("secure random reports its CSPRNG source", probe.random?.data?.source === "crypto.randomBytes", String(probe.random?.data?.source));
+    check("HMAC-SHA-256 computes over IPC", probe.hmac?.ok === true && probe.hmac?.data?.mac?.length === 64, JSON.stringify(probe.hmac?.error));
+    check("the HMAC key is never echoed back", probe.hmacNoKeyEcho === true);
+    check("HMAC streams a real file over IPC", probe.hmacStream?.ok === true && probe.hmacStream?.data?.source === "file" && probe.hmacStream?.data?.messageBytes > 300000, JSON.stringify(probe.hmacStream?.error));
+    check("a short HMAC key is refused over IPC", probe.hmacShortKey === "BAD_INPUT", String(probe.hmacShortKey));
+    check("public key QR renders a real matrix over IPC", probe.qr?.ok === true && probe.qr?.data?.rows?.length === probe.qr?.data?.size, JSON.stringify(probe.qr?.error));
+    check("private key material is refused for QR over IPC", probe.qrPrivate === "BAD_INPUT", String(probe.qrPrivate));
+    check("clipboard status is reachable over IPC", probe.clipboardStatus?.ok === true);
+    check(
+      "clipboard copy issues a lease or reports the platform limit",
+      probe.clipboardCopyOk === true || probe.clipboardCopyCode === "UNSUPPORTED_FORMAT",
+      `${probe.clipboardCopyOk}/${probe.clipboardCopyCode}`,
+    );
+    check("clipboard copy without consent is refused over IPC", probe.clipboardNoConsent === "CONSENT_REQUIRED", String(probe.clipboardNoConsent));
+    if (probe.clipboardCopyOk) {
+      check("clipboard verify reports the leased value present", probe.clipboardVerify?.data?.present === true, JSON.stringify(probe.clipboardVerify?.data));
+      check("clipboard clear empties the clipboard", probe.clipboardClear?.ok === true && probe.clipboardClear?.data?.lastClearedAt, JSON.stringify(probe.clipboardClear?.data));
+    }
     check("renderer produced no console errors", consoleErrors.length === 0, consoleErrors.slice(0, 3).join(" | "));
+    if (probe.__error) check("runtime probe completed without throwing", false, probe.__error);
   } catch (err) {
     check("runtime check completed without throwing", false, err.message);
   }

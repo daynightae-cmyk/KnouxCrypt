@@ -21,6 +21,7 @@ const {
   net,
   nativeImage,
   powerMonitor,
+  clipboard,
 } = require("electron");
 const { autoUpdater } = require("electron-updater");
 const path = require("path");
@@ -506,7 +507,16 @@ if (!gotLock) {
   app.whenReady().then(() => {
     registerAppProtocol();
 
-    vaultService = new VaultService({ userDataPath: app.getPath("userData") });
+    vaultService = new VaultService({
+      userDataPath: app.getPath("userData"),
+      // The clipboard guard gets the real OS clipboard here. In tests the
+      // service is built without an adapter, so no display server is required.
+      clipboardAdapter: {
+        writeText: (value) => clipboard.writeText(value),
+        readText: () => clipboard.readText(),
+        clear: () => clipboard.clear(),
+      },
+    });
     unregisterVaultIpc = registerVaultIpc(vaultService, () => mainWindow);
     registerWindowControls();
 

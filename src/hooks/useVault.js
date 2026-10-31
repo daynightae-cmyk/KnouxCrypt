@@ -346,6 +346,45 @@ export function useVault() {
     [run, session],
   );
 
+  // ---- tasks 25-28: privacy labs ------------------------------------------
+
+  const clipboardStatus = useCallback(
+    () => (api ? api.clipboardStatus() : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const clipboardCopy = useCallback(
+    (request) => run((a) => a.clipboardCopy({ ...request, sessionId: session?.sessionId })),
+    [run, session],
+  );
+  const clipboardDisarm = useCallback(
+    (leaseId) => run((a) => a.clipboardDisarm(leaseId, "user")),
+    [run],
+  );
+  const clipboardClearNow = useCallback(
+    (leaseId) => run((a) => a.clipboardClearNow(leaseId)),
+    [run],
+  );
+  const clipboardVerify = useCallback(
+    (leaseId) => run((a) => a.clipboardVerify(leaseId)),
+    [run],
+  );
+  const randomGenerate = useCallback(
+    (request) => run((a) => a.randomGenerate(request)),
+    [run],
+  );
+  const hmacCompute = useCallback(
+    (request) => run((a) => a.hmacCompute(request)),
+    [run],
+  );
+  const hmacCompare = useCallback(
+    (left, right) => run((a) => a.hmacCompare(left, right)),
+    [run],
+  );
+  const publicKeyQr = useCallback(
+    (request) => run((a) => a.publicKeyQr({ ...request, sessionId: session?.sessionId })),
+    [run, session],
+  );
+
   const state = !available
     ? VAULT_STATE.UNAVAILABLE
     : session?.guest
@@ -423,6 +462,15 @@ export function useVault() {
     transferRequests,
     transferRespond,
     transferSend,
+    clipboardStatus,
+    clipboardCopy,
+    clipboardDisarm,
+    clipboardClearNow,
+    clipboardVerify,
+    randomGenerate,
+    hmacCompute,
+    hmacCompare,
+    publicKeyQr,
   };
 }
 
