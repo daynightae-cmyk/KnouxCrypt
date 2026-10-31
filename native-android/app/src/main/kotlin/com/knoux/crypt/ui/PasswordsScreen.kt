@@ -116,7 +116,12 @@ class PasswordsViewModel(application: Application, private val container: AppCon
 }
 
 @Composable
-fun PasswordsScreen(container: AppContainer, onBack: () -> Unit, onNeedUnlock: () -> Unit) {
+fun PasswordsScreen(
+    container: AppContainer,
+    onBack: () -> Unit,
+    onNeedUnlock: () -> Unit,
+    onOpenAudit: () -> Unit = {},
+) {
     if (container.session.currentAccess() == null) {
         LockedScreen(tr("Passwords", "كلمات المرور"), onBack, onNeedUnlock)
         return
@@ -176,13 +181,19 @@ fun PasswordsScreen(container: AppContainer, onBack: () -> Unit, onNeedUnlock: (
         Spacer(Modifier.height(8.dp))
         Text(
             tr(
-                "Each entry is sealed as a KNC1 record with AAD bound to its identity. Copy is manual; the clipboard is not auto-cleared yet.",
-                "كل إدخال مختوم كسجل KNC1 مع ربط AAD بهويته. النسخ يدوي؛ لا تُمسح الحافظة تلقائيًا بعد.",
+                "Each entry is sealed with AES-256-GCM and bound to its kind, id and key version (KNC2; legacy KNC1 rows stay readable). Copies follow the Privacy Center timeout and clear on lock — best effort, not a guarantee.",
+                "كل إدخال مختوم بـ AES-256-GCM ومرتبط بنوعه ومعرفه وإصدار مفتاحه (KNC2؛ وتبقى أسطر KNC1 القديمة قابلة للقراءة). تتبع النسخ مهلة مركز الخصوصية وتُمسح عند القفل — بأفضل جهد، لا كضمان.",
             ),
             style = MaterialTheme.typography.labelSmall,
         )
         Spacer(Modifier.height(10.dp))
         KnouxGhostButton(tr("New password", "كلمة مرور جديدة"), ::openNew)
+        Spacer(Modifier.height(8.dp))
+        Row {
+            TextButton(onClick = onOpenAudit) {
+                Text(tr("Audit stored passwords", "تدقيق كلمات المرور المخزنة"), color = KnouxColors.Violet, fontSize = 11.sp)
+            }
+        }
         Spacer(Modifier.height(10.dp))
         error?.let {
             Text(it, color = KnouxColors.Alert, style = MaterialTheme.typography.bodySmall)
