@@ -1,0 +1,12 @@
+<resources>
+    <style name="Theme.KnouxCrypt" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#080411</item>
+        <item name="android:statusBarColor">#080411</item>
+        <item name="android:navigationBarColor">#080411</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:colorAccent">#BC86F3</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>

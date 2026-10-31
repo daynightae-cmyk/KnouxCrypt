@@ -1,0 +1,91 @@
+
+> knouxcrypt@2025.1.0 check
+> npm run check:routes && npm run check:audio && npm run build
+
+
+> knouxcrypt@2025.1.0 check:routes
+> node scripts/check-all-routes.cjs
+
+PASS: 44 mission components render in Arabic and English, 45 unique paths including Tools, eight Home cards, 166 rendered internal links resolve; existing draft/sample providers included. Not a browser/visual test.
+
+> knouxcrypt@2025.1.0 check:audio
+> node scripts/check-audio.cjs
+
+PASS: silent default, opt-in cues, rate limit, hidden/muted suppression, cleanup and idempotent dispose. Not an audible test.
+
+> knouxcrypt@2025.1.0 build
+> vite build
+
+vite v4.5.14 building for production...
+transforming...
+(node:1898) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///opt/omniagent/github/daynightae-cmyk/knouxcrypt/shallow/bf46146a510d/postcss.config.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /opt/omniagent/github/daynightae-cmyk/knouxcrypt/shallow/bf46146a510d/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✓ 450 modules transformed.
+rendering chunks...
+computing gzip size...
+build/index.html                                                    1.27 kB │ gzip:  0.62 kB
+build/assets/service-vault-95f24bc9.webp                            4.30 kB
+build/assets/vault-thumb-3-ada8aed1.webp                            4.71 kB
+build/assets/vault-thumb-2-b3e60338.webp                            8.14 kB
+build/assets/vault-thumb-0-13c5eb9d.webp                            9.14 kB
+build/assets/vault-thumb-1-0cf63975.webp                            9.70 kB
+build/assets/vault-thumb-4-de4748f1.webp                            9.81 kB
+build/assets/vault-thumb-6-1dbf6fd7.webp                           11.73 kB
+build/assets/auth-landscape-3f7d2256.webp                          26.18 kB
+build/assets/noto-sans-arabic-arabic-400-normal-4e2ca074.woff2     48.84 kB
+build/assets/noto-sans-arabic-arabic-600-normal-52a2cd4b.woff2     53.26 kB
+build/assets/knoux-stag-6b054a68.png                            1,175.64 kB
+build/assets/StagEmblem-c9a2e44b.css                                1.60 kB │ gzip:  0.60 kB
+build/assets/AdvancedScreens-da6dd29b.css                           3.90 kB │ gzip:  1.44 kB
+build/assets/FinalTools-3a564ed2.css                                4.00 kB │ gzip:  1.53 kB
+build/assets/VaultTools-0fd96ef0.css                                4.22 kB │ gzip:  1.57 kB
+build/assets/LabScreens-beca5a32.css                                4.51 kB │ gzip:  1.66 kB
+build/assets/SplashEntry-1338dda2.css                               4.63 kB │ gzip:  1.68 kB
+build/assets/PrivacyCenter-a313c765.css                             4.71 kB │ gzip:  1.68 kB
+build/assets/Recovery-7e0010b5.css                                  5.23 kB │ gzip:  1.82 kB
+build/assets/WorkflowScreens-af29612a.css                           5.24 kB │ gzip:  1.78 kB
+build/assets/DevicePreviews-6cbbce1b.css                            5.27 kB │ gzip:  1.77 kB
+build/assets/InspectionScreens-ce0e3160.css                         5.76 kB │ gzip:  1.92 kB
+build/assets/SecureShare-5f5b3a0a.css                               5.88 kB │ gzip:  1.96 kB
+build/assets/Authenticator-b6a248f8.css                             6.47 kB │ gzip:  2.07 kB
+build/assets/Passwords-745b7b7e.css                                 7.22 kB │ gzip:  2.15 kB
+build/assets/KeyForge-33b35671.css                                  7.42 kB │ gzip:  2.41 kB
+build/assets/ModernApp-1c280e7d.css                                 7.60 kB │ gzip:  2.07 kB
+build/assets/SecureAccess-b2876b5f.css                              7.82 kB │ gzip:  2.48 kB
+build/assets/notes-184418b4.css                                     8.45 kB │ gzip:  2.59 kB
+build/assets/Home-0d900c5d.css                                      9.69 kB │ gzip:  3.05 kB
+build/assets/ScreenUI-9214a92c.css                                 13.83 kB │ gzip:  3.81 kB
+build/assets/index-f2a0f753.css                                    79.75 kB │ gzip: 13.62 kB
+build/assets/StagEmblem-21123efa.js                                 1.22 kB │ gzip:  0.65 kB
+build/assets/SplashEntry-9bf626ba.js                                2.07 kB │ gzip:  1.00 kB
+build/assets/ScreenUI-4a57da2d.js                                   4.29 kB │ gzip:  1.58 kB
+build/assets/SecureNotes-7dffc97f.js                                4.39 kB │ gzip:  1.73 kB
+build/assets/PrivacyCenter-4b500149.js                              5.15 kB │ gzip:  1.55 kB
+build/assets/NotesEditor-ceea80cc.js                                5.53 kB │ gzip:  1.99 kB
+build/assets/FileCipher-d4345383.js                                 5.90 kB │ gzip:  2.25 kB
+build/assets/SecureShare-c1f95d47.js                                6.11 kB │ gzip:  2.13 kB
+build/assets/Recovery-8361f8a5.js                                   6.38 kB │ gzip:  2.35 kB
+build/assets/AdvancedScreens-bf4806f5.js                            7.42 kB │ gzip:  2.60 kB
+build/assets/KeyForge-0694c265.js                                   7.70 kB │ gzip:  2.55 kB
+build/assets/DevicePreviews-d2990822.js                             7.82 kB │ gzip:  2.85 kB
+build/assets/VaultTools-1c6f908a.js                                 8.11 kB │ gzip:  2.76 kB
+build/assets/Authenticator-2aebde01.js                              8.15 kB │ gzip:  2.69 kB
+build/assets/SecureAccess-7603aac3.js                               8.18 kB │ gzip:  3.06 kB
+build/assets/LabScreens-531c0b70.js                                 8.30 kB │ gzip:  2.93 kB
+build/assets/Passwords-019d9d45.js                                  8.88 kB │ gzip:  2.78 kB
+build/assets/FinalTools-c490b24a.js                                 9.11 kB │ gzip:  2.96 kB
+build/assets/WorkflowScreens-bf4d211f.js                            9.88 kB │ gzip:  3.21 kB
+build/assets/InspectionScreens-960fc80f.js                         10.34 kB │ gzip:  3.34 kB
+build/assets/ShadowVault-18773043.js                               16.89 kB │ gzip: 10.59 kB
+build/assets/index-d740298c.js                                     23.97 kB │ gzip:  7.57 kB
+build/assets/router-2647a712.js                                    38.79 kB │ gzip: 14.09 kB
+build/assets/Home-30bcec77.js                                      40.29 kB │ gzip: 27.67 kB
+build/assets/index-13e6cd5f.js                                     91.40 kB │ gzip: 31.10 kB
+build/assets/motion-d886bd4a.js                                   102.06 kB │ gzip: 34.47 kB
+build/assets/vendor-57209f9c.js                                   140.89 kB │ gzip: 45.27 kB
+build/assets/ModernApp-bdbbf4dd.js                                265.24 kB │ gzip: 71.25 kB
+✓ built in 5.75s
+
+exit=0
