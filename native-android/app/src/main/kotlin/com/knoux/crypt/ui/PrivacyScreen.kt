@@ -19,13 +19,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.knoux.crypt.AppContainer
+import com.knoux.crypt.UiSound
 import com.knoux.crypt.data.AppSettings
 import com.knoux.crypt.data.SessionPrivacyPolicy
 import com.knoux.crypt.design.BackHeader
@@ -168,6 +174,9 @@ fun PrivacyScreen(container: AppContainer, onBack: () -> Unit, onLock: () -> Uni
         }
         Spacer(Modifier.height(10.dp))
 
+        AudioControlsCard(container, settings)
+        Spacer(Modifier.height(10.dp))
+
         GlassCard(Modifier.fillMaxWidth()) {
             SectionLabel(tr("Data at rest", "البيانات المخزنة"))
             Spacer(Modifier.height(6.dp))
@@ -260,6 +269,84 @@ private fun PrivacySwitch(
                 uncheckedThumbColor = KnouxColors.Muted,
                 uncheckedTrackColor = KnouxColors.Raised,
             ),
+        )
+    }
+}
+
+@Composable
+private fun AudioControlsCard(container: AppContainer, settings: com.knoux.crypt.data.AppSettings) {
+    val scope = rememberCoroutineScope()
+    var ambient by remember(settings.ambientVolume) { mutableFloatStateOf(settings.ambientVolume) }
+    var interfaceVolume by remember(settings.uiVolume) { mutableFloatStateOf(settings.uiVolume) }
+    GlassCard(Modifier.fillMaxWidth()) {
+        SectionLabel(tr("Cinematic audio", "الصوت السينمائي"))
+        Spacer(Modifier.height(4.dp))
+        Text(
+            tr(
+                "Original locally synthesized ambience and interface sounds. Off until you enable it, so startup stays silent.",
+                "أجواء وأصوات واجهة أصلية مركّبة محليًا. معطّلة حتى تفعّلها، لذلك يبقى بدء التشغيل صامتًا.",
+            ),
+            style = MaterialTheme.typography.labelSmall,
+            color = KnouxColors.Faint,
+        )
+        Spacer(Modifier.height(6.dp))
+        PrivacySwitch(
+            title = tr("Master audio", "الصوت الرئيسي"),
+            description = tr(
+                "Starts the ambient bed and allows interface sounds while the app is visible.",
+                "يشغّل الخلفية الصوتية ويسمح بأصوات الواجهة أثناء ظهور التطبيق.",
+            ),
+            checked = settings.audioEnabled,
+            onChange = { enabled -> scope.launch { container.settings.setAudioEnabled(enabled) } },
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            tr("Ambient volume: %d%%", "مستوى الخلفية: %d%%").format((ambient * 100).toInt()),
+            style = MaterialTheme.typography.labelSmall,
+            color = KnouxColors.Muted,
+        )
+        Slider(
+            value = ambient,
+            onValueChange = { ambient = it },
+            onValueChangeFinished = { scope.launch { container.settings.setAmbientVolume(ambient) } },
+            enabled = settings.audioEnabled,
+            colors = SliderDefaults.colors(thumbColor = KnouxColors.Violet, activeTrackColor = KnouxColors.VioletDeep),
+        )
+        PrivacySwitch(
+            title = tr("Interface sounds", "أصوات الواجهة"),
+            description = tr(
+                "Short confirmations after successful actions only; nothing plays for cancelled or failed operations.",
+                "تأكيدات قصيرة بعد الإجراءات الناجحة فقط؛ لا شيء يُشغّل عند الإلغاء أو الفشل.",
+            ),
+            checked = settings.uiSoundsEnabled,
+            onChange = { enabled -> scope.launch { container.settings.setUiSoundsEnabled(enabled) } },
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            tr("Interface volume: %d%%", "مستوى الواجهة: %d%%").format((interfaceVolume * 100).toInt()),
+            style = MaterialTheme.typography.labelSmall,
+            color = KnouxColors.Muted,
+        )
+        Slider(
+            value = interfaceVolume,
+            onValueChange = { interfaceVolume = it },
+            onValueChangeFinished = { scope.launch { container.settings.setUiVolume(interfaceVolume) } },
+            enabled = settings.audioEnabled && settings.uiSoundsEnabled,
+            colors = SliderDefaults.colors(thumbColor = KnouxColors.Violet, activeTrackColor = KnouxColors.VioletDeep),
+        )
+        KnouxGhostButton(
+            tr("Preview confirmation sound", "معاينة صوت التأكيد"),
+            { container.audio.play(UiSound.CONFIRM) },
+            enabled = settings.audioEnabled,
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            tr(
+                "The preview is a sound check only; it does not unlock, decrypt or confirm any operation.",
+                "المعاينة فحص للصوت فقط؛ لا تفتح الخزنة ولا تفك تشفيرًا ولا تؤكد أي عملية.",
+            ),
+            style = MaterialTheme.typography.labelSmall,
+            color = KnouxColors.Faint,
         )
     }
 }

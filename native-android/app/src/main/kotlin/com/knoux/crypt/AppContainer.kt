@@ -27,6 +27,8 @@ class AppContainer(context: Context) {
     private val keystore = KeystoreManager()
 
     val session = SessionManager(keystore)
+    /** Application-scoped so screens can preview sounds; MainActivity drives lifecycle. */
+    val audio = AudioController(appContext, appScope)
     val unlockManager = UnlockManagers.create(appContext, keystore, session)
     private val keyRegistry = DataStoreVaultKeyRegistry(appContext)
     val vaultKeys = VaultKeyManager(session, keyRegistry)
