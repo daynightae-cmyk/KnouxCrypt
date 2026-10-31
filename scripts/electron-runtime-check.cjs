@@ -10,6 +10,7 @@
 const { app, BrowserWindow } = require("electron");
 const fs = require("fs");
 const os = require("os");
+const crypto = require("crypto");
 const path = require("path");
 const { VaultService } = require("../electron/vault/service");
 const { registerVaultIpc } = require("../electron/vault/ipc");
@@ -31,6 +32,24 @@ app.whenReady().then(async () => {
   // A real source file for the file-cipher probe (binary, larger than one frame).
   const probePayload = Buffer.concat([Buffer.from("KnouxCrypt runtime file probe — مرحبا\n", "utf8"), Buffer.alloc(300000, 0xa7)]);
   fs.writeFileSync(path.join(dir, "probe-source.bin"), probePayload);
+  // A real self-signed certificate for the certificate-inspector probe.
+  let hasCert = false;
+  try {
+    const { execFileSync } = require("node:child_process");
+    const keyFile = path.join(dir, "probe-key.pem");
+    const certFile = path.join(dir, "probe-cert.pem");
+    const { privateKey } = crypto.generateKeyPairSync("rsa", { modulusLength: 2048 });
+    fs.writeFileSync(keyFile, privateKey.export({ type: "pkcs8", format: "pem" }));
+    execFileSync("openssl", [
+      "req", "-x509", "-new", "-key", keyFile, "-out", certFile,
+      "-not_before", "20200101000000Z", "-not_after", "20400101000000Z",
+      "-subj", "/CN=runtime.knoux.test",
+      "-addext", "subjectAltName=DNS:runtime.knoux.test",
+    ], { stdio: "pipe" });
+    hasCert = fs.existsSync(certFile);
+  } catch {
+    hasCert = false;
+  }
   let win;
   registerVaultIpc(service, () => win);
 
@@ -138,6 +157,32 @@ app.whenReady().then(async () => {
       out.keyExportAllowed = (await api.vault.keyExportPrivate(enr.data.sessionId, out.keyMade.data.id, { confirm: true })).ok;
       out.guestAuthDenied = (await api.vault.authList(guest.data.sessionId)).error?.code;
       out.guestKeyDenied = (await api.vault.keyList(guest.data.sessionId)).error?.code;
+      // Batch 05 (tasks 17-20): real hashing, signatures and certificate parsing.
+      out.hash = await api.vault.hashCompute({ algorithm: "SHA-256", text: "abc" });
+      out.hashMatch = await api.vault.hashCompare(out.hash.data.digest, out.hash.data.digest);
+      out.hashMismatch = await api.vault.hashCompare(out.hash.data.digest, "00".repeat(32));
+      out.hashBadAlgo = (await api.vault.hashCompute({ algorithm: "MD5", text: "x" })).error?.code;
+      const sig = await api.vault.sign(enr.data.sessionId, { keyId: out.keyMade.data.id, text: "runtime signature" });
+      out.signOk = sig.ok === true;
+      out.signFingerprint = sig.data?.fingerprint === out.keyMade.data.fingerprint;
+      const pub = (await api.vault.keyList(enr.data.sessionId)).data.keys[0].publicPem;
+      out.verifyOk = (await api.vault.signVerify(enr.data.sessionId, {
+        publicPem: pub,
+        algorithm: "ED25519",
+        signature: sig.data.signature,
+        text: "runtime signature",
+      })).data?.valid;
+      out.verifyTampered = (await api.vault.signVerify(enr.data.sessionId, {
+        publicPem: pub,
+        algorithm: "ED25519",
+        signature: sig.data.signature,
+        text: "runtime signature!",
+      })).data?.valid;
+      out.signGuest = (await api.vault.sign(guest.data.sessionId, { keyId: out.keyMade.data.id, text: "x" })).error?.code;
+      out.certBad = (await api.vault.certInspect("not a certificate")).error?.code;
+      if (${JSON.stringify(hasCert)}) {
+        out.certInfo = await api.vault.certInspect({ inputPath: base + "/probe-cert.pem" });
+      }
       // Revocation must reach the renderer without a polling call.
       out.revokedEvent = await new Promise((resolve) => {
         const timer = setTimeout(() => resolve("timeout"), 4000);
@@ -191,6 +236,20 @@ app.whenReady().then(async () => {
     check("private key export succeeds with confirmation", probe.keyExportAllowed === true);
     check("a guest session cannot read authenticator accounts", probe.guestAuthDenied === "SESSION_REQUIRED", String(probe.guestAuthDenied));
     check("a guest session cannot read the key store", probe.guestKeyDenied === "SESSION_REQUIRED", String(probe.guestKeyDenied));
+    check("SHA-256 of \"abc\" is the published value over IPC", probe.hash?.data?.digest === "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", String(probe.hash?.data?.digest));
+    check("matching digests compare equal", probe.hashMatch?.data?.equal === true);
+    check("different digests compare unequal", probe.hashMismatch?.data?.equal === false);
+    check("a broken digest algorithm is refused", probe.hashBadAlgo === "BAD_INPUT", String(probe.hashBadAlgo));
+    check("a real signature is produced over IPC", probe.signOk === true, JSON.stringify(probe.signOk));
+    check("the signature reports the signing key fingerprint", probe.signFingerprint === true);
+    check("the signature verifies against the public key", probe.verifyOk === true);
+    check("a tampered message fails verification", probe.verifyTampered === false, String(probe.verifyTampered));
+    check("a guest session cannot sign", probe.signGuest === "SESSION_REQUIRED", String(probe.signGuest));
+    check("a non-certificate string is refused", probe.certBad === "BAD_INPUT", String(probe.certBad));
+    if (hasCert) {
+      check("a real certificate is parsed over IPC", probe.certInfo?.ok === true && /runtime\.knoux\.test/.test(probe.certInfo?.data?.subject || ""), JSON.stringify(probe.certInfo?.error || probe.certInfo?.data?.subject));
+      check("the parsed certificate reports its validity window", probe.certInfo?.data?.expired === false && probe.certInfo?.data?.selfSigned === true);
+    }
     check("renderer produced no console errors", consoleErrors.length === 0, consoleErrors.slice(0, 3).join(" | "));
   } catch (err) {
     check("runtime check completed without throwing", false, err.message);

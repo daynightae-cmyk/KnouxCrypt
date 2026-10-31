@@ -254,6 +254,38 @@
   color: #d9b578;
   background: #50301822;
 }
+.inspection-ok {
+  padding: 12px;
+  border: 1px solid #3c976788;
+  border-radius: 11px;
+  color: #7fd7a5;
+  background: #183a2922;
+  font-size: 10px;
+  line-height: 1.9;
+  margin: 14px 0;
+  text-align: center;
+}
+.inspection-text-panel {
+  display: block;
+  margin: 18px 0;
+  font-size: 11px;
+  color: #b492c7;
+}
+.inspection-text-panel textarea,
+.inspection-text-panel input {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.9;
+}
+.inspection-value-full {
+  font-size: 10px;
+  word-break: break-all;
+  color: #b492c7;
+  padding: 8px 4px;
+}
 .inspection-text-panels {
   display: grid;
   grid-template-columns: 1fr 1fr;

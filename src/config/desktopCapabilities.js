@@ -274,6 +274,67 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
     displayStatusReason:
       "Packages are real authenticated containers. Expiry is enforced when a package is opened, but an already-exported copy cannot be forcibly recalled, and the UI states this. No server-side delivery or revocation service exists.",
   },
+  {
+    id: "HASH_INTEGRITY",
+    title: "Hash & Integrity",
+    platformCapability:
+      "Real digests over text or a chosen file with SHA-256, SHA-384, SHA-512, SHA3-256 and SHA3-512 through Node/OpenSSL, plus a constant-time digest comparison. MD5 and SHA-1 are refused.",
+    permissionNeeds: ["Read access to the selected file"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch05-inspection.test.cjs (published SHA-256 value for \"abc\", every offered digest, MD5/SHA-1 refusal, file digest matches raw bytes, NOT_FOUND for a missing file, empty-input refusal, exact and length-mismatch comparison, non-hex refusal, and service-level hashCompute/hashCompare)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Hashing and constant-time comparison are real and tested. The screen reports only digests it actually computed; no integrity conclusion is drawn for a file the user has not selected.",
+  },
+  {
+    id: "TEXT_CIPHER",
+    title: "Text Cipher",
+    platformCapability:
+      "Encrypt and decrypt short text with the same AES-256-GCM vault engine used for files, keyed by the unlocked vault key, returning a base64 authenticated container.",
+    permissionNeeds: ["Unlocked vault session"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/vault-service.test.cjs (real text encrypt/decrypt through the service, wrong-key refusal, revoked-session refusal)",
+      "tests/vault-engine.test.cjs (the buffer container format, tamper and truncation detection)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Text is genuinely encrypted with the vault key; a locked or guest session cannot run it. The output is a real container, not a placeholder string.",
+  },
+  {
+    id: "SIGNATURE",
+    title: "Digital Signature",
+    platformCapability:
+      "Detached signatures over text or a chosen file using keys stored in the vault: Ed25519, ECDSA P-256/P-384 and RSA-2048/4096. Verification works with a public key and needs no unlocked vault.",
+    permissionNeeds: ["Unlocked vault session to sign", "A signing key in the vault"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch05-inspection.test.cjs (Ed25519 round-trip, tamper detection, RSA round-trip with a foreign key refused, garbage-signature refusal without throwing, non-private-key and unknown-algorithm refusal, stored-key sign then verify, session required to sign, public-PEM verification after lock, NOT_FOUND for an unknown key id, and service-level certificateInspect)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Signing and verification are real Node/OpenSSL operations against vault-held keys. Private material never leaves the main process; only the detached signature and public key are returned.",
+  },
+  {
+    id: "CERTIFICATE_INSPECTOR",
+    title: "Certificate Inspector",
+    platformCapability:
+      "Parse a PEM X.509 certificate and report subject, issuer, serial, validity window with an expired/not-yet-valid verdict, self-signed check, SHA-256 fingerprint, subject alternative names and public key type.",
+    permissionNeeds: ["The certificate text or PEM file"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch05-inspection.test.cjs (a real openssl-generated certificate parsed for subject, SAN, dates and self-signed status; an expired certificate reported expired; non-PEM and malformed-PEM refusal; service-level parsing)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Parsing uses Node's X509Certificate, so the reported fields are real. KnouxCrypt ships no CA trust store, so a certificate is never labelled trusted; the self-signed result is reported as a fact.",
+  },
 ]);
 
 export function capabilityById(id) {
