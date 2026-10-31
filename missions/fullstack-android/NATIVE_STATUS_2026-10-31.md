@@ -5,6 +5,7 @@
 **Security P0 commit:** `c3f718f7cee4b8f663b05e9d3aae858101554029`
 **Argon2id/KNP2 commit:** `a2ec4b7d2122e40fa5182ade580245b9c26c7c30`
 **Backup/restore commit:** `aedb4c3f88910af4962d2ed517a1df2f1e8736ea`
+**Revocation boundary + TASK 31 commit:** `176d8c38557893b773e598f596dd81c8aea90240`
 **PR #14 reconciliation merge:** `b4fe65c`
 **Base:** `integration/knoux-crypt-android-ready-20261030` @ `8f6f992`
 **PR #14 branch untouched:** `android/task00-foundation-review` @ `310665d` (still unmerged, not deleted).
@@ -21,8 +22,8 @@
 | APK SHA-256 | `sha256sum` | `7608ea31a33f4beb1a64c3ef776deb63a53358f01a26c5494d885e6f36482cd9` |
 | Android lint | `./gradlew :app:lintDebug` | PASS — 0 errors, 12 warnings (dependency updates, API-33 attribute) |
 | Instrumented test sources | `./gradlew :app:compileDebugAndroidTestKotlin :core:data:compileDebugAndroidTestKotlin` | PASS (compiled, **NOT RUN**) |
-| Backup/restore fresh JVM suite | `./gradlew :core:security:test :core:data:test :app:testDebugUnitTest --rerun-tasks` | PASS — **79 tests**, 0 failures, 0 errors |
-| Backup/restore debug APK | `./gradlew :app:assembleDebug` | PASS — 17,600,138 bytes, SHA-256 `c49f4831…bce5d` |
+| Rotation/revocation fresh JVM suite | `./gradlew :core:security:test :core:data:test :app:testDebugUnitTest --rerun-tasks` | PASS — **99 tests**, 0 failures, 0 errors |
+| Rotation debug APK | `./gradlew :app:assembleDebug` | PASS — 17,628,199 bytes, SHA-256 `81b793f7…ae959` |
 | Security P0 lint | `./gradlew :core:data:lintDebug :app:lintDebug` | PASS — 0 errors |
 | Device availability | `adb devices`; `HypervisorPresent` | **No device; False** → no emulator |
 
@@ -34,7 +35,7 @@ Test distribution: FileEnvelope 13, PassphraseEnvelope 6, TOTP/Base32/hash/rando
 |---|---|---|
 | 00 | Native foundation | **BUILD_VERIFIED + JVM-TESTED**; device/security review open |
 | 01 | Splash entry | **BUILD_VERIFIED** (UI); device screenshot open |
-| 02 | Secure access login | **BUILD_VERIFIED + JVM-TESTED (21 boundary tests)**; BiometricPrompt/Keystore runtime **DEVICE_UNVERIFIED**; locked-state reset removed, atomic gate rotation added |
+| 02 | Secure access login | **BUILD_VERIFIED + JVM-TESTED (25 boundary/revocation tests)**; BiometricPrompt/Keystore runtime **DEVICE_UNVERIFIED**; locked-state reset removed, atomic gate rotation added, lock now waits for in-flight authorized commits |
 | 03 | Home | **BUILD_VERIFIED + catalog tests**; device visual parity open |
 | 04 | File cipher | **BUILD_VERIFIED + core TESTED (13)**; SAF/device open |
 | 05 | Shadow vault | PLANNED — design-only placeholder |
@@ -47,7 +48,7 @@ Test distribution: FileEnvelope 13, PassphraseEnvelope 6, TOTP/Base32/hash/rando
 | 12 | Key Forge | **BUILD_VERIFIED** (ephemeral key only); persistent keyring open |
 | 13 | Key details | PLANNED |
 | 14 | Privacy Center | **BUILD_VERIFIED** (UI); security review open |
-| 15 | Backup / Recovery | **PARTIAL / BUILD_VERIFIED + TESTED_LOCAL (9)**: KNP2/Argon2id data export & conflict-safe restore; no key rotation, no gate recovery; SAF **DEVICE_UNVERIFIED** |
+| 15 | Backup / Recovery | **PARTIAL / BUILD_VERIFIED + TESTED_LOCAL (10)**: KNP2/Argon2id data export & conflict-safe restore; rotation exists separately but the root is retained and gate recovery is absent; SAF **DEVICE_UNVERIFIED** |
 | 16 | Secure share | PLANNED |
 | 17 | Hash & Integrity | **BUILD_VERIFIED + TESTED**; device SAF open |
 | 18 | Text cipher | **BUILD_VERIFIED + TESTED (8)**; KNP2/Argon2id writes, KNP1 readable; device UI open |
@@ -63,7 +64,7 @@ Test distribution: FileEnvelope 13, PassphraseEnvelope 6, TOTP/Base32/hash/rando
 | 28 | Public-key QR | PLANNED |
 | 29 | Vault collections | PLANNED |
 | 30 | Document viewer | PLANNED |
-| 31 | Vault key rotation | PLANNED — security-critical next |
+| 31 | Vault key rotation | **SOURCE_IMPLEMENTED + JVM_TESTED (14) — DEVICE_UNVERIFIED / AUDIT_PENDING**: versioned root-wrapped DEK hierarchy, KNC2/room v2, reauth, journal, resumable batches, retirement guard, real wizard; KNF1 root retained |
 | 32 | Package inspector | PLANNED (KNF1 reader exists internally) |
 | 33 | Android autofill | PLANNED |
 | 34 | Offline advisor | PLANNED |
@@ -74,12 +75,12 @@ Test distribution: FileEnvelope 13, PassphraseEnvelope 6, TOTP/Base32/hash/rando
 | 39 | Security activity | PLANNED |
 | 40 | Transfer wizard | PLANNED |
 | 41 | Expiring capsule | PLANNED |
-| 42 | Session privacy controls | **PARTIAL / BUILD_VERIFIED**: 30 s lock, explicit lock, decrypted-state clearing, lock-aware repository/file checks; remaining privacy controls PLANNED |
+| 42 | Session privacy controls | **PARTIAL / BUILD_VERIFIED**: 30 s lock, explicit lock, decrypted-state clearing, lock-aware repository/file checks, mutation/revocation serialization; remaining privacy controls PLANNED |
 | 43 | File integrity tool | PLANNED (hash screen covers part of 43) |
 | 44 | Secure clipboard | PLANNED |
 | 45 | Final integration/verification | **BLOCKED by device availability** |
 
-Catalog accounting: 34 destinations total = **11 IMPLEMENTED**, **0 BLOCKED**, **23 DESIGN_ONLY** (Recovery is implemented for encrypted data export/restore; gate recovery remains out of scope). Eight Home cards preserved in the accepted order.
+Catalog accounting: 34 destinations total = **11 IMPLEMENTED**, **0 BLOCKED**, **23 DESIGN_ONLY** (Recovery is implemented for encrypted data export/restore; gate recovery remains out of scope). Key rotation is an internal Account wizard, not a new Tools destination. Eight Home cards preserved in the accepted order.
 
 ## Reality of the implementation
 
@@ -96,17 +97,24 @@ Catalog accounting: 34 destinations total = **11 IMPLEMENTED**, **0 BLOCKED**, *
 3. **Crypto scope**: KNP2 text uses Argon2id; KNF1 file containers still use PBKDF2; no vault-key rotation or recovery; no large-file soak; nonce/key-usage limits not formally analyzed.
 4. **Auth binding**: master key use is gated by the app capability, not per-use biometric authorization.
 5. **Design-only majority**: 23 tools remain explicit placeholders; they do not fake operations.
-6. **Gate recovery**: a biometric-invalidated or lost gate now shows a truthful non-destructive recovery-required state. Data can be backed up/restored, but the gate and Keystore root key cannot; key rotation (TASK 31) is still absent.
+6. **Gate recovery**: a biometric-invalidated or lost gate shows a truthful non-destructive recovery-required state. Data can be backed up/restored, but the gate and Keystore root key cannot be restored. Data-key rotation exists; the root key is retained for KNF1 files.
 7. **Biometric cipher identity**: unlock passes the exact prepared `Cipher` back to the domain and rejects substitution; real `BiometricPrompt` same-instance behavior is still DEVICE_UNVERIFIED.
 6. **Visual parity**: PR15 is the accepted baseline, not pixel certification; the external Preview artifact is not the APK.
 7. **PR14 review branch** remains unmerged and untouched; this branch must be reviewed before any merge to `main`.
 
 ## Safe next actions (dependency-aware)
 
-1. **SecurityCritical:** TASK 31 vault-key rotation / versioned key hierarchy is the remaining P0 blocker; backup exists but gate recovery and key rotation do not. Then 02 per-use data-key binding. Independent device execution and audit remain owner gates.
+1. **Device/audit gate:** run the new rotation, Keystore wrap and Room migration instrumentation on real hardware; capture AR/EN screenshots; commission independent review. TASK 31 is source-implemented but DEVICE_UNVERIFIED/AUDIT_PENDING. Root retention for KNF1 files and the absence of a KNF2 file-rotation format are documented gaps.
 2. **Vertical slices:** 05 Vault (uses KNF1), 07 Notes editor, 09 Password detail, 21 Archive (uses KNF1), 43 File Integrity.
 3. **Device gate:** obtain a physical Android 8.0+ device with strong biometrics; install `app-debug.apk`, run both instrumented classes, then capture Compose screenshots at 360/390/441 widths in EN/AR and compare against canonical references.
 4. **Quality gate:** detekt/ktlint, dependency locking, CVE scan, R8 shrinking (BouncyCastle adds 3.18 MB), and a real CI workflow (the PR14 template remains uninstalled).
+
+## Revocation boundary + vault data-key rotation — 2026-10-31 (`176d8c3`)
+
+- Lock/revocation is serialized with a coroutine mutation gate: a lock waits for an already-authorized commit and no mutation starts after revocation. `save`, `delete`, backup restore and rotation batches use it; tests pause DAO writes and assert the invariant.
+- New KEK/DEK hierarchy: non-exportable `knoux.master.v2` wraps random DEKs (KDK1), records carry `keyVersion` (Room v2 migration, KNC2 version-authenticated envelope), and wrapped keys live in DataStore.
+- Rotation requires fresh biometric reauth, journals source/target, migrates in verified Room batches, serves mixed versions, verifies all target rows, cuts over under the revocation gate, and retires only zero-dependency DEKs. Interruption before/after cutover is resumable.
+- 14 rotation tests + revocation/backup/codec tests; full suite 99 tests, 0 failures. APK 17,628,199 bytes; lint 0 errors. Device/Keystore/BiometricPrompt/Room migration and visual parity remain DEVICE_UNVERIFIED; audit pending. Root key is retained; external KNF1 files are not migrated.
 
 ## Backup & restore — 2026-10-31 (`aedb4c3`)
 

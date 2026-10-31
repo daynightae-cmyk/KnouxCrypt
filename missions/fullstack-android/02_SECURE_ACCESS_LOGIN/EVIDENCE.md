@@ -60,3 +60,15 @@ fresh enrollment requires the prepared cipher; setup blocked by master key, by a
 - Recovery from an invalidated gate is a truthful **recovery-required** state; restore is **BLOCKED** on TASK 15, not simulated.
 - No independent security audit, fuzzing or dependency CVE scan occurred.
 - `OWNER_ACTIONS_REQUIRED.md` records the device-only checks the owner must still supply.
+
+
+## In-flight revocation boundary — 2026-10-31 (`176d8c3`)
+
+- `SessionManager.lock()` now takes a coroutine mutation gate before revoking; repository
+  `save`/`delete`, backup `restore` and key-rotation batches hold the same gate across the
+  logical Room commit. A lock waits for an already-authorized mutation, and no mutation
+  can start or silently commit after revocation.
+- Deterministic tests pause a DAO write, revoke, and assert the lock waits, the authorized
+  commit lands before revocation, later writes fail, and cancellation/database errors
+  write nothing. Full suite: 99 tests, 0 failures; APK 17,628,199 bytes; lint 0 errors.
+- Device lifecycle/Keystore behavior remains DEVICE_UNVERIFIED; no audit.

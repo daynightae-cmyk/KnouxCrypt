@@ -57,9 +57,10 @@ install, launch, screenshot, lifecycle, Back, biometric, Keystore or SAF evidenc
 
 ### Honest limitations / remaining risks
 
-- **Key rotation (TASK 31) is absent.** Backups re-encrypt under the current device master
-  key on import; there is no versioned key hierarchy, no rotation checkpoint/rollback, and
-  no key retirement. Do not describe this as full key-loss recovery or key rotation.
+- **Key rotation is now separate (TASK 31, `176d8c3`).** Backup restore re-encrypts under
+  the vault's current active key version; the rotation implementation, journal and
+  retirement guard live in TASK 31. The Keystore root is retained and this backup still is
+  not full key-loss recovery.
 - **Gate recovery is absent.** The biometric gate and Keystore master key are not backed up.
   A user who lost the gate cannot use the backup until a new gate is set up; the old gate
   is not restored. The recovery-required panel remains truthful.
@@ -74,7 +75,7 @@ install, launch, screenshot, lifecycle, Back, biometric, Keystore or SAF evidenc
 
 ### Next safe action
 
-TASK 31 vault-key rotation / versioned key hierarchy (with an explicit decision on
-non-exportable Keystore roots and device-key KNF1 files) remains the blocking P0.
-TASK 15 should not be marked fully complete before rotation, restore drills on a real
-device, and an independent review exist.
+TASK 31 rotation is now source-implemented and JVM-tested (`176d8c3`), but the Keystore
+root is retained and external KNF1 files are not migrated. TASK 15 should not be marked
+fully complete before SAF/device restore drills, the Room/Keystore device tests and an
+independent review exist.
