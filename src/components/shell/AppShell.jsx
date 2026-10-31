@@ -5,6 +5,10 @@ import { SCREENS } from "../../config/screens";
 import "./shell.css";
 import "./interaction.css";
 import { NavigationEffects } from "./NavigationEffects";
+import { WorkspaceActivityProvider } from "../desktop/WorkspaceActivity";
+import { DesktopChrome } from "../desktop/DesktopWorkspace";
+import { MotionProvider, useMotionPreferences } from "./MotionPreferences";
+import { KnouxAudioProvider } from "./KnouxAudioProvider";
 import { AmbientSound } from "./AmbientSound";
 
 export const CYBER_TERMS = Object.freeze(["AES-256", "ENCRYPTION", "CIPHER", "SHA-256", "ZERO TRUST", "KEY EXCHANGE", "HMAC", "AEAD", "NONCE", "PUBLIC KEY", "AUTH TAG", "0x7F A9"]);
@@ -43,7 +47,9 @@ export function AppBottomNav() {
     {[['Home',SCREENS.HOME],['Tools',SCREENS.TOOLS],['Account',SCREENS.SECURE_ACCESS_LOGIN]].map(([label,to]) => <NavLink key={label} to={to} end state={label==='Account'?{returnTo:SCREENS.HOME}:undefined}><span><NavIcon name={label}/></span>{t(label)}</NavLink>)}
   </nav>;
 }
-export function AppShell({ children }) {
+export function AppShell({children}) { return <MotionProvider><KnouxAudioProvider><WorkspaceActivityProvider><ShellContent>{children}</ShellContent></WorkspaceActivityProvider></KnouxAudioProvider></MotionProvider>; }
+function ShellContent({ children }) {
+  const motion=useMotionPreferences();
   const { t, locale, dir } = useLanguage();
 
   const {pathname, state} = useLocation();
@@ -59,12 +65,12 @@ export function AppShell({ children }) {
   }, []);
   const primary = pathname===SCREENS.HOME || pathname===SCREENS.TOOLS || pathname===SCREENS.NOTES || pathname===SCREENS.KEY_FORGE || pathname===SCREENS.PRIVACY;
   useLayoutEffect(() => { scroll.current?.scrollTo?.(0,0); },[pathname]);
-  return <div data-page-hidden={pageHidden ? "true" : "false"} data-scene={pathname===SCREENS.SPLASH_ENTRY?"splash":pathname===SCREENS.SECURE_ACCESS_LOGIN?"auth":"content"} className={`crypt-app-shell ${primary?'app-has-navigation':''}`}>
+  return <div data-motion-quality={motion.quality} data-motion-running={motion.running} data-performance={motion.preferences.performance} style={{"--particle-intensity":motion.preferences.particles,"--eye-intensity":motion.preferences.eyes}} data-page-hidden={pageHidden ? "true" : "false"} data-scene={pathname===SCREENS.SPLASH_ENTRY?"splash":pathname===SCREENS.SECURE_ACCESS_LOGIN?"auth":"content"} className={`crypt-app-shell ${primary?'app-has-navigation':''}`}>
     <a className="app-skip-link" href="#app-content">{t("Skip to page content")}</a>
     <NavigationEffects/>
     <CipherAtmosphere/>
     <div className="app-utility-bar"><LanguageToggle/>{guestPreview && <span className="app-guest-session">{t("Guest · visual demo")}</span>}<AmbientSound splash={pathname===SCREENS.SPLASH_ENTRY}/></div>
-    <div ref={scroll} className="app-scroll-region" id="app-content" tabIndex={0} role="region" aria-label={t("Page content")}>{children}</div>
+    <div ref={scroll} className="app-scroll-region" id="app-content" tabIndex={0} role="region" aria-label={t("Page content")}><DesktopChrome>{children}</DesktopChrome></div>
     {primary && <AppBottomNav/>}
   </div>;
 }

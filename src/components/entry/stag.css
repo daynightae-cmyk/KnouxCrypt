@@ -1,33 +1,27 @@
-.stag-emblem { position: relative; display: block; aspect-ratio: 1; width: 100%; }
-.stag-emblem img { display: block; width: 100%; height: auto; }
-.stag-eye-light { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.stag-eye-light path { fill: #f5e9ff; filter: drop-shadow(0 0 8px #fff) drop-shadow(0 0 18px #b667ff); opacity: .06; animation: stag-eyes-breathe 7s cubic-bezier(.4,0,.2,1) infinite; }
-.stag-eye-light .stag-eye-ray { filter: blur(12px); }
-.stag-eye-light .stag-light-right { animation-delay: .35s; }
-.stag-entrance .stag-eye-light path { animation: stag-eyes-arrive 2.8s ease-out both, stag-eyes-breathe 7s 2.8s cubic-bezier(.4,0,.2,1) infinite; }
-.stag-entrance .stag-eye-light .stag-light-right { animation-delay: .3s,3.1s; }
-@keyframes stag-eyes-breathe { 0%, 100% { opacity: .04; } 45%, 55% { opacity: .65; } }
-@keyframes stag-eyes-arrive { 0% { opacity: 0; } 50% { opacity: .8; } 100% { opacity: .04; } }
-@media (prefers-reduced-motion: reduce) { .stag-eye-light { display: none; } }
-.stag-eye-light .stag-antler-trace { fill:none;stroke:#e2c5ff;stroke-width:3;stroke-linecap:round;stroke-dasharray:80 1500;stroke-dashoffset:0;opacity:0;filter:drop-shadow(0 0 10px #bd6dff);animation:none; }
-.stag-entrance .stag-eye-light .stag-antler-trace { animation:stag-antler-energize 3.8s 1s ease-out both; }
-.stag-entrance img { animation:stag-art-arrive 2s ease-out both; }
-@keyframes stag-antler-energize {0%{opacity:0;stroke-dashoffset:0;}35%{opacity:.35;}100%{opacity:0;stroke-dashoffset:-1350;}}
-@keyframes stag-art-arrive {from{opacity:.75;filter:brightness(.8);}to{opacity:1;filter:brightness(1);}}
-@media(prefers-reduced-motion:reduce){.stag-entrance img{animation:none!important;}}
+.stag-emblem{position:relative;display:block;aspect-ratio:1;width:100%;isolation:isolate}
+.stag-emblem img{display:block;width:100%;height:auto;position:relative}
+.stag-emblem .stag-eye-light{position:absolute;inset:0 auto auto 0;width:100%;height:auto;aspect-ratio:1;pointer-events:none;overflow:visible}
+.stag-eye-shutter{opacity:.98}
+.stag-eye-envelope{opacity:var(--eye-intensity,1);transition:opacity 1.4s ease,filter .5s ease}
+.stag-eye{opacity:.78;animation:stag-breath 4.6s ease-in-out infinite}
+.stag-eye-right{animation-delay:-.16s}
+.stag-eye-glint{opacity:.8;animation:stag-glint 9.3s ease-in-out infinite}
+.stag-eye-right .stag-eye-glint{animation-delay:-4.1s}
+.stag-eye-core{filter:drop-shadow(0 0 4px #f9eaff)}
+.stag-eye-trails{opacity:.16;stroke-dasharray:12 140;animation:stag-trail 4.6s linear infinite}
+.stag-emblem[data-eye-phase="dormant"] .stag-eye-envelope,.stag-emblem[data-eye-phase="extinguishing"] .stag-eye-envelope{opacity:0}
+.stag-emblem[data-eye-phase="awakening"] .stag-eye-envelope{opacity:calc(var(--eye-intensity,1)*.45)}
+.stag-emblem[data-eye-phase="ignition"] .stag-eye-envelope{filter:brightness(1.5)}
+.stag-entrance:not([data-eye-phase="extinguishing"]) .stag-eye-envelope{animation:stag-arrival 1.5s ease-out both}
+@keyframes stag-breath{0%,100%{opacity:.66}50%{opacity:1}}
+@keyframes stag-glint{0%,37%,42%,100%{opacity:.62}39%,40%{opacity:1}}
+@keyframes stag-trail{to{stroke-dashoffset:-152}}
+@keyframes stag-arrival{0%{opacity:0}35%{opacity:calc(var(--eye-intensity,1)*.35)}65%{opacity:var(--eye-intensity,1);filter:brightness(1.5)}100%{opacity:var(--eye-intensity,1)}}
+@media(prefers-reduced-motion:reduce){.stag-emblem *{animation:none!important;transition:none!important}.stag-eye-trails{display:none}}
 
-/* Exact existing eye contours receive independent light; no logo pixels change. */
-.stag-eye-light :is(.stag-light-left,.stag-light-right) {
-  filter:drop-shadow(0 0 5px #fff0ff) drop-shadow(0 0 15px #d59aff) drop-shadow(0 0 28px #942aff);
-  animation:stag-eye-idle 7.6s cubic-bezier(.4,0,.2,1) infinite;
-}
-.stag-eye-light .stag-light-right {animation-delay:.22s;}
-.stag-entrance .stag-eye-light .stag-light-left {animation:stag-eye-ignite 2.8s ease-out both,stag-eye-idle 7.6s 2.8s cubic-bezier(.4,0,.2,1) infinite;}
-.stag-entrance .stag-eye-light .stag-light-right {animation:stag-eye-ignite 2.8s .22s ease-out both,stag-eye-idle 7.6s 3.02s cubic-bezier(.4,0,.2,1) infinite;}
-.stag-eye-light .stag-eye-ray {animation:stag-eye-ray-breathe 7.6s ease-in-out infinite;}
-@keyframes stag-eye-ignite {0%,12%{opacity:.04;}52%{opacity:.95;}75%{opacity:.7;}100%{opacity:.24;}}
-@keyframes stag-eye-idle {0%,100%{opacity:.24;}42%{opacity:.82;}65%{opacity:.6;}}
-@keyframes stag-eye-ray-breathe {0%,100%{opacity:.025;}45%{opacity:.18;}}
-.stag-eye-glint {filter:drop-shadow(0 0 7px #ebc7ff);animation:stag-glint-ignite 3s ease-out both,stag-eye-idle 7.6s 3s ease-in-out infinite;}
-.stag-glint-right {animation-delay:.22s,3.22s;}
-@keyframes stag-glint-ignite {0%,15%{opacity:0;}49%{opacity:1;}70%{opacity:.65;}100%{opacity:.3;}}
+/* Reversible apertures close the light over the original painted-eye occlusion. */
+.stag-eye-aperture{transform-origin:627px 715px;animation:stag-blink 9s ease-in-out infinite}
+.stag-emblem[data-eye-phase="dormant"] .stag-eye-aperture,.stag-emblem[data-eye-phase="extinguishing"] .stag-eye-aperture{animation:none;transform:scaleY(.001);transition:transform .6s ease}
+@keyframes stag-blink{0%,94%,100%{transform:scaleY(1)}96%,97%{transform:scaleY(.001)}}
+.crypt-app-shell[data-motion-quality="off"] .stag-eye-aperture,.crypt-app-shell[data-motion-running="false"] .stag-eye-aperture{animation:none;transform:scaleY(1)}
+@media(prefers-reduced-motion:reduce){.stag-eye-aperture{animation:none;transform:scaleY(1)}}

@@ -1,0 +1,75 @@
+{
+  "baseline": "59393e2",
+  "visualSlots": [
+    "05",
+    "06",
+    "07",
+    "08"
+  ],
+  "canonicalTaskIds": [
+    "08_PASSWORDS",
+    "09_PASSWORD_DETAIL (existing route preserved)",
+    "10_AUTHENTICATOR",
+    "11_AUTH_IMPORT (existing route preserved)",
+    "12_KEY_FORGE",
+    "13_KEY_DETAILS (existing route preserved)",
+    "14_PRIVACY"
+  ],
+  "status": "PARTIAL",
+  "implementation": [
+    "Password table/category/search, public demo reveal and contextual inspector",
+    "Authenticator honest empty state, account-group controls and import route",
+    "Key Forge algorithm-dependent parameters, inventory tabs and inspector",
+    "Privacy configuration cards/inspector and real persisted language preference"
+  ],
+  "files": [
+    "src/components/desktop/DesktopWorkspace.jsx",
+    "src/components/desktop/DesktopSecurity.jsx",
+    "src/components/desktop/desktop.css",
+    "src/i18n/desktop-ar.js",
+    "scripts/check-desktop-workspace.py"
+  ],
+  "inputs": {
+    "src/components/desktop/DesktopWorkspace.jsx": "c4589bef2f040bd33e6da65837984bd66614d06c9f979f22801fd4997d1bf338",
+    "src/components/desktop/DesktopSecurity.jsx": "a02168f6391f47fc22908b3e9e66d0e51298f341bb04988ebf4783f7ee1c2fcb",
+    "src/components/desktop/desktop.css": "6ae29d98e992e148613749e24c5a1e81d120a946693fba6ff8a81d1a0fe8e5de",
+    "src/i18n/desktop-ar.js": "ebf8df939f7ae9650360bde421bce293af8b1f36903677d0786b220c33a46e1e",
+    "scripts/check-desktop-workspace.py": "02677ffcd71689ef8e7926317e24879564423fcbf72183351b9b01237784b4bc"
+  },
+  "tests": [
+    {
+      "command": "npm run check",
+      "exitCode": 0
+    },
+    {
+      "command": "python3 scripts/check-desktop-workspace.py",
+      "exitCode": 0,
+      "result": "48 desktop viewport/locale/route cases, prior interactions plus key parameters and password filter/public reveal"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "screenshots": "workspace output/desktop/increment-2 (real cloud Chromium 1672x941)",
+  "push": {
+    "status": "BLOCKED_POLICY",
+    "sha": null
+  },
+  "gaps": [
+    "Encrypted credential/TOTP/key storage and secure backend capabilities unavailable",
+    "No fabricated keys, OTPs or OS protection statuses",
+    "Windows Electron runtime/build/DPI unverified",
+    "Concept art is not pixel matched"
+  ],
+  "next": [
+    "09_BACKUP_RECOVERY_STUDIO",
+    "10_TOOLS_SECURITY_LABS",
+    "Shared Desktop Shell consistency",
+    "Final visual regression QA"
+  ],
+  "_provenance": {
+    "generatedBy": "CodeRabbit Agent",
+    "taskId": "83d7249a-39b8-4935-8b1b-a450b75d8941"
+  }
+}

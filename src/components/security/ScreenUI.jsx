@@ -9,6 +9,8 @@ export function Mark({ name = "shield", ...props }) {
   const { t, locale, dir } = useLanguage();
 
  const paths = {
+  grid:<><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
+  clock:<><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></>,
   shield:<><path d="m12 2 9 4v6c0 5-6 9-9 11-3-2-9-6-9-11V6Z"/><path d="m8 12 3 3 5-6"/></>,
   lock:<><rect x="5" y="10" width="14" height="12" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4M12 15v3"/></>,
   unlock:<><rect x="5" y="10" width="14" height="12" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0M12 15v3"/></>,

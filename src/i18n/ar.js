@@ -1,5 +1,7 @@
 // English source keys keep UI state/route IDs independent from translations.
+import { desktopAr } from "./desktop-ar";
 export const ar = {
+...desktopAr,
 "Essentials":"الأساسية", "Files & Vault":"الملفات والخزنة", "Keys & Identity":"المفاتيح والهوية", "Privacy & Sharing":"الخصوصية والمشاركة", "All tools":"كل الأدوات", "Tool categories":"فئات الأدوات",
 "Matching services":"الخدمات المطابقة",
 "Skip to page content":"تجاوز إلى محتوى الصفحة",

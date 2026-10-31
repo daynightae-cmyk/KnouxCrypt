@@ -73,3 +73,9 @@
   .crypt-entry *, .crypt-entry *::after { animation: none !important; transition: none !important; }
   .crypt-ignition { display: none; }
 }
+
+.splash-access-state{font-size:11px;color:#bda5d5;text-align:center;margin:0;min-height:16px}
+.splash-energy-wave{position:absolute;inset:15%;z-index:-1;border-radius:50%;background:radial-gradient(ellipse,#9741dd30,transparent 70%);transform:scale(.7);opacity:.3;pointer-events:none}
+[data-entry-phase="ignition"] .splash-energy-wave{animation:splash-wave 1s ease-out both}
+@keyframes splash-wave{0%{transform:scale(.6);opacity:.2}40%{opacity:1}100%{transform:scale(1.9);opacity:.1}}
+.crypt-app-shell[data-motion-quality="off"] .crypt-entry *{animation:none!important;transition:none!important}
