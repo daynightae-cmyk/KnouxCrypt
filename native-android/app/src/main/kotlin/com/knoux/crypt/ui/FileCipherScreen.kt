@@ -338,8 +338,8 @@ fun FileCipherScreen(
                 )
                 Text(
                     tr(
-                        "Portable KNF1 container with PBKDF2-HMAC-SHA256 (310,000 iterations). Argon2id is currently used for KNP2 text envelopes and the Key Derivation tool; file containers remain KNF1/PBKDF2.",
-                        "حاوية KNF1 محمولة مع PBKDF2-HMAC-SHA256 (310,000 تكرار). يُستخدم Argon2id حاليًا لحاويات النص KNP2 وأداة اشتقاق المفاتيح؛ تبقى حاويات الملفات على KNF1/PBKDF2.",
+                        "Device-key files use KNF2: a random per-file DEK is wrapped by the Keystore root with a provider-generated IV, then chunks use that DEK. Legacy KNF1 device files remain readable. Passphrase files still use KNF1/PBKDF2; Argon2id covers KNP2 text.",
+                        "تستخدم ملفات مفتاح الجهاز KNF2: يُلف مفتاح بيانات عشوائي لكل ملف بمفتاح جذر Keystore باستخدام IV يولده المزوّد، ثم تستخدم القطع ذلك المفتاح. تبقى ملفات KNF1 القديمة بمفتاح الجهاز قابلة للقراءة. ما زالت ملفات عبارة المرور تستخدم KNF1/PBKDF2؛ ويغطي Argon2id نص KNP2.",
                     ),
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.padding(top = 4.dp),

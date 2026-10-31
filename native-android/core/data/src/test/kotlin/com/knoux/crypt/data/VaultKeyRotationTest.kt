@@ -1,6 +1,7 @@
 package com.knoux.crypt.data
 
 import com.knoux.crypt.security.Argon2idParameters
+import com.knoux.crypt.security.FileEnvelope
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.security.SecureRandom
@@ -353,27 +354,55 @@ class VaultKeyRotationTest {
     }
 
     @Test
-    fun knf1DeviceFilesStillDecryptAfterRecordKeyRotation() = runBlocking {
+    fun deviceFilesUseKnf2WrappedFileDekAndSurviveRecordRotation() = runBlocking {
         val fixture = Fixture()
         fixture.enroll()
         val access = fixture.access()!!
+        val cipher = VaultFileCipher(fixture.session)
         val plaintext = "portable device-key file".toByteArray()
         val sealed = ByteArrayOutputStream()
-        VaultFileCipher(fixture.session).encrypt(
-            access,
+        cipher.encrypt(access, ByteArrayInputStream(plaintext), sealed, plaintext.size.toLong())
+        val header = cipher.headerOf(ByteArrayInputStream(sealed.toByteArray()))
+        assertEquals(2, header.version)
+        assertEquals(FileEnvelope.KeySource.DEVICE_WRAPPED, header.keySource)
+        assertNotNull(header.wrappedFileKey)
+
+        fixture.rotateAll(access)
+        val restored = ByteArrayOutputStream()
+        cipher.decrypt(access, ByteArrayInputStream(sealed.toByteArray()), restored)
+        assertTrue(restored.toByteArray().contentEquals(plaintext))
+        assertEquals(1, fixture.registry.active)
+
+        val truncated = sealed.toByteArray().copyOf(sealed.size() - 1)
+        expect<Exception> {
+            cipher.decrypt(access, ByteArrayInputStream(truncated), ByteArrayOutputStream())
+        }
+    }
+
+    @Test
+    fun legacyKnf1DeviceFileStillDecryptsThroughProductionCipher() = runBlocking {
+        val fixture = Fixture()
+        fixture.enroll()
+        val access = fixture.access()!!
+        val plaintext = "legacy KNF1 device file".toByteArray()
+        val legacy = ByteArrayOutputStream()
+        FileEnvelope(chunkSize = 1024).encrypt(
             ByteArrayInputStream(plaintext),
-            sealed,
+            legacy,
+            fixture.vault.masterKey(),
+            FileEnvelope.KeySource.DEVICE,
+            "knoux.file.device.v1".toByteArray(),
             plaintext.size.toLong(),
         )
-        fixture.rotateAll(access)
+        val header = VaultFileCipher(fixture.session).headerOf(ByteArrayInputStream(legacy.toByteArray()))
+        assertEquals(1, header.version)
         val restored = ByteArrayOutputStream()
         VaultFileCipher(fixture.session).decrypt(
             access,
-            ByteArrayInputStream(sealed.toByteArray()),
+            ByteArrayInputStream(legacy.toByteArray()),
             restored,
         )
         assertTrue(restored.toByteArray().contentEquals(plaintext))
-        assertEquals(1, fixture.registry.active)
     }
 
     // ---------------------------------------------------------------------

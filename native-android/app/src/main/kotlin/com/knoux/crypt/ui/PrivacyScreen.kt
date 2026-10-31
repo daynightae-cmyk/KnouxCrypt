@@ -173,8 +173,8 @@ fun PrivacyScreen(container: AppContainer, onBack: () -> Unit, onLock: () -> Uni
             Spacer(Modifier.height(6.dp))
             Text(
                 tr(
-                    "Vault rows are KNC1 legacy or KNC2 version-authenticated envelopes in Room; file containers are KNF1; text envelopes are KNP2/Argon2id with KNP1 readable. AES-256-GCM authenticates every record, and the record identity is bound as AAD.",
-                    "سجلات الخزنة عبارة عن حاويات KNC1 قديمة أو KNC2 موثقة بالإصدار في Room؛ حاويات الملفات KNF1؛ مظاريف النص KNP2/Argon2id مع بقاء KNP1 مقروءًا. يوثّق AES-256-GCM كل سجل، وترتبط هوية السجل كـ AAD.",
+                    "Vault rows are KNC1 legacy or KNC2 version-authenticated envelopes in Room; device-key files are KNF2 (wrapped per-file DEK) with legacy KNF1 readable; passphrase files are KNF1/PBKDF2; text envelopes are KNP2/Argon2id with KNP1 readable. AES-256-GCM authenticates every record, and the record identity is bound as AAD.",
+                    "سجلات الخزنة عبارة عن حاويات KNC1 قديمة أو KNC2 موثقة بالإصدار في Room؛ ملفات مفتاح الجهاز KNF2 (مفتاح بيانات ملفوف لكل ملف) مع بقاء KNF1 القديم مقروءًا؛ ملفات عبارة المرور KNF1/PBKDF2؛ مظاريف النص KNP2/Argon2id مع بقاء KNP1 مقروءًا. يوثّق AES-256-GCM كل سجل، وترتبط هوية السجل كـ AAD.",
                 ),
                 style = MaterialTheme.typography.bodySmall,
             )
@@ -185,8 +185,8 @@ fun PrivacyScreen(container: AppContainer, onBack: () -> Unit, onLock: () -> Uni
             Spacer(Modifier.height(6.dp))
             Text(
                 tr(
-                    "The data key is Keystore-protected but not auth-bound per use, so decryption relies on the in-app session capability. Versioned data-key rotation is implemented but the Keystore root is retained for KNF1 device-key files and external files are not migrated. KNF1 file containers still use PBKDF2. Lost-gate recovery, autofill and cross-device pairing are not implemented.",
-                    "مفتاح البيانات محمي بـ Keystore لكنه غير مرتبط بمصادقة لكل استخدام، لذا يعتمد فك التشفير على صلاحية الجلسة داخل التطبيق. تدوير مفاتيح البيانات بالإصدارات منفذ لكن جذر Keystore محتفظ به لملفات KNF1 بمفتاح الجهاز ولا تُرحَّل الملفات الخارجية. ما زالت حاويات KNF1 للملفات تستخدم PBKDF2. استعادة البوابة المفقودة والملء التلقائي والاقتران بين الأجهزة غير منفذة.",
+                    "The data key is Keystore-protected but not auth-bound per use, so decryption relies on the in-app session capability. Versioned data-key rotation is implemented but the Keystore root is retained for KNF1 device-key files and external files are not migrated. Passphrase file containers still use KNF1/PBKDF2; new device-key files use KNF2. Lost-gate recovery, autofill and cross-device pairing are not implemented.",
+                    "مفتاح البيانات محمي بـ Keystore لكنه غير مرتبط بمصادقة لكل استخدام، لذا يعتمد فك التشفير على صلاحية الجلسة داخل التطبيق. تدوير مفاتيح البيانات بالإصدارات منفذ لكن جذر Keystore محتفظ به لملفات KNF1 بمفتاح الجهاز ولا تُرحَّل الملفات الخارجية. ما زالت ملفات عبارة المرور KNF1/PBKDF2؛ تستخدم ملفات مفتاح الجهاز الجديدة KNF2. استعادة البوابة المفقودة والملء التلقائي والاقتران بين الأجهزة غير منفذة.",
                 ),
                 style = MaterialTheme.typography.bodySmall,
                 color = KnouxColors.Text,

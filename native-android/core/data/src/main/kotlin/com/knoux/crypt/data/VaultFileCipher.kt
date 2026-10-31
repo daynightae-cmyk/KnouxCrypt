@@ -1,25 +1,41 @@
 package com.knoux.crypt.data
 
 import com.knoux.crypt.security.FileEnvelope
+import com.knoux.crypt.security.TamperedFileException
 import java.io.InputStream
 import java.io.OutputStream
+import java.security.GeneralSecurityException
+import java.security.SecureRandom
+import javax.crypto.spec.SecretKeySpec
 
 /**
  * Device-key file encryption. Only callable with a live [VaultAccess]; the
- * non-exportable Keystore key never leaves this module. The envelope is KNF1
- * (chunked AES-256-GCM, authenticated header, chunk order and final flag).
+ * non-exportable Keystore root never leaves this module and is never used for
+ * caller-chosen chunk nonces.
  *
- * Revocation is checked on entry, for every chunk progress callback, and after
- * the envelope finishes, so a lock aborts an in-flight file operation instead of
- * silently completing it. Callers must keep writing to a temporary sink and
- * discard it when a [VaultLockedException] propagates.
+ * New files are KNF2: a random per-file DEK is wrapped by the Keystore root with
+ * KDK1 (Keystore-generated IV), and chunks use that exportable DEK. KNF1 legacy
+ * device files remain readable with the root key. Passphrase KNF1 files are
+ * unaffected.
+ *
+ * Revocation is checked on entry, for every chunk progress callback, for the
+ * header/provider, and after the envelope finishes. Callers must write to a
+ * temporary sink and discard it when a [VaultLockedException] propagates.
  */
-class VaultFileCipher(private val session: SessionManager) {
+class VaultFileCipher(
+    private val session: SessionManager,
+    private val random: SecureRandom = SecureRandom(),
+) {
     companion object {
         private val CONTEXT = "knoux.file.device.v1".toByteArray(Charsets.UTF_8)
+        private const val FILE_DEK_BYTES = 32
+
+        /** KDK1 version namespace for per-file DEK wrapping; independent of vault DEKs. */
+        private const val FILE_DEK_WRAP_VERSION = 1
     }
 
     private val envelope = FileEnvelope()
+    private val wrapper = DataKeyWrapper()
 
     fun encrypt(
         access: VaultAccess,
@@ -29,14 +45,18 @@ class VaultFileCipher(private val session: SessionManager) {
         onProgress: (FileEnvelope.Progress) -> Unit = {},
     ) {
         session.requireValid(access)
-        envelope.encrypt(
+        val root = session.key(access)
+        val rawDek = ByteArray(FILE_DEK_BYTES).also(random::nextBytes)
+        val fileKey = SecretKeySpec(rawDek, "AES")
+        rawDek.fill(0)
+        val wrapped = wrapper.wrap(root, FILE_DEK_WRAP_VERSION, fileKey)
+        envelope.encryptWrappedDevice(
             input = input,
             output = output,
-            key = session.key(access),
-            keySource = FileEnvelope.KeySource.DEVICE,
+            fileKey = fileKey,
+            wrappedFileKey = wrapped,
             context = CONTEXT,
             plaintextLength = plaintextLength,
-            kdfParams = null,
             onProgress = checkpoint(access, onProgress),
         )
         session.requireValid(access)
@@ -49,14 +69,27 @@ class VaultFileCipher(private val session: SessionManager) {
         onProgress: (FileEnvelope.Progress) -> Unit = {},
     ): Long {
         session.requireValid(access)
-        val length = envelope.decrypt(
+        val length = envelope.decryptDevice(
             input = input,
             output = output,
-            expectedKeySource = FileEnvelope.KeySource.DEVICE,
             context = CONTEXT,
-            keyProvider = {
+            keyProvider = { header ->
                 session.requireValid(access)
-                session.key(access)
+                when (header.keySource) {
+                    FileEnvelope.KeySource.DEVICE -> session.key(access) // KNF1 legacy
+                    FileEnvelope.KeySource.DEVICE_WRAPPED -> {
+                        val wrapped = header.wrappedFileKey
+                            ?: throw TamperedFileException("KNF2 header has no wrapped file key")
+                        try {
+                            wrapper.unwrap(session.key(access), FILE_DEK_WRAP_VERSION, wrapped)
+                        } catch (failure: GeneralSecurityException) {
+                            throw TamperedFileException("Wrapped file key failed authentication", failure)
+                        } catch (failure: IllegalArgumentException) {
+                            throw TamperedFileException("Wrapped file key is malformed", failure)
+                        }
+                    }
+                    else -> throw TamperedFileException("Unsupported device-file key source")
+                }
             },
             onProgress = checkpoint(access, onProgress),
         )

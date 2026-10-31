@@ -65,7 +65,7 @@ class VaultKeyInconsistentException(message: String, cause: Throwable? = null) :
  * Android Keystore root key. KDK1 binds the key version and authenticates the
  * wrapper with AES-256-GCM. The root alias itself is never replaced.
  */
-class DataKeyWrapper(private val random: SecureRandom = SecureRandom()) {
+class DataKeyWrapper {
     companion object {
         const val DEK_BYTES = 32
         private const val NONCE_BYTES = 12
@@ -79,12 +79,16 @@ class DataKeyWrapper(private val random: SecureRandom = SecureRandom()) {
         require(version > 0) { "Only positive DEK versions can be wrapped" }
         val raw = dek.encoded ?: throw IllegalArgumentException("DEK must be exportable for wrapping")
         require(raw.size == DEK_BYTES) { "DEK must be 256-bit" }
-        val nonce = ByteArray(NONCE_BYTES).also(random::nextBytes)
-        val header = ByteBuffer.allocate(HEADER_BYTES).order(ByteOrder.BIG_ENDIAN)
-            .put(MAGIC).put(1.toByte()).putInt(version).array()
         try {
+            // Android Keystore keys with randomized encryption required reject
+            // caller-supplied encryption IVs. Let the provider generate it and
+            // persist Cipher.iv in the KDK1 layout.
             val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-            cipher.init(Cipher.ENCRYPT_MODE, root, GCMParameterSpec(TAG_BYTES * 8, nonce))
+            cipher.init(Cipher.ENCRYPT_MODE, root)
+            val nonce = cipher.iv ?: throw GeneralSecurityException("Provider did not supply a GCM IV")
+            require(nonce.size == NONCE_BYTES) { "Unexpected GCM IV length" }
+            val header = ByteBuffer.allocate(HEADER_BYTES).order(ByteOrder.BIG_ENDIAN)
+                .put(MAGIC).put(1.toByte()).putInt(version).array()
             cipher.updateAAD(header)
             cipher.updateAAD(CONTEXT)
             return header + nonce + cipher.doFinal(raw)

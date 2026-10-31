@@ -1,14 +1,18 @@
 package com.knoux.crypt.data
 
 import android.security.keystore.KeyInfo
+import com.knoux.crypt.security.FileEnvelope
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.security.GeneralSecurityException
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.SecretKeySpec
 import javax.crypto.spec.GCMParameterSpec
 import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
@@ -59,6 +63,41 @@ class KeystoreDeviceTest {
             fail("Wrong wrapped DEK version was accepted")
         } catch (_: IllegalArgumentException) {
         }
+    }
+
+    @Test
+    fun recordEncryptionUsesAProviderChosenIvWithTheRealRoot() {
+        val root = KeystoreManager().masterKey()
+        val codec = SecretCodec(root)
+        val payload = """{"title":"device","body":"provider-iv"}"""
+        val blob = codec.encrypt(SecretKinds.NOTE, "device-record", payload)
+        assertEquals(payload, codec.decrypt(SecretKinds.NOTE, "device-record", blob, keyVersion = 0))
+    }
+
+    @Test
+    fun knf2DeviceFileUsesWrappedPerFileDekWithTheRealRoot() {
+        val root = KeystoreManager().masterKey()
+        val wrapper = DataKeyWrapper()
+        val fileKey = SecretKeySpec(ByteArray(32) { (it * 5 + 3).toByte() }, "AES")
+        val wrapped = wrapper.wrap(root, version = 1, dek = fileKey)
+        val plaintext = ByteArray(4096) { (it * 7).toByte() }
+        val sealed = ByteArrayOutputStream()
+        FileEnvelope(chunkSize = 1024).encryptWrappedDevice(
+            ByteArrayInputStream(plaintext),
+            sealed,
+            fileKey,
+            wrapped,
+            "knoux.file.device.v1".toByteArray(),
+            plaintext.size.toLong(),
+        )
+        val restored = ByteArrayOutputStream()
+        FileEnvelope(chunkSize = 1024).decryptDevice(
+            ByteArrayInputStream(sealed.toByteArray()),
+            restored,
+            "knoux.file.device.v1".toByteArray(),
+            keyProvider = { fileKey },
+        )
+        assertArrayEquals(plaintext, restored.toByteArray())
     }
 
     @Test

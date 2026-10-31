@@ -1,6 +1,10 @@
 package com.knoux.crypt.data
 
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.security.GeneralSecurityException
+import javax.crypto.Cipher
+import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
@@ -80,6 +84,41 @@ class SecretCodecTest {
         } catch (_: GeneralSecurityException) {
         } catch (_: IllegalArgumentException) {
         }
+    }
+
+    @Test
+    fun legacyCallerIvKncFormatsRemainReadable() {
+        val key = SecretKeySpec(ByteArray(32) { (it * 5 + 2).toByte() }, "AES")
+        val payload = """{"title":"legacy","body":"caller-iv"}"""
+        val aad = "knoux:secret:${SecretKinds.NOTE}:legacy-id:v1".toByteArray()
+
+        val knc1Nonce = ByteArray(12) { (it + 1).toByte() }
+        val knc1Header = ByteBuffer.allocate(10).order(ByteOrder.BIG_ENDIAN)
+            .put(byteArrayOf(0x4b, 0x4e, 0x43, 0x31))
+            .put(1.toByte()).put(1.toByte()).putInt(payload.toByteArray().size).array()
+        val knc1Cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        knc1Cipher.init(Cipher.ENCRYPT_MODE, key, GCMParameterSpec(128, knc1Nonce))
+        knc1Cipher.updateAAD(knc1Header)
+        knc1Cipher.updateAAD(aad)
+        val knc1 = knc1Header + knc1Nonce + knc1Cipher.doFinal(payload.toByteArray())
+        assertEquals(
+            payload,
+            SecretCodec(key).decrypt(SecretKinds.NOTE, "legacy-id", knc1, keyVersion = 0),
+        )
+
+        val knc2Nonce = ByteArray(12) { (it + 7).toByte() }
+        val knc2Header = ByteBuffer.allocate(14).order(ByteOrder.BIG_ENDIAN)
+            .put(byteArrayOf(0x4b, 0x4e, 0x43, 0x31))
+            .put(2.toByte()).put(1.toByte()).putInt(3).putInt(payload.toByteArray().size).array()
+        val knc2Cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        knc2Cipher.init(Cipher.ENCRYPT_MODE, key, GCMParameterSpec(128, knc2Nonce))
+        knc2Cipher.updateAAD(knc2Header)
+        knc2Cipher.updateAAD(aad)
+        val knc2 = knc2Header + knc2Nonce + knc2Cipher.doFinal(payload.toByteArray())
+        assertEquals(
+            payload,
+            SecretCodec(key).decrypt(SecretKinds.NOTE, "legacy-id", knc2, keyVersion = 3),
+        )
     }
 
     @Test

@@ -1,8 +1,8 @@
 package com.knoux.crypt.security
 
 import java.nio.ByteBuffer
+import java.security.GeneralSecurityException
 import java.nio.ByteOrder
-import java.security.SecureRandom
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
@@ -15,7 +15,7 @@ import javax.crypto.spec.GCMParameterSpec
  * the header, so a record cannot be silently reinterpreted under another key
  * version. Both use AES-256-GCM and bind kind/id through caller AAD.
  */
-class AuthenticatedEnvelope(private val random: SecureRandom = SecureRandom()) {
+class AuthenticatedEnvelope {
     companion object {
         const val MAX_PLAINTEXT_BYTES = 1024 * 1024
         private const val NONCE_BYTES = 12
@@ -72,7 +72,12 @@ class AuthenticatedEnvelope(private val random: SecureRandom = SecureRandom()) {
         require(associatedData.size in 1..4096) { "Context too large" }
         require(key.algorithm.equals("AES", ignoreCase = true)) { "AES key required" }
         key.encoded?.let { require(it.size == 32) { "AES-256 key required" } }
-        val nonce = ByteArray(NONCE_BYTES).also { random.nextBytes(it) }
+        // Keystore-backed keys requiring randomized encryption reject caller IVs.
+        // Let the provider choose the IV for both software DEKs and root keys.
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(Cipher.ENCRYPT_MODE, key)
+        val nonce = cipher.iv ?: throw GeneralSecurityException("Provider did not supply a GCM IV")
+        require(nonce.size == NONCE_BYTES) { "Unexpected GCM IV length" }
         val header = if (format == FORMAT_V1) {
             ByteBuffer.allocate(HEADER_V1_BYTES).order(ByteOrder.BIG_ENDIAN)
                 .put(MAGIC).put(FORMAT_V1.toByte()).put(ALG_AES_256_GCM.toByte())
@@ -82,8 +87,6 @@ class AuthenticatedEnvelope(private val random: SecureRandom = SecureRandom()) {
                 .put(MAGIC).put(FORMAT_V2.toByte()).put(ALG_AES_256_GCM.toByte())
                 .putInt(keyVersion).putInt(plaintext.size).array()
         }
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(Cipher.ENCRYPT_MODE, key, GCMParameterSpec(TAG_BYTES * 8, nonce))
         cipher.updateAAD(header)
         cipher.updateAAD(associatedData)
         return header + nonce + cipher.doFinal(plaintext)
