@@ -451,6 +451,144 @@ class VaultEngine {
   }
 
   /**
+   * Parse and describe a vault header without any key (task 32). This proves
+   * the file claims to be a vault of a known version, and nothing more: the
+   * header MAC is NOT verified here, so a header field is an unauthenticated
+   * claim until `verifyPackage` succeeds with the right key.
+   */
+  async inspectPackage(inputPath) {
+    const stat = await fsp.stat(inputPath).catch(() => {
+      throw new VaultError(CODES.NOT_FOUND, "The file was not found");
+    });
+    if (!stat.isFile()) throw badInput("The input path is not a regular file");
+    const minSize = container.HEADER_LEN + container.MAC_LEN + FRAME_LEN_BYTES + container.MAC_LEN;
+    const fh = await fsp.open(inputPath, "r");
+    try {
+      const magicBuf = await readAt(fh, 0, 8);
+      if (!magicBuf || !magicBuf.equals(container.MAGIC)) {
+        throw new VaultError(CODES.NOT_A_VAULT, "Missing KnouxCrypt vault magic");
+      }
+      if (stat.size < minSize) {
+        throw new VaultError(CODES.TRUNCATED, "The file is too small to be a complete vault container");
+      }
+      const headerBuf = await readAt(fh, 0, container.HEADER_LEN + container.MAC_LEN);
+      if (!headerBuf) throw new VaultError(CODES.TRUNCATED, "Unable to read the vault header");
+      const parsed = container.parseHeader(headerBuf);
+      return {
+        isVault: true,
+        version: parsed.version,
+        kdfId: parsed.kdfId,
+        cipherId: parsed.cipherId,
+        chunkSize: parsed.chunkSize,
+        kdfParams: parsed.kdfParams,
+        declaredOrigSize: parsed.origSize,
+        declaredPlaintextSha256: parsed.plaintextSha256.toString("hex"),
+        fileSize: stat.size,
+        // Explicit: these fields are read from an unauthenticated header.
+        headerAuthenticated: false,
+        canDecrypt: null,
+      };
+    } finally {
+      await fh.close().catch(() => {});
+    }
+  }
+
+  /**
+   * Full authenticated verification (task 32): stream the container, verify the
+   * header MAC, every chunk's GCM tag, the trailing content MAC and the
+   * plaintext digest — all against `rawKey`. The plaintext is never written
+   * anywhere; only its digest is recomputed in memory, chunk by chunk.
+   *
+   * A wrong key or a tampered byte fails here, which is what turns the header's
+   * claims from "unauthenticated" into "verified".
+   */
+  async verifyPackage({ inputPath, rawKey, onProgress, signal } = {}) {
+    const cred = normalizeCredential({ rawKey });
+    const stat = await fsp.stat(inputPath).catch(() => {
+      throw new VaultError(CODES.NOT_FOUND, "The file was not found");
+    });
+    const fh = await fsp.open(inputPath, "r");
+    try {
+      const headerBuf = await readAt(fh, 0, container.HEADER_LEN + container.MAC_LEN);
+      if (!headerBuf) throw new VaultError(CODES.TRUNCATED, "Unable to read the vault header");
+      const parsed = container.parseHeader(headerBuf);
+      const { encKey, macKey, contentMacKey } = deriveSubkeys(cred, parsed.salt, parsed);
+      container.verifyHeaderMac(parsed, macKey);
+
+      const bodyEnd = stat.size - container.MAC_LEN;
+      if (bodyEnd < container.HEADER_LEN + container.MAC_LEN + FRAME_LEN_BYTES) {
+        throw new VaultError(CODES.TRUNCATED, "The vault has no content frames");
+      }
+      const contentMac = crypto.createHmac("sha256", contentMacKey);
+      const plainHasher = crypto.createHash("sha256");
+      let offset = container.HEADER_LEN + container.MAC_LEN;
+      let index = 0;
+      let processed = 0;
+      let frames = 0;
+      let sawSentinel = false;
+
+      for (;;) {
+        this._checkAbort(signal);
+        if (offset >= bodyEnd) break;
+        if (offset + FRAME_LEN_BYTES > bodyEnd) {
+          throw new VaultError(CODES.TRUNCATED, "The vault ends inside a frame length field");
+        }
+        const lengthField = await readAt(fh, offset, FRAME_LEN_BYTES);
+        if (!lengthField) throw new VaultError(CODES.TRUNCATED, "The vault ended unexpectedly");
+        offset += FRAME_LEN_BYTES;
+        contentMac.update(lengthField);
+        const frameLen = lengthField.readUInt32BE(0);
+        if (frameLen === container.SENTINEL) {
+          sawSentinel = true;
+          break;
+        }
+        if (frameLen < container.TAG_LEN || offset + frameLen > bodyEnd) {
+          throw new VaultError(CODES.TRUNCATED, "A frame length exceeds the file bounds");
+        }
+        const frame = await readAt(fh, offset, frameLen);
+        if (!frame) throw new VaultError(CODES.TRUNCATED, "The vault ended inside a frame");
+        offset += frameLen;
+        contentMac.update(frame);
+        const plain = container.decryptChunk(encKey, container.chunkNonce(parsed.noncePrefix, index), frame);
+        plainHasher.update(plain);
+        index += 1;
+        frames += 1;
+        processed += plain.length;
+        if (onProgress) onProgress({ processed, total: parsed.origSize });
+      }
+
+      if (!sawSentinel) throw new VaultError(CODES.TRUNCATED, "The vault is missing its end-of-stream marker");
+      if (offset !== bodyEnd) throw new VaultError(CODES.TRUNCATED, "Unexpected trailing bytes before the vault MAC");
+      const trailingMac = await readAt(fh, offset, container.MAC_LEN);
+      if (!trailingMac) throw new VaultError(CODES.TRUNCATED, "The vault is missing its trailing MAC");
+      const expectedMac = contentMac.digest();
+      if (!crypto.timingSafeEqual(trailingMac, expectedMac)) {
+        throw new VaultError(CODES.INTEGRITY_FAILED, "Vault content failed its integrity check");
+      }
+      const digest = plainHasher.digest();
+      if (!digest.equals(parsed.plaintextSha256)) {
+        throw new VaultError(CODES.INTEGRITY_FAILED, "Recovered plaintext does not match the recorded digest");
+      }
+      return {
+        verified: true,
+        version: parsed.version,
+        kdfId: parsed.kdfId,
+        cipherId: parsed.cipherId,
+        chunkSize: parsed.chunkSize,
+        kdfParams: parsed.kdfParams,
+        frames,
+        origSize: parsed.origSize,
+        processed,
+        fileSize: stat.size,
+        plaintextSha256: parsed.plaintextSha256.toString("hex"),
+        headerAuthenticated: true,
+      };
+    } finally {
+      await fh.close().catch(() => {});
+    }
+  }
+
+  /**
    * Read and describe a vault header without decrypting content.
    */
   async inspect(inputPath) {

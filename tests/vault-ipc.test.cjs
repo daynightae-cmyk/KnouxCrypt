@@ -7,6 +7,7 @@
  */
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const crypto = require("crypto");
 const fs = require("fs");
 const fsp = require("fs/promises");
 const os = require("os");
@@ -494,4 +495,85 @@ test("clipboard-copy rejects a truthy non-boolean consent flag", async () => {
   assert.equal(res.ok, false);
   assert.equal(res.error.code, CODES.CONSENT_REQUIRED);
   assert.equal(text, "", "a truthy string must never place content on the clipboard");
+});
+
+// ---- tasks 29-32: collections, viewer, rotation, package inspector --------
+
+async function unlockedIpc(dir) {
+  const manager = new VaultSessionManager({ enrollmentPath: path.join(dir, "e.json") });
+  const engine = new VaultEngine({ kdfParams: { kdfId: KDF.RAW_KEY }, chunkSize: 4096 });
+  const service = new VaultService({ userDataPath: dir, manager, engine });
+  registerVaultIpc(service, () => null);
+  const enrolled = await call(CHANNELS.ENROLL, { password: PASSWORD });
+  return { service, sessionId: enrolled.data.sessionId };
+}
+
+test("collections channels validate their payloads", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "knoux-ipc-col-"));
+  const { sessionId } = await unlockedIpc(dir);
+
+  const created = await call(CHANNELS.COLLECTIONS_CREATE, { sessionId, name: "Docs" });
+  assert.equal(created.ok, true);
+  assert.equal(created.data.name, "Docs");
+
+  const missingName = await call(CHANNELS.COLLECTIONS_CREATE, { sessionId });
+  assert.equal(missingName.ok, false);
+  assert.equal(missingName.error.code, CODES.BAD_INPUT);
+
+  const tree = await call(CHANNELS.COLLECTIONS_TREE, { sessionId });
+  assert.equal(tree.ok, true);
+  assert.equal(tree.data.collections.length, 1);
+
+  const noSession = await call(CHANNELS.COLLECTIONS_TREE, {});
+  assert.equal(noSession.ok, false);
+  assert.equal(noSession.error.code, CODES.BAD_INPUT);
+});
+
+test("viewer channels refuse an unsupported format and validate doc ids", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "knoux-ipc-view-"));
+  const { service, sessionId } = await unlockedIpc(dir);
+  const source = path.join(dir, "file.zip");
+  fs.writeFileSync(source, "not a zip");
+  const container = path.join(dir, "file.knx");
+  await service.encryptFile({ sessionId, inputPath: source, outputPath: container });
+
+  const res = await call(CHANNELS.VIEWER_OPEN, { sessionId, inputPath: container, displayName: "file.zip" });
+  assert.equal(res.ok, false);
+  assert.equal(res.error.code, CODES.UNSUPPORTED_FORMAT);
+
+  const badClose = await call(CHANNELS.VIEWER_CLOSE, {});
+  assert.equal(badClose.ok, false);
+  assert.equal(badClose.error.code, CODES.BAD_INPUT);
+});
+
+test("rotation channels require confirmation and validate the new password", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "knoux-ipc-rot-"));
+  const { sessionId } = await unlockedIpc(dir);
+
+  const noConfirm = await call(CHANNELS.ROTATION_START, { sessionId, newPassword: "another good passphrase" });
+  assert.equal(noConfirm.ok, false);
+  assert.equal(noConfirm.error.code, CODES.CONSENT_REQUIRED);
+
+  const short = await call(CHANNELS.ROTATION_START, { sessionId, newPassword: "x", confirm: true });
+  assert.equal(short.ok, false);
+  assert.equal(short.error.code, CODES.BAD_INPUT);
+
+  const status = await call(CHANNELS.ROTATION_STATUS, {});
+  assert.equal(status.ok, true);
+  assert.equal(status.data.inProgress, false);
+});
+
+test("package channels reject a non-vault file and validate the path", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "knoux-ipc-pkg-"));
+  await unlockedIpc(dir);
+  const junk = path.join(dir, "junk.bin");
+  fs.writeFileSync(junk, crypto.randomBytes(2048));
+
+  const res = await call(CHANNELS.PACKAGE_INSPECT, { inputPath: junk });
+  assert.equal(res.ok, false);
+  assert.equal(res.error.code, CODES.NOT_A_VAULT);
+
+  const noPath = await call(CHANNELS.PACKAGE_INSPECT, {});
+  assert.equal(noPath.ok, false);
+  assert.equal(noPath.error.code, CODES.BAD_INPUT);
 });

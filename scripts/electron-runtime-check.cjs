@@ -32,6 +32,8 @@ app.whenReady().then(async () => {
   // A real source file for the file-cipher probe (binary, larger than one frame).
   const probePayload = Buffer.concat([Buffer.from("KnouxCrypt runtime file probe — مرحبا\n", "utf8"), Buffer.alloc(300000, 0xa7)]);
   fs.writeFileSync(path.join(dir, "probe-source.bin"), probePayload);
+  // A real text document for the protected-viewer probe.
+  fs.writeFileSync(path.join(dir, "probe-doc.txt"), "Runtime protected document\nsecond line\n");
   // A real JPEG carrying EXIF, XMP and ICC segments for the metadata probe.
   fs.writeFileSync(path.join(dir, "probe-photo.jpg"), (() => {
     const seg = (marker, payload) => {
@@ -137,6 +139,13 @@ app.whenReady().then(async () => {
         inputPath: base + "/probe.knv",
         outputPath: base + "/probe-roundtrip.bin",
         operationId: "runtime-file-2",
+      });
+      // A text container for the protected-viewer probe (task 30).
+      out.docEncrypt = await api.vault.encryptFile({
+        sessionId: enr.data.sessionId,
+        inputPath: base + "/probe-doc.txt",
+        outputPath: base + "/probe-doc.knv",
+        operationId: "runtime-file-3",
       });
       // Encrypted record store over the real IPC boundary (notes + credentials).
       out.storeEmpty = await api.vault.storeList(enr.data.sessionId, "notes");
@@ -299,6 +308,60 @@ app.whenReady().then(async () => {
         await api.vault.clipboardCopy({ text: "x", seconds: 15 })
       ).error?.code;
 
+      // Batch 08 (tasks 29-32) over the real runtime IPC surface.
+      const col = await api.vault.collectionsCreate({ sessionId: enr.data.sessionId, name: "Runtime Collection", tags: ["probe"] });
+      out.collectionCreated = col.ok === true;
+      out.collectionId = col.data?.id || null;
+      out.collectionAdd = await api.vault.collectionsAddItem({
+        sessionId: enr.data.sessionId,
+        collectionId: out.collectionId,
+        inputPath: base + "/probe-source.bin",
+      });
+      out.collectionTree = await api.vault.collectionsTree(enr.data.sessionId);
+      out.collectionItemCount = out.collectionTree.data?.collections?.[0]?.itemCount ?? -1;
+      out.collectionExportPath = base + "/probe-collection-export.bin";
+      out.collectionExport = await api.vault.collectionsExportItem({
+        sessionId: enr.data.sessionId,
+        itemId: out.collectionAdd.data?.item?.id,
+        outputPath: out.collectionExportPath,
+        confirm: true,
+      });
+      out.collectionNoConsent = (
+        await api.vault.collectionsCreate({ name: "no session" })
+      ).error?.code;
+
+      out.viewerOpen = await api.vault.viewerOpen({
+        sessionId: enr.data.sessionId,
+        inputPath: base + "/probe-doc.knv",
+        displayName: "probe-doc.txt",
+      });
+      out.viewerKind = out.viewerOpen.data?.kind || null;
+      out.viewerText = out.viewerOpen.data?.text || null;
+      out.viewerUnsupported = (
+        await api.vault.viewerOpen({ sessionId: enr.data.sessionId, inputPath: base + "/probe.knv", displayName: "probe.bin" })
+      ).error?.code;
+      if (out.viewerOpen.ok) {
+        out.viewerDocId = out.viewerOpen.data.docId;
+        out.viewerChunk = await api.vault.viewerReadChunk(out.viewerDocId, { offset: 0, length: 64 });
+        out.viewerClose = await api.vault.viewerClose(out.viewerDocId);
+      }
+
+      out.rotationPreflight = await api.vault.rotationPreflight(enr.data.sessionId);
+      out.rotationNoConfirm = (
+        await api.vault.rotationStart({ sessionId: enr.data.sessionId, newPassword: "runtime rotation passphrase", mode: "rewrap" })
+      ).error?.code;
+      out.rotationStart = await api.vault.rotationStart({
+        sessionId: enr.data.sessionId,
+        newPassword: "runtime rotation passphrase",
+        mode: "rewrap",
+        confirm: true,
+      });
+      out.rotationVerified = out.rotationStart.data?.verified === true;
+
+      out.packageInspect = await api.vault.packageInspect(base + "/probe.knv");
+      out.packageNotVault = (await api.vault.packageInspect(base + "/probe-source.bin")).error?.code;
+      out.packageVerify = await api.vault.packageVerify(enr.data.sessionId, base + "/probe.knv");
+
       // Revocation must reach the renderer without a polling call.
       out.revokedEvent = await new Promise((resolve) => {
         const timer = setTimeout(() => resolve("timeout"), 4000);
@@ -426,6 +489,23 @@ app.whenReady().then(async () => {
       check("clipboard verify reports the leased value present", probe.clipboardVerify?.data?.present === true, JSON.stringify(probe.clipboardVerify?.data));
       check("clipboard clear empties the clipboard", probe.clipboardClear?.ok === true && probe.clipboardClear?.data?.lastClearedAt, JSON.stringify(probe.clipboardClear?.data));
     }
+    // Batch 08 (tasks 29-32) runtime checks.
+    check("a collection is created over IPC", probe.collectionCreated === true);
+    check("a file is encrypted into the collection", probe.collectionAdd?.ok === true, JSON.stringify(probe.collectionAdd?.error));
+    check("the collection reports its item", probe.collectionItemCount === 1, String(probe.collectionItemCount));
+    check("a collection item exports a decrypted copy", probe.collectionExport?.ok === true, JSON.stringify(probe.collectionExport?.error));
+    check("a session-less collection request is refused", probe.collectionNoConsent === "BAD_INPUT", String(probe.collectionNoConsent));
+    check("the protected viewer opens a text document", probe.viewerOpen?.ok === true && probe.viewerKind === "text", JSON.stringify(probe.viewerOpen?.error));
+    check("the viewer returns the decrypted text", probe.viewerText === "Runtime protected document\nsecond line\n", String(probe.viewerText));
+    check("the viewer refuses an unsupported format", probe.viewerUnsupported === "UNSUPPORTED_FORMAT", String(probe.viewerUnsupported));
+    check("the viewer streams a bounded chunk", probe.viewerChunk?.ok === true && probe.viewerChunk?.data?.bytesRead > 0, JSON.stringify(probe.viewerChunk?.data));
+    check("the viewer close deletes the decrypted copy", probe.viewerClose?.ok === true);
+    check("rotation preflight is reachable over IPC", probe.rotationPreflight?.ok === true);
+    check("rotation without consent is refused over IPC", probe.rotationNoConfirm === "CONSENT_REQUIRED", String(probe.rotationNoConfirm));
+    check("rotation completes and verifies over IPC", probe.rotationVerified === true, JSON.stringify(probe.rotationStart?.error));
+    check("the package header inspects over IPC", probe.packageInspect?.ok === true && probe.packageInspect?.data?.isVault === true, JSON.stringify(probe.packageInspect?.error));
+    check("a non-vault package is refused over IPC", probe.packageNotVault === "NOT_A_VAULT", String(probe.packageNotVault));
+    check("the package verifies with the vault key", probe.packageVerify?.ok === true && probe.packageVerify?.data?.verified === true, JSON.stringify(probe.packageVerify?.error));
     check("renderer produced no console errors", consoleErrors.length === 0, consoleErrors.slice(0, 3).join(" | "));
     if (probe.__error) check("runtime probe completed without throwing", false, probe.__error);
   } catch (err) {

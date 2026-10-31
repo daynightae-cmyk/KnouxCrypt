@@ -520,6 +520,10 @@ if (!gotLock) {
     unregisterVaultIpc = registerVaultIpc(vaultService, () => mainWindow);
     registerWindowControls();
 
+    // Remove any decrypted document temp files left behind by a previous
+    // crash before the user can open a new one.
+    vaultService.viewerSweep().catch(() => {});
+
     setupAutoUpdater();
     createSplashWindow();
 
