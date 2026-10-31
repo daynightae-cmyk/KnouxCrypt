@@ -113,8 +113,8 @@ fun KeyForgeScreen(
         Spacer(Modifier.height(10.dp))
         Text(
             tr(
-                "For persistent keys, a vault-backed keyring with rotation and recovery is required; that workflow is not implemented yet.",
-                "للمفاتيح الدائمة، يلزم مخزن مفاتيح مدعوم بالخزنة مع تدوير واستعادة؛ هذا المسار غير منفذ بعد.",
+                "This screen never persists a key. Vault records already use a wrapped data-key hierarchy with owner-authorized rotation and encrypted backup, but a stored keyring that Key Forge could write into is still not implemented.",
+                "لا تحفظ هذه الشاشة أي مفتاح. تستخدم سجلات الخزنة بالفعل تراتبية مفاتيح بيانات مغلفة بلفّ مع تدوير مصرح من المالك ونسخ احتياطي مشفر، لكن مخزن المفاتيح الذي يمكن لمصنع المفاتيح الكتابة فيه غير منفذ بعد.",
             ),
             style = MaterialTheme.typography.labelSmall,
         )

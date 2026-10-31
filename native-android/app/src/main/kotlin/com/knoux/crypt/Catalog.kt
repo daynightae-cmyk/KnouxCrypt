@@ -66,7 +66,7 @@ object Catalog {
         ServiceDef("FILE_INTEGRITY", "File Integrity", "سلامة الملف", "Check a file against a known hash", "قارن ملفًا ببصمة معروفة", ServiceArt.ENCRYPT, "file_integrity", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("SECURE_CLIPBOARD", "Secure Clipboard", "حافظة آمنة", "Managed clipboard copy lease", "نسخ مُدار بعقد للحافظة", ServiceArt.PRIVACY, "secure_clipboard", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("DEVICE_PAIRING", "Device Pairing", "اقتران الأجهزة", "Pair nearby devices for transfer", "اقرن أجهزة قريبة للنقل", ServiceArt.KEY, null, ServiceStatus.DESIGN_ONLY, false),
-        ServiceDef("PASSWORD_AUDIT", "Password Audit", "تدقيق كلمات المرور", "Find reused and weak passwords locally", "اعثر على كلمات مرور ضعيفة محليًا", ServiceArt.PASSWORDS, null, ServiceStatus.DESIGN_ONLY, true),
+        ServiceDef("PASSWORD_AUDIT", "Password Audit", "تدقيق كلمات المرور", "Find reused and weak passwords locally", "اعثر على كلمات مرور ضعيفة محليًا", ServiceArt.PASSWORDS, "password_audit", ServiceStatus.IMPLEMENTED, true),
     )
 
     val all: List<ServiceDef> = essentials + extras

@@ -301,8 +301,8 @@ fun KeyDerivationScreen(onBack: () -> Unit, onSensitiveCopy: (String) -> Unit) {
                 Spacer(Modifier.height(4.dp))
                 Text(
                     tr(
-                        "Clipboard is not auto-cleared in this build. Mission 44 owns that control.",
-                        "لا تُمسح الحافظة تلقائيًا في هذا البناء. تتحكم بذلك المهمة 44.",
+                        "Copied values are managed: they clear after the Privacy Center timeout and whenever the vault locks. Android may still retain clipboard data after process death, so this is best effort, not a guarantee.",
+                        "القيم المنسوخة مُدارة: تُمسح بعد مهلة مركز الخصوصية وعند كل قفل للخزنة. قد يحتفظ أندرويد ببيانات الحافظة بعد إنهاء العملية، لذلك هذا بأفضل جهد وليس ضمانة.",
                     ),
                     style = MaterialTheme.typography.labelSmall,
                     color = KnouxColors.Faint,
