@@ -1,49 +1,10 @@
-import { useLanguage } from "../../i18n/Language";
-import React, { useEffect, useRef, useState } from "react";
-import { createAmbientAudio } from "./ambientAudio";
+import React from 'react';
+import {useLanguage} from '../../i18n/Language';
+import {useKnouxAudio} from './KnouxAudioProvider';
 
-export function AmbientSound({ splash }) {
-  const { t, locale, dir } = useLanguage();
-
-  const engine = useRef(null);
-  const mounted = useRef(true);
-  const [enabled, setEnabled] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(false);
-  useEffect(() => {
-    mounted.current = true;
-    const visibility = () => engine.current?.setVisible(!document.hidden);
-    document.addEventListener('visibilitychange', visibility);
-    const interaction = event => {
-      if (!event.isTrusted || document.hidden) return;
-      const control = event.target instanceof Element ? event.target.closest('button, a, input[type="checkbox"], input[type="radio"]') : null;
-      if (!control || !control.closest('.crypt-app-shell') || control.closest('.app-sound-strip') || control.matches(':disabled, [aria-disabled="true"]')) return;
-      engine.current?.cue(control.matches('a') ? 'navigate' : control.matches('input, [role="switch"], [aria-pressed]') ? 'toggle' : 'tap');
-    };
-    document.addEventListener('click', interaction);
-    return () => { mounted.current = false; document.removeEventListener('visibilitychange', visibility); document.removeEventListener('click', interaction); engine.current?.dispose(); engine.current = null; };
-  }, []);
-  useEffect(() => { engine.current?.setScene(splash); }, [splash]);
-  async function toggle() {
-    if (busy) return;
-    setError(false);
-    if (enabled) { engine.current?.mute(); setEnabled(false); return; }
-    setBusy(true);
-    try {
-      const Context = window.AudioContext || window.webkitAudioContext;
-      if (!Context) throw new Error('unsupported');
-      if (!engine.current) engine.current = createAmbientAudio(Context);
-      engine.current.setScene(splash);
-      engine.current.setVisible(!document.hidden);
-      await engine.current.enable();
-      if (mounted.current) setEnabled(true);
-    } catch {
-      engine.current?.dispose(); engine.current = null;
-      if (mounted.current) setError(true);
-    } finally { if (mounted.current) setBusy(false); }
-  }
-  return <div className="app-sound-strip" dir={dir}><button type="button" className="app-sound-toggle" aria-pressed={enabled} disabled={busy} aria-label={t(enabled ? 'Mute ambient sound' : 'Enable ambient sound')} onClick={toggle}>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M3 9h4l5-5v16l-5-5H3Z"/>{enabled?<path d="M16 7a7 7 0 0 1 0 10m3-13a11 11 0 0 1 0 16"/>:<path d="m16 9 6 6m0-6-6 6"/>}</svg>
-    {t(busy ? 'Starting…' : enabled ? 'Sound on' : 'Sound off')}
-  </button>{error && <span role="status" className="app-sound-error">{t("Audio unavailable in this browser")}</span>}</div>;
+export function AmbientSound(){
+  const {t,dir}=useLanguage();
+  const {preferences:p,toggle,resume,status,busy}=useKnouxAudio();
+  const audible=p.ambient&&!p.masterMute&&p.profile!=='silent'&&status==='running';
+  return <div className="app-sound-strip" dir={dir} data-audio-state={status}><button type="button" className="app-sound-toggle" aria-pressed={p.ambient} disabled={busy&&!p.ambient} onClick={toggle}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M3 9h4l5-5v16l-5-5H3Z"/>{audible?<path d="M16 7a7 7 0 0 1 0 10m3-13a11 11 0 0 1 0 16"/>:<path d="m16 9 6 6m0-6-6 6"/>}</svg>{t(busy&&p.ambient?'Starting…':audible?'Sound on':p.ambient?'Ambient enabled · muted':'Sound off')}</button>{status==='blocked'&&<span role="status" className="app-sound-error">{t('Audio paused — activate to retry')} <button onClick={resume} disabled={busy}>{t('Retry audio')}</button></span>}</div>;
 }

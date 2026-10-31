@@ -5,6 +5,8 @@ import { useLanguage } from '../../i18n/Language';
 import { StagEmblem } from '../entry/StagEmblem';
 import { useMotionPreferences } from '../shell/MotionPreferences';
 import { Mark } from '../security/ScreenUI';
+import { useWorkspaceActivity } from './WorkspaceActivity';
+import { useKnouxAudio } from '../shell/KnouxAudioProvider';
 import './live-security.css';
 
 export const SCENES = [
@@ -50,10 +52,12 @@ export function LiveSecurityPreview({previewId}) {
   const {pathname}=useLocation();
   const {t}=useLanguage();
   const motion=useMotionPreferences();
+  const {cue}=useKnouxAudio();
   const [chosen,setChosen]=useState(null);
   const [dimmed,setDimmed]=useState(false);
   const [phase,setPhase]=useState('dormant');
   const root=useRef(null);
+  const workspace=useWorkspaceActivity();
   const route=sceneForPath(pathname);
   const scene=SCENES.find(s=>s.id===(previewId||chosen||route.id))||route;
   const home=pathname===SCREENS.HOME;
@@ -65,6 +69,7 @@ export function LiveSecurityPreview({previewId}) {
     const timers=[[80,'awakening'],[650,'ignition'],[1500,'idle']].map(([ms,next])=>setTimeout(()=>setPhase(next),ms));
     return()=>timers.forEach(clearTimeout);
   },[pathname,dimmed,motion.running]);
+  useEffect(()=>{if(phase==='ignition')cue('ignition');if(phase==='extinguishing')cue('lock');},[phase,cue]);
   function pointer(e){
     if(!motion.running || motion.preferences.performance || e.pointerType==='touch')return;
     const box=e.currentTarget.getBoundingClientRect();
@@ -75,6 +80,6 @@ export function LiveSecurityPreview({previewId}) {
     <div className="live-circuitry" aria-hidden="true"><svg viewBox="0 0 1200 280" preserveAspectRatio="none"><path d="M0 65H210L280 135H550 M0 220H300L380 145H550 M1200 65H990L920 135H650 M1200 220H900L820 145H650"/><path className="live-data-flow" d="M0 65H210L280 135H550 M0 220H300L380 145H550 M1200 65H990L920 135H650 M1200 220H900L820 145H650"/></svg>{Array.from({length:24},(_,i)=><i key={i} style={{left:`${(i*37)%100}%`,top:`${(i*23)%95}%`,animationDelay:`-${i*.7}s`}}/>)}</div>
     <div className="live-preview-copy"><span className="live-preview-label">{t('VISUAL PREVIEW')}</span><h2>{t(scene.title)}</h2><p>{t('Preview mode — no user files processed')}</p><div className="live-preview-controls"><label><span className="live-sr-only">{t('Preview scene')}</span><select aria-label={t('Preview scene')} value={scene.id} onChange={e=>setChosen(e.target.value)}>{SCENES.map(s=><option key={s.id} value={s.id}>{t(s.title)}</option>)}</select></label><button aria-pressed={motion.paused} onClick={()=>motion.setPaused(v=>!v)}>{t(motion.paused?'Resume motion':'Pause motion')}</button><button aria-pressed={dimmed} onClick={()=>setDimmed(v=>!v)}>{t(dimmed?'Awaken preview':'Dim preview')}</button></div></div>
     <div className="live-stag-stage" aria-hidden="true"><div className="live-rear-orbit"/><div className="live-rear-orbit live-orbit-secondary"/><div className="live-ignition-wave"/><StagEmblem phase={phase} intensity={motion.preferences.eyes}/></div>
-    <div className="live-scene-panel" key={scene.id}><SceneDiagram kind={scene.kind}/><Link to={SCREENS[scene.id]}>{t('Open workspace')} <span aria-hidden="true">↗</span></Link></div>
+    <div className="live-scene-panel" key={scene.id}><SceneDiagram kind={scene.kind}/>{scene.kind==='cipher'&&<small className="live-real-context">{t('Queued files')}: {workspace.queued} · {t('Engine unavailable')}</small>}{scene.kind==='notes'&&<small className="live-real-context">{t('Fictional notes in memory')}: {workspace.notes}</small>}<Link to={SCREENS[scene.id]}>{t('Open workspace')} <span aria-hidden="true">↗</span></Link></div>
   </section>;
 }

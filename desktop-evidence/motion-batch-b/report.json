@@ -1,0 +1,240 @@
+{
+  "generatedBy": "CodeRabbit",
+  "batch": "MOTION B",
+  "taskIds": [
+    "MOTION-B5",
+    "MOTION-B6",
+    "MOTION-B7",
+    "MOTION-B8"
+  ],
+  "taskStatus": {
+    "MOTION-B5": "Implemented distinct live demo scenes for Passwords, Authenticator, Key Forge and Privacy; no real engine claim.",
+    "MOTION-B6": "Implemented Backup/Tools contextual scenes and bounded memory-only workspace activity.",
+    "MOTION-B7": "Browser motion/audio/accessibility/RTL QA implemented; Windows/device smoothness and heap leak certification unverified.",
+    "MOTION-B8": "Preservation and evidence complete; Vercel reconciliation BLOCKED_MISSING_ARTIFACTS, not imported."
+  },
+  "branch": "desktop/electron-fullstack-44-services-20261031",
+  "baseline": "25f587be657b6e301a01566bf9851070a773c106",
+  "workingDirectory": "/home/vercel-sandbox/workspace/repos/github.com/daynightae-cmyk/knouxcrypt",
+  "files": [
+    "scripts/check-audio.cjs",
+    "scripts/check-desktop-routes.py",
+    "scripts/check-live-security.py",
+    "src/components/desktop/DesktopWorkspace.jsx",
+    "src/components/desktop/ExperienceSettings.jsx",
+    "src/components/desktop/LiveSecurityPreview.jsx",
+    "src/components/desktop/live-security.css",
+    "src/components/entry/StagEmblem.jsx",
+    "src/components/entry/stag.css",
+    "src/components/shell/AmbientSound.jsx",
+    "src/components/shell/AppShell.jsx",
+    "src/components/shell/ambientAudio.js",
+    "src/i18n/desktop-ar.js",
+    "scripts/check-eye-illumination.py",
+    "scripts/check-live-audio.py",
+    "scripts/render-sonic-palette.py",
+    "src/components/desktop/WorkspaceActivity.jsx",
+    "src/components/shell/KnouxAudioProvider.jsx"
+  ],
+  "sha256": {
+    "scripts/check-audio.cjs": "53fd2c86839af1fb0cc9ea3274b4906ad689b19d26632e2703365bde43aabdee",
+    "scripts/check-desktop-routes.py": "01af0ae1da4863cd56d8edb5092319da1c283536d4d796cb39a89ba363d1b818",
+    "scripts/check-live-security.py": "7b0de9c046e919ea57947b6c7226135d65ecb85f98d353d33958bdaa50bb1242",
+    "src/components/desktop/DesktopWorkspace.jsx": "2852970ddaf3fedbde38831cf5a09d12997ce5375b48956d4afbf5a53cbb0c89",
+    "src/components/desktop/ExperienceSettings.jsx": "9d990e0605109fb597725f5d38071621fbc1574fd2b3e7416a652cc117580c36",
+    "src/components/desktop/LiveSecurityPreview.jsx": "47b00a86434dd8d5584769545d63b47f800d8f691d9671edc6fecf47093d860d",
+    "src/components/desktop/live-security.css": "dea5a3e0cfcfd7e9c9ec9b1a06a92e8911c7054e9978e55da0f020b82d4b32cb",
+    "src/components/entry/StagEmblem.jsx": "0176c66a80ea0f505c3970ff33d5cf13a3005158e6fa807e8bb25ae0d0a5f629",
+    "src/components/entry/stag.css": "ab759109dbad90b48bd60f0b03751be4088fa5aba677b8347c7c49fba6501959",
+    "src/components/shell/AmbientSound.jsx": "030fa6aa2e702a12f9f81e01cf5f4959d85e1104cfad8c7865dae4d9d7d4c105",
+    "src/components/shell/AppShell.jsx": "1ab20292646626e142bb4de7fb7ffd023d63cac88e8a6b2c23f8951e137784e2",
+    "src/components/shell/ambientAudio.js": "c9829726657e7e189fb3f2b9d6715d3079b093f02d337a02bde0f9e95bb1bedc",
+    "src/i18n/desktop-ar.js": "bf688c68db16f628231c2e3f72868fc6d21043286126994815369830fc779980",
+    "scripts/check-eye-illumination.py": "32b239d6b0a4d39c4a587f0956354afd8cfc21ab660e033d8b57fff2ad3aaa92",
+    "scripts/check-live-audio.py": "26dc45ba5b0a35382671565f809b0f01b382c43b00f27264d3cfb1707e22d9ac",
+    "scripts/render-sonic-palette.py": "2e4834abac59e19a7ef7025e11cc2b649905cca2306c475298822b34e7d5710d",
+    "src/components/desktop/WorkspaceActivity.jsx": "4c2428b199abf9b11d33a5a61e11931547c3e9dc306676fcadd36dcd0f850cb5",
+    "src/components/shell/KnouxAudioProvider.jsx": "779b532fdf467d1eb1bf337fd1931b0ce3114a62a1234882c95e1ef666a9e8ed",
+    "package.json": "2c92f9a454e7d5b4d3adc1181abcd5bb0c7590907cbd602864cafbe00c868cff",
+    "src/assets/knoux-stag.png": "6b054a6815726ee545b0d935cf851fb751a44b3dc8505a68066e438bec004f68"
+  },
+  "environment": {
+    "os": "Ubuntu 26.04.1",
+    "node": "v24.21.0",
+    "npm": "11.19.0",
+    "dependencies": "Existing node_modules, no lockfile, no dependency changes",
+    "service": "Registered Vite HTTP3000; shared customer cloud Chromium; synthetic fixtures only"
+  },
+  "checks": [
+    {
+      "command": "npm run check",
+      "status": "passed",
+      "exitCode": 0,
+      "mode": "fresh after final source fixes",
+      "coverage": "44 EN/AR route renders, audio lifecycle and failure unit checks, Vite production build"
+    },
+    {
+      "command": "python3 scripts/check-desktop-workspace.py",
+      "status": "passed",
+      "exitCode": 0,
+      "mode": "reused after local eye/intensity and audio status guards; service interaction logic and layout unchanged; final geometry and audio checks cover changed boundaries",
+      "coverage": "60 viewport/locale cases, service interactions, mobile fallback"
+    },
+    {
+      "command": "QA_OUTPUT=$WORKSPACE_ROOT/output/desktop/motion-b python3 scripts/check-live-security.py",
+      "status": "passed",
+      "exitCode": 0,
+      "mode": "fresh final",
+      "coverage": "80 scene/locale/viewport cases; moving/pause/ignition/extinction, persistent layers, dock scroll, keyboard, reduced motion, global intensity, context privacy"
+    },
+    {
+      "command": "python3 scripts/check-desktop-routes.py",
+      "status": "passed",
+      "exitCode": 0,
+      "mode": "fresh final",
+      "coverage": "88 canonical EN/AR route cases, image/SVG alignment, overflow and reduced motion"
+    },
+    {
+      "command": "QA_OUTPUT=$WORKSPACE_ROOT/output/desktop/motion-b/eye-proof python3 scripts/check-eye-illumination.py",
+      "status": "passed",
+      "exitCode": 0,
+      "mode": "reused; actual source image and explicit test intensity/eye geometry unchanged",
+      "coverage": "Actual dark/lit pixel luminance for both original eyes"
+    },
+    {
+      "command": "QA_OUTPUT=$WORKSPACE_ROOT/output/desktop/motion-b python3 scripts/check-live-audio.py",
+      "status": "passed",
+      "exitCode": 0,
+      "mode": "fresh final",
+      "coverage": "Native AudioContext fade/running waveform, distinct click/nav envelopes, persistent navigation clock, six settled sources, silent/master suspension, closed-device recovery, stale error clearing, blocked playback isolation and pending startup cancellation"
+    },
+    {
+      "command": "QA_OUTPUT=$WORKSPACE_ROOT/output/desktop/motion-b python3 scripts/render-sonic-palette.py",
+      "status": "passed",
+      "exitCode": 0,
+      "mode": "fresh final",
+      "coverage": "Original stereo 20-second OfflineAudioContext audition; 12 cue catalog; no clipping"
+    },
+    {
+      "command": "python3 /tmp/knoux-capture-motion-b.py",
+      "status": "passed",
+      "exitCode": 0,
+      "coverage": "20 current individual screenshots and 11.3-second video; video has no audio track"
+    },
+    {
+      "command": "python3 /tmp/knoux-performance-probe.py",
+      "status": "passed",
+      "exitCode": 0,
+      "coverage": "24 route switches, one persistent preview/atmosphere, 24 bounded particles, stable warmed Home DOM; not heap-leak proof",
+      "performanceObservation": {
+        "intervals": 63,
+        "longTasks": [],
+        "medianRafMs": 83.59999999999991,
+        "p95RafMs": 117.09999999999992
+      }
+    },
+    {
+      "command": "python3 /tmp/knoux-verify-deliverables.py",
+      "status": "passed",
+      "exitCode": 0,
+      "coverage": "20 screenshot hashes/dimensions, WAV duration/channels/rate, unchanged original logo"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "command": "coderabbit review --agent -t uncommitted",
+      "status": "passed",
+      "exitCode": 0,
+      "terminal": "complete",
+      "currentMotionTurnFindingsByPass": [
+        0,
+        0,
+        3,
+        2,
+        1,
+        0
+      ],
+      "reportedFindingsAddressed": 6,
+      "remainingFindingsFinalPass": 0
+    },
+    {
+      "command": "npm audit --json",
+      "status": "blocked",
+      "exitCode": 1,
+      "reason": "ENOLOCK; repository has no lockfile. Historical 31 findings including one critical remain uncleared."
+    }
+  ],
+  "evidenceRoot": "outputs/desktop/motion-b/",
+  "evidenceSha256": {
+    "audio-preferences-and-workspace.png": "929011c1b4f4e2c919fcd9b6b93a49d8bfb3c64e58f39f6d248bb2cb32f260c1",
+    "audio-observations.json": "541b76bf7396056cb9ad18e9dd3df70ffe6720c8645df834f370dab160a04e07",
+    "knoux-original-sonic-palette.wav": "c8664c8c37f973b661673ce4807b451d2d100f3e7be32cc837836057c2de0dc5",
+    "sonic-palette.json": "17f81d3e39ddccd58b79dbc038f0a577a6845a749906fe34e80d39eb55ba91c6",
+    "eyes-dormant.png": "ae61372b487b6f55ab7d687520af5d1c564d3eb5933597ed0188990c536ee802",
+    "eyes-awakening.png": "9a6b0aaa42ad5c833e1b23481040cc3f6da0033d99710c75d01e1e6400e5c844",
+    "eyes-ignition.png": "e0d2a1e40a4e06bc4d96d27df2aaad8c07457ab2b9b6ac3774ea589fe4f0d27b",
+    "eyes-idle.png": "94a8c52d966733f199cbb51cd4984e841d139c0b8b347b61b4281f15f64f5159",
+    "sticky-dock-notes.png": "6959d197809ea51089987f076781bb2c12b0e478e26c9cc618865da62647cbf5",
+    "nonsecret-motion-fixture.txt": "cc7badf4cba2a18c545e26f6f9aba19707d5343588058b5e8960cb72567c1394",
+    "home-en.png": "16b09471e51ab829fccde5069ad7ff21a4cb614257496985c0de84677a84c1f0",
+    "home-ar.png": "0a6a919bdc1199dbe1781974e4f442c5252a0de330f8845bb7e43d2c0d7f7d2b",
+    "motion-observations.json": "dd786fb45973b7c01322fcb85ae469a80d7f93e41ade06c9f15e7b50fcb678e9",
+    "audio-notes.md": "9b85c7f7335ebc6faadef07593ce87c411904dd0c3e31a965474614998af52f2",
+    "screenshot-manifest.json": "efbebd8b490b06dc6c90367fe801a9ef609250a2fe635464b62dd18fb3737d51",
+    "live-workspace.webm": "08bc41ddd86016b581b53b1ce62edce26d8bcd13ded79d21c269dff3229f2743",
+    "screens/home-en.png": "719c177690811f67b8ef364e6dea8d25567a6c52a3f1c818db2fe15bb584c5d1",
+    "screens/file-cipher-en.png": "cb338d79511ebf280f01d5d8a4cdb25d9a911651d59036fb1f9577c5290cc2de",
+    "screens/vault-en.png": "f19fc6e394591969ed87b36654491b82308e04482438ee828548a902ae8b61a0",
+    "screens/notes-en.png": "7927add3126321ccb70caa4e54339ede2d5e6c203e9e6538435af743e1ad2061",
+    "screens/passwords-en.png": "e3379c71aeb45c798cf53fcbc128acea77116b444963ff2f6690bd0f4d018ac7",
+    "screens/authenticator-en.png": "b786e77f649f584daf18e167d69d5149860039edec097a2483c1650aa913a0b2",
+    "screens/key-forge-en.png": "6fed31cdbe476a556f5d71b4b4fe00689a2c5cebb8f840239e546dcb5d8ccd84",
+    "screens/privacy-en.png": "4e164bd5ce8163899a552d98de022581fae87fd293b160d4fd19850d5fab8606",
+    "screens/backup-en.png": "12ca764baef4ea1a37a96b77d642101231ddc41e6fcacbce2c9757c7d599c28c",
+    "screens/tools-en.png": "d06ab0c9d1976dcdd82de8b70a47db0a167f883401183ed3a995ae2393087454",
+    "screens/home-ar.png": "ca0923c2a05bb65ba14d6a3e2b342b4a4b7729b582d6a5959d8f6c59f79ae95b",
+    "screens/file-cipher-ar.png": "2c7ec2e65936fc564117b256d6f44264449d7050987cfc92602ef000c7f10071",
+    "screens/vault-ar.png": "6a7927dfcaff9a4502b016f699055d49ac2da5ff83fd1cd2fbbab0627ba22f5d",
+    "screens/notes-ar.png": "d24e969b7a736003dd12020663c9da0eae7d6c2b897f5f3713ad7a842b59fd57",
+    "screens/passwords-ar.png": "da29995240d9ee8f57fe22012b04f7f81d33d8970b4542df82bfc03e4f5899e6",
+    "screens/authenticator-ar.png": "fd8d3806e943e3e32f248b5b466ad95573d5be1b4387ec37adf14f336209a4e9",
+    "screens/key-forge-ar.png": "c0196051faa1c3dcd46a398e4efbbd4e1fb746b3d438782ff30085b81c9ac1de",
+    "screens/privacy-ar.png": "dea500d2ff9d8fd4493c5eefe61659e3e83dd5e0f9af7e1044472812ab54bf2a",
+    "screens/backup-ar.png": "114e1267177ee16c59443694707e31b629a3836c2445211df08a1edde8b8e723",
+    "screens/tools-ar.png": "0c0b5d3f035b6b8a31ea45eba6a461935639d0be0016be2f5fb0f349570c06f3",
+    "eye-proof/eyes-off.png": "fb020406764195e8e284036aae169637b9b50d575107408ec1d48a7a7684bc9c",
+    "eye-proof/eyes-on.png": "e1a6bc80a341a68c41b77a319f5fc934cda39d530df8503487b914bb6966791f",
+    "eye-proof/eye-pixel-observations.json": "25991f36577009f339f617654c8206a098b783ced889cca36973692168a60092",
+    "performance/observations.json": "aa49ed96886b390cc46bd934bac95c8bcfba16f40b4147800e2ca59893a7637a"
+  },
+  "originalAssetSha256": "6b054a6815726ee545b0d935cf851fb751a44b3dc8505a68066e438bec004f68",
+  "preservation": {
+    "checkpoint": "d99f02db0269b0ba73a2c516ff0615112df5dbeb",
+    "shareableBundle": "outputs/desktop/pre-motion/desktop-unique-d99f02d.bundle",
+    "sha256": "f07d0355b20960da1561c304b2b4994a1ba109fb65ba16d9509b05ec7b455be3",
+    "prerequisite": "3ce168973436ba81010ab717d083bcc691fa623a",
+    "taskBranch": "coderabbit/desktop-workspace-visuals/83d7249a",
+    "taskBranchTreeMatchesCommonBase": "b5b554b5d1eb980040a5ffb49566e5a7a19d4cd0",
+    "vercelClaimedCommit": "22108edad3fe15ffe785ba7ecc00fd74bf06929",
+    "vercelImport": "BLOCKED: bundle/checksum/report absent; no overlay performed"
+  },
+  "limitations": [
+    "No Windows Electron native runtime, installer, EXE, device audio or DPI verification.",
+    "Browser requestAnimationFrame median83.6ms/p95 117.1ms in cloud; smoothness budget not proven.",
+    "Bounded DOM/audio sources are not a heap-leak certification.",
+    "No subjective sound mix approval; video contains no audio, separate original WAV audition provided.",
+    "Visual demo scenes are not encryption, authentication, TOTP or recovery implementations.",
+    "44 real full-stack service acceptance remains outstanding.",
+    "Historical security audit not cleared.",
+    "No Android, main, dependency or privileged IPC edits."
+  ],
+  "nextFourAfterReconciliation": [
+    "01 SPLASH_ENTRY",
+    "02 SECURE_ACCESS_LOGIN",
+    "03 HOME",
+    "04 FILE_CIPHER"
+  ]
+}

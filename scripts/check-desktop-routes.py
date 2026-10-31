@@ -17,7 +17,7 @@ for locale in ['en','ar']:
   path=paths[mission]+('/project' if mission=='NOTES_EDITOR' else '/sample-1' if suffix else '')
   browser('open','http://localhost:3000'+path)
   browser('wait','main')
-  browser('eval','(()=>{if(document.documentElement.scrollWidth>innerWidth)throw Error("document overflow");const main=document.querySelector("main");if(main.scrollWidth>main.clientWidth+3)throw Error("main overflow");if(document.querySelector(".app-load-error"))throw Error("route boundary error");return "PASS"})()')
+  browser('eval','(()=>{if(document.documentElement.scrollWidth>innerWidth)throw Error("document overflow");const main=document.querySelector("main");if(main.scrollWidth>main.clientWidth+3)throw Error("main overflow");if(document.querySelector(".app-load-error"))throw Error("route boundary error");for(const logo of document.querySelectorAll(".stag-emblem")){const a=logo.querySelector("img").getBoundingClientRect(),b=logo.querySelector("svg").getBoundingClientRect();for(const k of ["left","top","width","height"])if(Math.abs(a[k]-b[k])>.5)throw Error("logo overlay bounds "+k);}return "PASS"})()')
   count+=1
 browser('open','http://localhost:3000/home')
 browser('wait','.dw-home')
