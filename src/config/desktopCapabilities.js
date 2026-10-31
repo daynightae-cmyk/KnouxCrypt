@@ -335,6 +335,77 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
     displayStatusReason:
       "Parsing uses Node's X509Certificate, so the reported fields are real. KnouxCrypt ships no CA trust store, so a certificate is never labelled trusted; the self-signed result is reported as a fact.",
   },
+  {
+    id: "ARCHIVE",
+    title: "Encrypted Archive",
+    platformCapability:
+      "Build a ZIP from chosen files in memory, then seal it with the vault engine as an authenticated AES-256-GCM container. Listing, extracting and traversal validation are all real.",
+    permissionNeeds: [
+      "Unlocked vault session",
+      "Read access to the selected files",
+      "Write access to the chosen output path",
+    ],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch06-workflows.test.cjs (round-trip of a real archive through create, inspect and extract, byte-identical extraction, plain-zip signature absent from the output, wrong-key refusal, corruption refusal, overwrite refusal, traversal-name rejection, entry-count and size bounds, and atomic-write cleanup)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "The archive is a real ZIP sealed by the real vault engine. There is no external archive tool involved and no compression claim that is not performed.",
+  },
+  {
+    id: "LOCAL_TRANSFER",
+    title: "Local Transfer",
+    platformCapability:
+      "Transfer files between two KnouxCrypt instances over loopback: an X25519 handshake, AES-256-GCM sealed chunks, a receiver-side consent step and a per-file SHA-256 check before the sender is told the transfer completed.",
+    permissionNeeds: [
+      "Unlocked vault session on both devices",
+      "Loopback network access only",
+      "Write access to the receiver's chosen folder",
+    ],
+    requiresNetwork: true,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch06-workflows.test.cjs (two real service instances over a real socket: byte-identical delivery of a 700 KB file, receiver accept and decline, tampered-ciphertext rejection, refusal to bind a non-loopback address, entry-name sanitisation, and listener teardown on session revocation)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "The transfer is real: a genuine socket, a genuine key agreement and genuine authenticated chunks. The six-digit code is a short authentication string the two people compare, not a secret, and the UI says so. Only loopback is supported; a LAN bind is refused.",
+  },
+  {
+    id: "FINGERPRINT_VERIFY",
+    title: "Fingerprint Verify",
+    platformCapability:
+      "Compute the SHA-256 fingerprint of a vault public key, a pasted PEM key or a certificate file, and compare two fingerprints in constant time with a group-by-group match report.",
+    permissionNeeds: ["The public key, PEM material or key file", "Unlocked vault session only to read a stored key"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch06-workflows.test.cjs (fingerprint of a real generated key matches an independent SHA-256 of its SPKI DER, identical comparison, single-character difference detected with the first mismatch located, length-mismatch reporting, non-hex refusal, certificate fingerprinting, and NOT_FOUND for an unknown key id)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Fingerprints are computed from real key material. A match proves the keys are the same; it does not by itself prove who owns the key, and the UI states that limit rather than implying identity verification.",
+  },
+  {
+    id: "METADATA_CLEANER",
+    title: "Metadata Cleaner",
+    platformCapability:
+      "Inspect real file metadata and write a metadata-stripped copy of a JPEG by filtering whole segments, with no image re-encoding. The original file is never modified.",
+    permissionNeeds: [
+      "Read access to the source file",
+      "Write access to the chosen destination",
+    ],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch06-workflows.test.cjs (a synthetic JPEG carrying EXIF, XMP, ICC and COM segments: group presence detection, byte-exact removal of the requested groups, image data left untouched, refusal to write over the source, refusal of a non-JPEG, refusal of an empty removal set, and NOT_FOUND for a missing file)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Only JPEG is rewritten, and it is rewritten byte-exactly. GPS, capture date and camera details share one EXIF block, so the UI says that removing one removes all three rather than implying per-field control. Other formats are refused, not faked.",
+  },
 ]);
 
 export function capabilityById(id) {

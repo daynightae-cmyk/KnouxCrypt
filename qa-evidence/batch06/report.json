@@ -1,0 +1,94 @@
+{
+  "screens": [
+    {
+      "route": "/tools/archive",
+      "locale": "en",
+      "heading": "ENCRYPTED ARCHIVE",
+      "capabilityStatus": "ACTIVE",
+      "primaryDisabled": true,
+      "dir": "ltr",
+      "docWidth": 1280,
+      "viewport": 1280,
+      "notice": "Unlock the vault to use this service."
+    },
+    {
+      "route": "/tools/secure-share/local-transfer",
+      "locale": "en",
+      "heading": "LOCAL TRANSFER",
+      "capabilityStatus": "ACTIVE",
+      "primaryDisabled": true,
+      "dir": "ltr",
+      "docWidth": 1280,
+      "viewport": 1280,
+      "notice": "Unlock the vault to use this service."
+    },
+    {
+      "route": "/key-forge/fingerprint",
+      "locale": "en",
+      "heading": "FINGERPRINT VERIFY",
+      "capabilityStatus": "ACTIVE",
+      "primaryDisabled": true,
+      "dir": "ltr",
+      "docWidth": 1280,
+      "viewport": 1280,
+      "notice": "Unlock the vault to use this service."
+    },
+    {
+      "route": "/tools/metadata-cleaner",
+      "locale": "en",
+      "heading": "METADATA CLEANER",
+      "capabilityStatus": "ACTIVE",
+      "primaryDisabled": true,
+      "dir": "ltr",
+      "docWidth": 1280,
+      "viewport": 1280,
+      "notice": "The original file is only read. The clean copy is written to a new path you choose."
+    },
+    {
+      "route": "/tools/archive",
+      "locale": "ar",
+      "heading": "الأرشيف المشفّر",
+      "capabilityStatus": "ACTIVE",
+      "primaryDisabled": true,
+      "dir": "rtl",
+      "docWidth": 1280,
+      "viewport": 1280,
+      "notice": "افتح الخزنة لاستخدام هذه الخدمة."
+    },
+    {
+      "route": "/tools/secure-share/local-transfer",
+      "locale": "ar",
+      "heading": "النقل المحلي",
+      "capabilityStatus": "ACTIVE",
+      "primaryDisabled": true,
+      "dir": "rtl",
+      "docWidth": 1280,
+      "viewport": 1280,
+      "notice": "افتح الخزنة لاستخدام هذه الخدمة."
+    },
+    {
+      "route": "/key-forge/fingerprint",
+      "locale": "ar",
+      "heading": "مقارنة بصمات المفاتيح",
+      "capabilityStatus": "ACTIVE",
+      "primaryDisabled": true,
+      "dir": "rtl",
+      "docWidth": 1280,
+      "viewport": 1280,
+      "notice": "افتح الخزنة لاستخدام هذه الخدمة."
+    },
+    {
+      "route": "/tools/metadata-cleaner",
+      "locale": "ar",
+      "heading": "تنظيف البيانات الوصفية",
+      "capabilityStatus": "ACTIVE",
+      "primaryDisabled": true,
+      "dir": "rtl",
+      "docWidth": 1280,
+      "viewport": 1280,
+      "notice": "يُقرأ الملف الأصلي فقط. تُكتب النسخة النظيفة في مسار جديد تختاره."
+    }
+  ],
+  "errors": [],
+  "note": "booted at /tools then in-app navigation (base \"./\" for file://)"
+}

@@ -150,7 +150,9 @@ export function useVault() {
   );
 
   const pickInputFile = useCallback(() => (api ? api.pickInputFile() : null), [api]);
+  const pickInputFiles = useCallback((options) => (api ? api.pickInputFiles(options) : null), [api]);
   const pickOutputFile = useCallback((options) => (api ? api.pickOutputFile(options) : null), [api]);
+  const pickDirectory = useCallback((options) => (api ? api.pickDirectory(options) : null), [api]);
   const inspect = useCallback((inputPath) => run((a) => a.inspect(inputPath)), [run]);
 
   const encryptFile = useCallback(
@@ -292,6 +294,58 @@ export function useVault() {
     [api],
   );
 
+  const archiveCreate = useCallback(
+    (request) => run((a) => a.archiveCreate({ ...request, sessionId: session?.sessionId })),
+    [run, session],
+  );
+  const archiveInspect = useCallback(
+    (inputPath) => run((a) => a.archiveInspect(session?.sessionId, inputPath)),
+    [run, session],
+  );
+  const archiveExtract = useCallback(
+    (request) => run((a) => a.archiveExtract({ ...request, sessionId: session?.sessionId })),
+    [run, session],
+  );
+
+  const metadataInspect = useCallback(
+    (inputPath) => (api ? api.metadataInspect(inputPath) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const metadataClean = useCallback(
+    (request) => (api ? api.metadataClean(request) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+
+  const fingerprintGet = useCallback(
+    (request) => (api ? api.fingerprintGet({ ...request, sessionId: session?.sessionId }) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api, session],
+  );
+  const fingerprintCompare = useCallback(
+    (left, right) => (api ? api.fingerprintCompare(left, right) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+
+  const transferListen = useCallback(
+    (port) => run((a) => a.transferListen(session?.sessionId, port)),
+    [run, session],
+  );
+  const transferStop = useCallback(
+    () => run((a) => a.transferStop()),
+    [run],
+  );
+  const transferRequests = useCallback(
+    () => (api ? api.transferRequests() : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const transferRespond = useCallback(
+    (request) => run((a) => a.transferRespond({ ...request, sessionId: session?.sessionId })),
+    [run, session],
+  );
+  const transferSend = useCallback(
+    (request) => run((a) => a.transferSend({ ...request, sessionId: session?.sessionId })),
+    [run, session],
+  );
+
   const state = !available
     ? VAULT_STATE.UNAVAILABLE
     : session?.guest
@@ -321,7 +375,9 @@ export function useVault() {
     encryptFile,
     decryptFile,
     pickInputFile,
+    pickInputFiles,
     pickOutputFile,
+    pickDirectory,
     inspect,
     cancel,
     storeList,
@@ -355,6 +411,18 @@ export function useVault() {
     signVerify,
     certInspect,
     certInspectFile,
+    archiveCreate,
+    archiveInspect,
+    archiveExtract,
+    metadataInspect,
+    metadataClean,
+    fingerprintGet,
+    fingerprintCompare,
+    transferListen,
+    transferStop,
+    transferRequests,
+    transferRespond,
+    transferSend,
   };
 }
 
