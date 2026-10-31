@@ -362,6 +362,36 @@ app.whenReady().then(async () => {
       out.packageNotVault = (await api.vault.packageInspect(base + "/probe-source.bin")).error?.code;
       out.packageVerify = await api.vault.packageVerify(enr.data.sessionId, base + "/probe.knv");
 
+      // Batch 09 (tasks 33-36) runtime checks.
+      out.autofillGet = await api.vault.autofillGet();
+      out.autofillNative = out.autofillGet.data?.capabilities?.nativeAutofill;
+      out.autofillUpdate = await api.vault.autofillUpdate({ suggestions: true });
+      out.autofillPersisted = out.autofillUpdate.data?.values?.suggestions === true;
+
+      out.advisorFilters = await api.vault.advisorFilters();
+      out.advisorReview = await api.vault.advisorReview("All");
+      out.advisorObserved = (out.advisorReview.data?.rows || []).filter((r) => r.kind === "OBSERVED").length;
+      out.advisorManual = (out.advisorReview.data?.rows || []).filter((r) => r.kind === "MANUAL").length;
+      out.advisorBadFilter = (await api.vault.advisorReview("Nonsense")).error?.code;
+
+      out.pairingStart = await api.vault.pairingStart({});
+      out.pairingNetwork = out.pairingStart.data?.networkOpened;
+      out.pairingSas = out.pairingStart.data?.sas?.length;
+      out.pairingBadConfirm = (
+        await api.vault.pairingConfirm(out.pairingStart.data.sessionId, { matches: false })
+      ).error?.code;
+      out.pairingConfirm = await api.vault.pairingConfirm(out.pairingStart.data.sessionId, {
+        matches: true,
+        phrase: out.pairingStart.data.sasText,
+      });
+      out.pairingConfirmed = out.pairingConfirm.data?.confirmed === true;
+      out.pairingCancel = await api.vault.pairingCancel(out.pairingStart.data.sessionId);
+
+      out.auditWeak = await api.vault.passwordAudit("password");
+      out.auditStrong = await api.vault.passwordAudit("correct horse battery staple");
+      out.auditBreachChecked = out.auditWeak.data?.limits?.breachChecked;
+      out.auditEmpty = (await api.vault.passwordAudit("")).error?.code;
+
       // Revocation must reach the renderer without a polling call.
       out.revokedEvent = await new Promise((resolve) => {
         const timer = setTimeout(() => resolve("timeout"), 4000);
@@ -506,6 +536,22 @@ app.whenReady().then(async () => {
     check("the package header inspects over IPC", probe.packageInspect?.ok === true && probe.packageInspect?.data?.isVault === true, JSON.stringify(probe.packageInspect?.error));
     check("a non-vault package is refused over IPC", probe.packageNotVault === "NOT_A_VAULT", String(probe.packageNotVault));
     check("the package verifies with the vault key", probe.packageVerify?.ok === true && probe.packageVerify?.data?.verified === true, JSON.stringify(probe.packageVerify?.error));
+    // Batch 09 (tasks 33-36) runtime checks.
+    check("the Autofill preview reads over IPC", probe.autofillGet?.ok === true, JSON.stringify(probe.autofillGet?.error));
+    check("the Autofill preview reports native Autofill unavailable", probe.autofillNative === false, String(probe.autofillNative));
+    check("an Autofill preview toggle persists over IPC", probe.autofillPersisted === true);
+    check("the advisor lists its real filters", probe.advisorFilters?.ok === true && probe.advisorFilters?.data?.filters?.includes("Vault"));
+    check("the advisor review returns observed and manual rows", probe.advisorObserved >= 8 && probe.advisorManual >= 1, `${probe.advisorObserved}/${probe.advisorManual}`);
+    check("the advisor refuses an unknown filter", probe.advisorBadFilter === "BAD_INPUT", String(probe.advisorBadFilter));
+    check("a pairing session starts over IPC with no network opened", probe.pairingStart?.ok === true && probe.pairingNetwork === false, JSON.stringify(probe.pairingStart?.error));
+    check("the pairing phrase has six words", probe.pairingSas === 6, String(probe.pairingSas));
+    check("a declined pairing match is refused", probe.pairingBadConfirm === "AUTH_FAILED", String(probe.pairingBadConfirm));
+    check("the pairing phrase confirms over IPC", probe.pairingConfirmed === true, JSON.stringify(probe.pairingConfirm?.error));
+    check("the pairing session cancels over IPC", probe.pairingCancel?.ok === true);
+    check("the password audit scores a weak input low", probe.auditWeak?.ok === true && probe.auditWeak?.data?.score <= 1, JSON.stringify(probe.auditWeak?.data));
+    check("the password audit scores a strong input high", probe.auditStrong?.data?.score >= 3, JSON.stringify(probe.auditStrong?.data));
+    check("the password audit reports breachChecked=false", probe.auditBreachChecked === false, String(probe.auditBreachChecked));
+    check("the password audit refuses empty input", probe.auditEmpty === "BAD_INPUT", String(probe.auditEmpty));
     check("renderer produced no console errors", consoleErrors.length === 0, consoleErrors.slice(0, 3).join(" | "));
     if (probe.__error) check("runtime probe completed without throwing", false, probe.__error);
   } catch (err) {

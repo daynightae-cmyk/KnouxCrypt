@@ -1,10 +1,27 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { SCREENS } from "../../config/screens";
 import { useLanguage } from "../../i18n/Language";
-import { Mark, PreviewSheet } from "../security/ScreenUI";
+import { Mark, CapabilityCard, PreviewSheet } from "../security/ScreenUI";
+import { useVault } from "../../hooks/useVault";
 import "./devices.css";
-function Frame({ title, icon, parent = SCREENS.TOOLS, motion = "", children }) {
+
+const ERROR_COPY = {
+  BAD_INPUT: "Check the input and try again.",
+  NOT_FOUND: "The selected item was not found.",
+  IO_FAILED: "The operation could not be completed on disk.",
+  AUTH_FAILED: "The authentication phrase did not match.",
+  SESSION_REQUIRED: "Unlock the vault to use this operation.",
+  SESSION_REVOKED: "Your session was revoked. Unlock again to continue.",
+  UNAVAILABLE: "The desktop vault bridge is unavailable in this preview.",
+};
+
+function errorText(error) {
+  if (!error) return "";
+  return ERROR_COPY[error.code] || error.message || "The operation failed.";
+}
+
+function Frame({ title, icon, parent = SCREENS.TOOLS, motion = "", live = false, children }) {
   const { t, locale, dir } = useLanguage();
   return (
     <main className={`device-preview ${motion}`} dir={dir} lang={locale}>
@@ -25,36 +42,65 @@ function Frame({ title, icon, parent = SCREENS.TOOLS, motion = "", children }) {
           <i />
         </div>
         <h1>{t(title)}</h1>
-        <p className="device-notice">{t("VISUAL DEMO")}</p>
+        <p className="device-notice">{t(live ? "REAL SERVICE" : "VISUAL DEMO")}</p>
         {children}
       </div>
     </main>
   );
 }
-function Toggle({ label, value, onChange }) {
+
+function Error({ error }) {
+  if (!error) return null;
+  return (
+    <p className="device-warning" role="alert">
+      {errorText(error)}
+    </p>
+  );
+}
+
+function Toggle({ label, value, onChange, disabled }) {
   const { t } = useLanguage();
   return (
     <label className="device-toggle">
       <span>{t(label)}</span>
-      <input type="checkbox" checked={value} onChange={onChange} />
+      <input type="checkbox" checked={value} disabled={disabled} onChange={onChange} />
     </label>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Task 33 — Android Autofill preview
+// ---------------------------------------------------------------------------
+
 export function AndroidAutofill() {
   const { t } = useLanguage();
-  const [options, setOptions] = useState({
-    suggestions: false,
-    mask: true,
-    confirmation: true,
-  });
-  const [sheet, setSheet] = useState(null);
+  const vault = useVault();
+  const [state, setState] = useState(null);
+  const [error, setError] = useState(null);
+  const [sheet, setSheet] = useState(false);
+
+  const load = useCallback(async () => {
+    const res = await vault.autofillGet();
+    if (res?.ok) setState(res.data);
+    else setError(res?.error);
+  }, [vault]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const toggle = async (key) => {
+    setError(null);
+    const res = await vault.autofillUpdate({ [key]: !state?.values?.[key] });
+    if (res?.ok) setState(res.data);
+    else setError(res?.error);
+  };
+
+  const values = state?.values || { suggestions: false, mask: true, confirmation: true };
+  const caps = state?.capabilities;
+
   return (
-    <Frame
-      title="ANDROID AUTOFILL CONTROL"
-      icon="key"
-      parent={SCREENS.PASSWORDS}
-      motion="device-autofill"
-    >
+    <Frame title="ANDROID AUTOFILL CONTROL" icon="key" parent={SCREENS.PASSWORDS} motion="device-autofill" live>
       <section className="device-panel">
         <h2>{t("Android Autofill")}</h2>
         {[
@@ -62,43 +108,38 @@ export function AndroidAutofill() {
           ["mask", "Mask demo suggestions"],
           ["confirmation", "Require visual confirmation"],
         ].map(([key, label]) => (
-          <Toggle
-            key={key}
-            label={label}
-            value={options[key]}
-            onChange={() => setOptions((v) => ({ ...v, [key]: !v[key] }))}
-          />
+          <Toggle key={key} label={label} value={values[key]} onChange={() => toggle(key)} disabled={!vault.available} />
         ))}
         <p>
-          {t(
-            "These switches do not change Android permissions or enable autofill.",
-          )}
+          {t("These switches change only a local preview. They do not change Android permissions or enable autofill.")}
         </p>
       </section>
-      <button
-        className="device-row"
-        type="button"
-        onClick={() => setSheet("Autofill guidance")}
-      >
+      <button className="device-row" type="button" onClick={() => setSheet(true)}>
         {t("Autofill guidance")}
         <Mark name="chevron" />
       </button>
-      <button
-        className="security-primary"
-        type="button"
-        onClick={() => setSheet("Unavailable in demo")}
-      >
+      <button className="security-primary" type="button" disabled aria-disabled="true">
         {t("Open Android Autofill Settings")}
         <Mark name="arrow" />
       </button>
-      <p className="device-warning">
-        {t("UNAVAILABLE IN DEMO · native settings are not opened")}
-      </p>
+      <p className="device-warning">{t("UNAVAILABLE IN DEMO · native settings are not opened")}</p>
+      {caps && (
+        <dl className="device-evidence">
+          <dt>{t("Native Autofill")}</dt>
+          <dd>{t(caps.nativeAutofill ? "Available" : "Not available on this platform")}</dd>
+          <dt>{t("Provider registration")}</dt>
+          <dd>{t(caps.canRegisterProvider ? "Available" : "Not available")}</dd>
+          <dt>{t("Settings CTA")}</dt>
+          <dd>{t(caps.canOpenSettings ? "Available" : "Not available")}</dd>
+        </dl>
+      )}
+      <Error error={error} />
+      <CapabilityCard id="ANDROID_AUTOFILL" />
       {sheet && (
-        <PreviewSheet title={sheet} onClose={() => setSheet(null)}>
+        <PreviewSheet title="Autofill guidance" onClose={() => setSheet(false)}>
           <p>
             {t(
-              "No system setting or credential provider is accessed. Consult your device settings independently; this preview performs no autofill.",
+              "Autofill is provided by the Android operating system. The desktop build cannot register a credential provider or open the device settings screen, so those actions stay disabled rather than pretending to succeed.",
             )}
           </p>
         </PreviewSheet>
@@ -106,36 +147,55 @@ export function AndroidAutofill() {
     </Frame>
   );
 }
-const GUIDANCE = [
-  ["Device lock", "Access"],
-  ["Updates", "System"],
-  ["Recovery planning", "Access"],
-];
+
+// ---------------------------------------------------------------------------
+// Task 34 — Offline Security Advisor
+// ---------------------------------------------------------------------------
+
 export function OfflineAdvisor() {
   const { t } = useLanguage();
+  const vault = useVault();
   const [filter, setFilter] = useState("All");
-  const [sheet, setSheet] = useState(null);
+  const [report, setReport] = useState(null);
+  const [error, setError] = useState(null);
+  const [open, setOpen] = useState(null);
+
+  const review = useCallback(
+    async (value) => {
+      setError(null);
+      const res = await vault.advisorReview(value);
+      if (res?.ok) setReport(res.data);
+      else setError(res?.error);
+    },
+    [vault],
+  );
+
+  useEffect(() => {
+    review("All");
+  }, [review]);
+
+  const rows = (report?.rows || []).filter((r) => filter === "All" || r.category === filter);
+
   return (
-    <Frame title="OFFLINE SECURITY ADVISOR" icon="shield" motion="device-radar">
+    <Frame title="OFFLINE SECURITY ADVISOR" icon="shield" motion="device-radar" live>
       <section className="device-panel">
         <h2>{t("Local Readiness Review")}</h2>
         <p>
           {t(
-            "Educational guidance only. No device data, permissions, vulnerabilities or security score are inspected.",
+            "This review reports only the state KnouxCrypt itself owns. It does not scan the operating system, installed software, permissions or the network.",
           )}
         </p>
       </section>
-      <div
-        className="device-choices"
-        role="group"
-        aria-label={t("Guidance filter")}
-      >
-        {["All", "Access", "System"].map((v) => (
+      <div className="device-choices" role="group" aria-label={t("Guidance filter")}>
+        {["All", "Vault", "Privacy", "Recovery", "Device"].map((v) => (
           <button
             type="button"
             key={v}
             aria-pressed={filter === v}
-            onClick={() => setFilter(v)}
+            onClick={() => {
+              setFilter(v);
+              review(v);
+            }}
           >
             {t(v)}
           </button>
@@ -143,175 +203,204 @@ export function OfflineAdvisor() {
       </div>
       <section className="device-panel">
         <h2>{t("Recommended Checks")}</h2>
-        {GUIDANCE.filter(
-          ([, category]) => filter === "All" || category === filter,
-        ).map(([title]) => (
-          <button
-            type="button"
-            className="device-row"
-            key={title}
-            onClick={() => setSheet(title)}
-          >
-            {t(title)}
-            <span>{t("Not evaluated")}</span>
+        {report?.counts && (
+          <p>
+            {report.counts.observed} {t("observed")} · {report.counts.manual} {t("manual")} · {report.counts.attention}{" "}
+            {t("need attention")}
+          </p>
+        )}
+        {rows.map((row) => (
+          <button type="button" className="device-row" key={row.id} onClick={() => setOpen(row)}>
+            {t(row.title)}
+            <span>
+              {t(row.kind === "OBSERVED" ? (row.status === "attention" ? "Needs attention" : "Observed") : "Manual check")}
+            </span>
             <Mark name="chevron" />
           </button>
         ))}
       </section>
-      <button
-        className="security-primary"
-        type="button"
-        onClick={() => setSheet("Inspect Device Setup")}
-      >
-        {t("Inspect Device Setup")}
-        <Mark name="arrow" />
-      </button>
-      {sheet && (
-        <PreviewSheet title={sheet} onClose={() => setSheet(null)}>
-          <p>
-            {t(
-              "Review these topics manually on your device. This interface does not scan or verify any setting.",
-            )}
-          </p>
+      <Error error={error} />
+      <CapabilityCard id="OFFLINE_ADVISOR" />
+      {open && (
+        <PreviewSheet title={open.title} onClose={() => setOpen(null)} label="REAL SERVICE">
+          <p>{t(open.guidance)}</p>
           <dl className="device-evidence">
             <dt>{t("Evidence source")}</dt>
-            <dd>{t("None · educational example")}</dd>
-            <dt>{t("Assessment")}</dt>
-            <dd>{t("Not evaluated")}</dd>
+            <dd dir="ltr">{open.evidence || "—"}</dd>
+            <dt>{t("Kind")}</dt>
+            <dd>{t(open.kind === "OBSERVED" ? "Observed locally" : "Manual, not evaluated")}</dd>
+            {open.value && (
+              <>
+                <dt>{t("Value")}</dt>
+                <dd dir="ltr">{String(open.value)}</dd>
+              </>
+            )}
           </dl>
         </PreviewSheet>
       )}
     </Frame>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Task 35 — Multi-Device Pairing (loopback only)
+// ---------------------------------------------------------------------------
+
 export function DevicePairing() {
   const { t } = useLanguage();
+  const vault = useVault();
+  const [session, setSession] = useState(null);
   const [step, setStep] = useState(0);
   const [confirmed, setConfirmed] = useState(false);
-  const [sheet, setSheet] = useState(false);
+  const [error, setError] = useState(null);
+  const [done, setDone] = useState(false);
+
+  const start = async () => {
+    setError(null);
+    setDone(false);
+    const res = await vault.pairingStart({ label: "This device" });
+    if (res?.ok) {
+      setSession(res.data);
+      setStep(1);
+      setConfirmed(false);
+    } else setError(res?.error);
+  };
+
+  const confirm = async () => {
+    setError(null);
+    const res = await vault.pairingConfirm(session.sessionId, { matches: true, phrase: session.sasText });
+    if (res?.ok) {
+      setDone(true);
+      setStep(2);
+    } else setError(res?.error);
+  };
+
+  const cancel = async () => {
+    if (session) await vault.pairingCancel(session.sessionId);
+    setSession(null);
+    setStep(0);
+    setConfirmed(false);
+    setDone(false);
+  };
+
   return (
     <Frame
       title="MULTI-DEVICE PAIRING"
       icon="upload"
       parent={SCREENS.SECURE_SHARE}
       motion={`device-pairing device-pairing-step-${step}`}
+      live
     >
       <section className="device-panel">
         <h2>{t("Pairing Session")}</h2>
-        <p>{t("No active connection · fictional devices only")}</p>
+        <p>{t("Loopback key agreement only · no network connection is opened")}</p>
         <div className="device-steps" aria-label={t("Pairing Steps")}>
           {[0, 1, 2].map((value) => (
             <button
               key={value}
               type="button"
               aria-current={step === value ? "step" : undefined}
-              onClick={() => {
-                setStep(value);
-                setConfirmed(false);
-              }}
+              onClick={() => setStep(value)}
             >
               {value + 1}
             </button>
           ))}
         </div>
-        <h3>
-          {t(
-            [
-              "Select fictional devices",
-              "Review demo phrase",
-              "Preview handshake",
-            ][step],
-          )}
-        </h3>
-        <p>
-          {t("Demo Phone")} ↔ {t("Demo Tablet")}
-        </p>
-        <code dir="ltr">DEMO · VIOLET RIVER · 0000</code>
-        <Toggle
-          label="I compared the public demo phrase"
-          value={confirmed}
-          onChange={() => setConfirmed((v) => !v)}
-        />
+        <h3>{t(["Select devices", "Compare phrase", "Confirm"][step])}</h3>
+        {session ? (
+          <>
+            <p>
+              {t("This device")} ↔ {t("Peer role")}
+            </p>
+            <code dir="ltr">{session.sasText}</code>
+            <p className="device-hint">
+              {t("Algorithm")}: <span dir="ltr">{session.algorithm}</span>
+            </p>
+            <p className="device-hint">
+              {t("Local fingerprint")}: <span dir="ltr">{session.localFingerprint}</span>
+            </p>
+            <p className="device-hint">
+              {t("Peer fingerprint")}: <span dir="ltr">{session.peerFingerprint}</span>
+            </p>
+            {step === 1 && (
+              <Toggle
+                label="I compared the authentication phrase"
+                value={confirmed}
+                onChange={() => setConfirmed((v) => !v)}
+              />
+            )}
+          </>
+        ) : (
+          <p>{t("No pairing session is open yet.")}</p>
+        )}
       </section>
-      <button
-        type="button"
-        className="security-primary"
-        disabled={!confirmed}
-        onClick={() => setSheet(true)}
-      >
-        {t("Start Device Pairing")}
-        <Mark name="arrow" />
-      </button>
-      <button
-        type="button"
-        className="device-secondary"
-        onClick={() => {
-          setStep(0);
-          setConfirmed(false);
-        }}
-      >
-        {t("Cancel preview")}
-      </button>
+      {!session && (
+        <button type="button" className="security-primary" onClick={start} disabled={!vault.available}>
+          {t("Start Device Pairing")}
+          <Mark name="arrow" />
+        </button>
+      )}
+      {session && !done && (
+        <button type="button" className="security-primary" disabled={!confirmed} onClick={confirm}>
+          {t("Confirm pairing phrase")}
+          <Mark name="arrow" />
+        </button>
+      )}
+      {session && (
+        <button type="button" className="device-secondary" onClick={cancel}>
+          {t("Cancel pairing")}
+        </button>
+      )}
+      {done && (
+        <p className="device-notice" role="status">
+          {t("Phrase confirmed locally. This is a loopback demonstration, not a trusted remote device.")}
+        </p>
+      )}
       <Link className="device-link" to={SCREENS.LOCAL_TRANSFER}>
         {t("Local Transfer")}
       </Link>
-      {sheet && (
-        <PreviewSheet
-          title="Pairing handshake preview"
-          onClose={() => setSheet(false)}
-        >
-          <p>
-            {t(
-              "No pairing session, network connection, trusted device or authentication was created.",
-            )}
-          </p>
-          {step < 2 && (
-            <button
-              className="security-choice"
-              type="button"
-              onClick={() => {
-                setStep((v) => v + 1);
-                setConfirmed(false);
-                setSheet(false);
-              }}
-            >
-              {t("Next visual step")}
-            </button>
-          )}
-        </PreviewSheet>
-      )}
+      <Error error={error} />
+      <CapabilityCard id="DEVICE_PAIRING" />
     </Frame>
   );
 }
-export function demoPasswordHeuristics(value) {
-  return {
-    length: value.length >= 12,
-    mixed: /[a-z]/.test(value) && /[A-Z]/.test(value),
-    digits: /[0-9]/.test(value),
-    symbols: /[^a-zA-Z0-9\s]/.test(value),
-  };
-}
+
+// ---------------------------------------------------------------------------
+// Task 36 — Password Strength Audit
+// ---------------------------------------------------------------------------
+
 export function PasswordAudit() {
   const { t } = useLanguage();
+  const vault = useVault();
   const [text, setText] = useState("");
   const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
   const [reveal, setReveal] = useState(false);
-  const [sheet, setSheet] = useState(false);
-  const count = result ? Object.values(result).filter(Boolean).length : 0;
+
+  const run = async () => {
+    setError(null);
+    const res = await vault.passwordAudit(text);
+    if (res?.ok) setResult(res.data);
+    else setError(res?.error);
+  };
+
+  const score = result?.score ?? -1;
+  const gauge = result ? `${(score + 1) * 20}%` : "0%";
+
   return (
-    <Frame title="PASSWORD AUDIT" icon="lock" parent={SCREENS.PASSWORDS}>
+    <Frame title="PASSWORD AUDIT" icon="lock" parent={SCREENS.PASSWORDS} live>
       <p className="device-warning">
         {t(
-          "Fictional text only. Never enter a real password. No account or leaked-password database is scanned.",
+          "Offline heuristic estimate. No breach database is consulted and nothing is stored. Do not type a real password.",
         )}
       </p>
       <section className="device-panel">
         <label className="device-field">
-          {t("Demo audit text")}
+          {t("Audit text")}
           <input
             dir="auto"
             type={reveal ? "text" : "password"}
-            maxLength={200}
+            maxLength={256}
             value={text}
             autoComplete="off"
             onChange={(e) => {
@@ -326,68 +415,38 @@ export function PasswordAudit() {
           aria-pressed={reveal}
           onClick={() => setReveal((v) => !v)}
         >
-          {t(reveal ? "Hide demo text" : "Reveal demo text")}
+          {t(reveal ? "Hide text" : "Reveal text")}
         </button>
-        <div
-          className="device-audit-gauge"
-          aria-label={t("Illustrative pattern gauge")}
-        >
-          <i style={{ width: `${count * 25}%` }} />
+        <div className="device-audit-gauge" aria-label={t("Estimated strength")} data-score={result ? score : "idle"}>
+          <i style={{ width: gauge }} />
         </div>
         <p>
-          {t("Pattern examples matched")} {result ? `${count}/4` : "—"}
+          {result
+            ? `${t(result.scoreLabel)} · ${result.entropyBits} ${t("bits")} · ${result.guessesLog10} log10 ${t("guesses")}`
+            : t("Gauge inactive until you run an audit.")}
         </p>
         {result && (
           <ul className="device-audit-list">
-            {[
-              ["length", "At least 12 characters"],
-              ["mixed", "Both uppercase and lowercase"],
-              ["digits", "Contains a digit"],
-              ["symbols", "Contains a symbol"],
-            ].map(([key, label]) => (
-              <li key={key}>
-                {t(label)}:{" "}
-                {t(result[key] ? "Example present" : "Example absent")}
-              </li>
+            {result.feedback.warnings.map((w) => (
+              <li key={w}>{t(w)}</li>
+            ))}
+            {result.feedback.suggestions.map((s) => (
+              <li key={s}>{t(s)}</li>
             ))}
           </ul>
         )}
       </section>
-      <button
-        type="button"
-        className="security-primary"
-        disabled={!text.trim()}
-        onClick={() => setResult(demoPasswordHeuristics(text))}
-      >
+      <button type="button" className="security-primary" disabled={!text.trim()} onClick={run}>
         {t("Run Local Password Audit")}
         <Mark name="arrow" />
       </button>
-      <button
-        type="button"
-        className="device-secondary"
-        onClick={() => setSheet(true)}
-      >
-        {t("Estimate limitations")}
-      </button>
-      <p className="device-notice" role="status">
-        {result
-          ? t(
-              "Illustrative string patterns only. This is not a strength, safety or breach assessment.",
-            )
-          : t("Gauge inactive until fictional input is reviewed.")}
-      </p>
-      {sheet && (
-        <PreviewSheet
-          title="Estimate limitations"
-          onClose={() => setSheet(false)}
-        >
-          <p>
-            {t(
-              "Length and character patterns cannot establish password safety. No entropy, cracking-time or breach result is calculated. Text stays in component memory and is not sent or stored.",
-            )}
-          </p>
-        </PreviewSheet>
+      {result && (
+        <p className="device-notice" role="status">
+          {t(result.limits.note)}
+        </p>
       )}
+      <Error error={error} />
+      <CapabilityCard id="PASSWORD_AUDIT" />
     </Frame>
   );
 }
