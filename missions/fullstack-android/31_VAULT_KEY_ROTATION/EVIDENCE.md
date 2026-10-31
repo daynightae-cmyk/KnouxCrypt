@@ -163,6 +163,22 @@ and KNF1 device files. Corrected without changing the root alias or formats:
   KDK1 and KNF2 tests were added to androidTest but **not run** on hardware.
 - Full verification is recorded in the status ledger; DEVICE_UNVERIFIED remains.
 
+## 6b. Post-review hardening (`f82010e`)
+
+- Added a test that a legacy KNF1 device file survives **two** record-key rotations,
+  verifies the Keystore root bytes are unchanged, and rejects `retireDataKey(access, 0)`.
+  Rotation never deletes the root alias; KNF1 decryption has no fallback if the root is
+  actually lost or invalidated.
+- Added KNF2 fail-closed tests: first-chunk tag tamper emits zero plaintext; truncated
+  wrapped-key/header cuts and absurd wrapped-length values fail; existing wrong-key/tamper
+  tests remain.
+- Added in-flight KNF2 **decryption** revocation coverage; encryption already aborts at a
+  chunk checkpoint and the app deletes its temporary output. Save/delete/restore/rotation
+  batches remain serialized by the mutation gate.
+- Aggregate suite after the later HMAC work is 120 tests, 0 failures; current APK/lint
+  numbers are in `NATIVE_STATUS_2026-10-31.md`. The device checklist is in
+  `DEVICE_VERIFICATION_CHECKLIST.md`. Device behavior remains unverified.
+
 ## 7. Next safe action
 
 Run the instrumented Keystore/Room migration and biometric reauth/rotation flows on a

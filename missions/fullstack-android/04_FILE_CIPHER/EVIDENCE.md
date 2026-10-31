@@ -34,3 +34,7 @@ install, launch, screenshot, lifecycle, Back, biometric, Keystore or SAF evidenc
   headers and legacy KNF1 through `VaultFileCipher`. Full suite: 111 tests, 0 failures.
 - **Still not verified:** real SAF providers, 1 GB+ files, process death, device Keystore
   behavior and UI screenshots. Instrumented real-root file test compiled, not run.
+- **Review hardening (`f82010e`):** first-chunk tag tamper emits no plaintext; truncated
+  wrapped-key/header and absurd wrapped-length values fail closed; a legacy KNF1 file
+  survives two record-key rotations with the root retained. Current aggregate is 120
+  tests, 0 failures; see the status ledger and `DEVICE_VERIFICATION_CHECKLIST.md`.
