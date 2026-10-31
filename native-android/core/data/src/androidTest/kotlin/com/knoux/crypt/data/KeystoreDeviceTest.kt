@@ -2,12 +2,15 @@ package com.knoux.crypt.data
 
 import android.security.keystore.KeyInfo
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import java.security.GeneralSecurityException
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
+import javax.crypto.spec.SecretKeySpec
 import javax.crypto.spec.GCMParameterSpec
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -31,6 +34,31 @@ class KeystoreDeviceTest {
         val opening = Cipher.getInstance("AES/GCM/NoPadding")
         opening.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(128, iv))
         assertArrayEquals(plaintext, opening.doFinal(sealed))
+    }
+
+    @Test
+    fun dataKeyWrappingRoundTripsUnderTheRealKeystoreRoot() {
+        val keystore = KeystoreManager()
+        val root = keystore.masterKey()
+        val wrapper = DataKeyWrapper()
+        val dek = SecretKeySpec(ByteArray(32) { (it * 3 + 1).toByte() }, "AES")
+        val wrapped = wrapper.wrap(root, version = 7, dek = dek)
+        val opened = wrapper.unwrap(root, expectedVersion = 7, blob = wrapped)
+        assertArrayEquals(dek.encoded, opened.encoded)
+
+        val tampered = wrapped.clone()
+        tampered[tampered.size - 1] = (tampered[tampered.size - 1].toInt() xor 1).toByte()
+        try {
+            wrapper.unwrap(root, expectedVersion = 7, blob = tampered)
+            fail("Tampered wrapped DEK was accepted")
+        } catch (_: GeneralSecurityException) {
+        } catch (_: IllegalArgumentException) {
+        }
+        try {
+            wrapper.unwrap(root, expectedVersion = 8, blob = wrapped)
+            fail("Wrong wrapped DEK version was accepted")
+        } catch (_: IllegalArgumentException) {
+        }
     }
 
     @Test

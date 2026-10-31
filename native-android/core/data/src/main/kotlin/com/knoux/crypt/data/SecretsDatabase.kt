@@ -11,6 +11,8 @@ import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.Upsert
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import java.security.GeneralSecurityException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -24,6 +26,8 @@ data class SecretEntity(
     val kind: String,
     val envelope: ByteArray,
     val updatedAt: Long,
+    /** 0 = legacy root-key record (KNC1); positive = wrapped vault DEK version (KNC2). */
+    val keyVersion: Int = 0,
 )
 
 @Dao
@@ -52,16 +56,38 @@ interface SecretDao {
     /** One Room transaction: any conflict aborts the whole restore. */
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertAll(entities: List<SecretEntity>)
+
+    @Query("SELECT * FROM secrets WHERE keyVersion = :version AND id > :after ORDER BY id LIMIT :limit")
+    suspend fun pageByVersionAfter(version: Int, after: String, limit: Int): List<SecretEntity>
+
+    @Query("SELECT COUNT(*) FROM secrets WHERE keyVersion = :version")
+    suspend fun countVersion(version: Int): Int
+
+    @Query("UPDATE secrets SET envelope = :envelope, keyVersion = :keyVersion WHERE id = :id")
+    suspend fun updateEnvelope(id: String, envelope: ByteArray, keyVersion: Int)
+
+    @Query("SELECT keyVersion AS keyVersion, COUNT(*) AS count FROM secrets GROUP BY keyVersion")
+    suspend fun versionCounts(): List<VersionCount>
 }
 
-@Database(entities = [SecretEntity::class], version = 1, exportSchema = true)
+data class VersionCount(val keyVersion: Int, val count: Int)
+
+@Database(entities = [SecretEntity::class], version = 2, exportSchema = true)
 abstract class KnouxDatabase : RoomDatabase() {
     abstract fun secrets(): SecretDao
+}
+
+/** Adds explicit key-version metadata without touching or re-encrypting existing rows. */
+val MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE secrets ADD COLUMN keyVersion INTEGER NOT NULL DEFAULT 0")
+    }
 }
 
 object DatabaseProvider {
     fun create(context: Context): KnouxDatabase =
         Room.databaseBuilder(context.applicationContext, KnouxDatabase::class.java, "knoux.db")
+            .addMigrations(MIGRATION_1_2)
             .build()
 }
 
@@ -79,6 +105,7 @@ object DatabaseProvider {
 class SecretRepository(
     private val dao: SecretDao,
     private val session: SessionManager,
+    private val keys: VaultKeyManager,
 ) {
     fun observe(access: VaultAccess, kind: String): Flow<List<SecretRecord>> = flow {
         session.requireValid(access)
@@ -108,27 +135,35 @@ class SecretRepository(
 
     suspend fun save(access: VaultAccess, kind: String, id: String?, payloadJson: String): String =
         withContext(Dispatchers.IO) {
-            session.requireValid(access)
-            val recordId = id?.takeIf { it.isNotBlank() } ?: java.util.UUID.randomUUID().toString()
-            val codec = SecretCodec(session.key(access))
-            val blob = codec.encrypt(kind, recordId, payloadJson)
-            // Abort an in-flight write rather than persisting after revocation.
-            session.requireValid(access)
-            dao.upsert(SecretEntity(recordId, kind, blob, System.currentTimeMillis()))
-            recordId
+            session.withAuthorizedMutation(access) {
+                val recordId = id?.takeIf { it.isNotBlank() } ?: java.util.UUID.randomUUID().toString()
+                val keyVersion = keys.activeVersion(access)
+                val codec = SecretCodec(keys.keyFor(access, keyVersion))
+                val blob = codec.encrypt(kind, recordId, payloadJson, keyVersion)
+                dao.upsert(SecretEntity(recordId, kind, blob, System.currentTimeMillis(), keyVersion))
+                recordId
+            }
         }
 
     suspend fun delete(access: VaultAccess, id: String) = withContext(Dispatchers.IO) {
-        session.requireValid(access)
-        session.key(access) // authorize before mutating
-        dao.delete(id)
+        session.withAuthorizedMutation(access) {
+            session.key(access) // authorize before mutating
+            dao.delete(id)
+        }
     }
 
-    private fun decode(access: VaultAccess, entity: SecretEntity): SecretRecord {
+    private suspend fun decode(access: VaultAccess, entity: SecretEntity): SecretRecord {
         session.requireValid(access)
-        val codec = SecretCodec(session.key(access))
         val record = try {
-            SecretRecord(entity.id, entity.kind, codec.decrypt(entity.kind, entity.id, entity.envelope), entity.updatedAt)
+            val codec = SecretCodec(keys.keyFor(access, entity.keyVersion))
+            SecretRecord(
+                entity.id,
+                entity.kind,
+                codec.decrypt(entity.kind, entity.id, entity.envelope, entity.keyVersion),
+                entity.updatedAt,
+            )
+        } catch (_: MissingVaultKeyException) {
+            SecretRecord(entity.id, entity.kind, "", entity.updatedAt, decryptionFailed = true)
         } catch (_: GeneralSecurityException) {
             SecretRecord(entity.id, entity.kind, "", entity.updatedAt, decryptionFailed = true)
         } catch (_: IllegalArgumentException) {

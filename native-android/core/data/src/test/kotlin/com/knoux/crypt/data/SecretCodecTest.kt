@@ -50,6 +50,39 @@ class SecretCodecTest {
     }
 
     @Test
+    fun versionedRecordsBindTheirKeyVersion() {
+        val payload = """{"title":"v","body":"versioned"}"""
+        val versioned = codec.encrypt(SecretKinds.NOTE, "id-v", payload, keyVersion = 3)
+        assertEquals(payload, codec.decrypt(SecretKinds.NOTE, "id-v", versioned, keyVersion = 3))
+
+        for (wrong in listOf(0, 2, 4)) {
+            try {
+                codec.decrypt(SecretKinds.NOTE, "id-v", versioned, keyVersion = wrong)
+                fail("Record accepted under key version $wrong")
+            } catch (_: GeneralSecurityException) {
+            } catch (_: IllegalArgumentException) {
+            }
+        }
+
+        val legacy = codec.encrypt(SecretKinds.NOTE, "id-l", payload)
+        try {
+            codec.decrypt(SecretKinds.NOTE, "id-l", legacy, keyVersion = 3)
+            fail("Legacy KNC1 record accepted as a versioned KNC2 record")
+        } catch (_: GeneralSecurityException) {
+        } catch (_: IllegalArgumentException) {
+        }
+
+        val tamperedVersion = versioned.clone()
+        tamperedVersion[6] = (tamperedVersion[6].toInt() xor 1).toByte()
+        try {
+            codec.decrypt(SecretKinds.NOTE, "id-v", tamperedVersion, keyVersion = 3)
+            fail("Tampered key-version header accepted")
+        } catch (_: GeneralSecurityException) {
+        } catch (_: IllegalArgumentException) {
+        }
+    }
+
+    @Test
     fun tamperingRejected() {
         val encoded = codec.encrypt(SecretKinds.TOTP, "id-5", """{"secretBase32":"JBSWY3DPEHPK3PXP"}""")
         for (index in listOf(0, 10, encoded.size - 1)) {

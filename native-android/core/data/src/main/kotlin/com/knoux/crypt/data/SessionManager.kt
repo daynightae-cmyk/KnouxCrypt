@@ -8,6 +8,8 @@ import kotlin.concurrent.write
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * A live, in-memory authorization capability.
@@ -51,7 +53,11 @@ private class KeystoreKeySource(private val keystore: KeystoreManager) : VaultKe
  * - [authorizeEnrollment] can only open a brand-new vault (no master key yet).
  *   It can never open an existing vault, so setting up a replacement gate
  *   cannot grant ownership of existing ciphertext.
- * - Locking clears the cached key handle and increments the generation, so all
+ * - [withAuthorizedMutation] serializes a revocable capability with a database
+ *   or journal mutation. [lock] waits for an already-authorized mutation to
+ *   finish, then revokes; no mutation can *start* after revocation, and none
+ *   can silently commit after the lock call returns.
+ * - Locking clears cached keys and increments the generation, so all
  *   previously issued capabilities fail validation.
  * - The master key itself is not auth-bound per use; this is a session-gated
  *   design and must not be described as per-use biometric binding.
@@ -61,8 +67,17 @@ class SessionManager internal constructor(private val keys: VaultKeySource) {
 
     private data class Capability(override val generation: Long) : VaultAccess
 
+    /** Guards in-memory access/cachedKey state. Short, non-suspending sections only. */
     private val guard = ReentrantReadWriteLock()
     private val keyCacheLock = Any()
+
+    /**
+     * Serializes mutations against revocation. A mutation holds this mutex for
+     * the whole logical commit; lock() takes the same mutex before revoking.
+     * This is coroutine-safe (unlike holding a thread lock across suspension).
+     */
+    private val mutationGate = Mutex()
+
     private var access: VaultAccess? = null
     private var cachedKey: SecretKey? = null
     private var generation = 0L
@@ -77,7 +92,7 @@ class SessionManager internal constructor(private val keys: VaultKeySource) {
      * then mints a capability. The cipher instance must have been created by
      * the Keystore gate store; a UI callback cannot construct this proof.
      */
-    internal fun authorizeUnlock(gate: GateCipher, payload: ByteArray) {
+    internal suspend fun authorizeUnlock(gate: GateCipher, payload: ByteArray) {
         require(gate.purpose == GatePurpose.UNLOCK) { "Not an unlock cipher" }
         val plain = gate.doFinal(payload)
         if (!MessageDigest.isEqual(plain, UnlockProtocol.TOKEN)) {
@@ -87,29 +102,61 @@ class SessionManager internal constructor(private val keys: VaultKeySource) {
     }
 
     /**
+     * Verifies the unlock token without minting a new capability. Used for
+     * explicit owner re-authentication before a sensitive migration while an
+     * unlocked session already exists.
+     */
+    internal fun verifyUnlockProof(gate: GateCipher, payload: ByteArray) {
+        require(gate.purpose == GatePurpose.UNLOCK) { "Not an unlock cipher" }
+        val plain = gate.doFinal(payload)
+        if (!MessageDigest.isEqual(plain, UnlockProtocol.TOKEN)) {
+            throw UnlockRejectedException()
+        }
+    }
+
+    /**
      * Opens a brand-new vault after the setup cipher has proved a real
      * auth-bound Keystore operation. Refuses if any master key already exists,
      * which is the data-ownership anchor for an existing vault.
      */
-    internal fun authorizeEnrollment(gate: GateCipher) {
+    internal suspend fun authorizeEnrollment(gate: GateCipher) {
         require(gate.purpose == GatePurpose.ENROLL) { "Not an enrollment cipher" }
         if (keys.hasMasterKey()) throw UnlockReenrollmentBlockedException()
         openSession()
     }
 
-    private fun openSession() = guard.write {
-        generation += 1
-        access = Capability(generation)
-        synchronized(keyCacheLock) { cachedKey = null }
-        _unlocked.value = true
+    private suspend fun openSession() = mutationGate.withLock {
+        guard.write {
+            generation += 1
+            access = Capability(generation)
+            synchronized(keyCacheLock) { cachedKey = null }
+            _unlocked.value = true
+        }
+    }
+
+    /**
+     * Runs a mutation under the revocation boundary. Lock waits for an
+     * already-started authorized mutation to finish; a mutation that starts
+     * after revocation fails before touching storage. Callers must keep the
+     * block to the logical commit (not long non-mutating work) so locking does
+     * not stall.
+     */
+    internal suspend fun <T> withAuthorizedMutation(
+        access: VaultAccess,
+        block: suspend () -> T,
+    ): T = mutationGate.withLock {
+        requireValid(access)
+        block()
     }
 
     /** Revokes the capability, drops the cached key handle and invalidates stale access objects. */
-    fun lock() = guard.write {
-        access = null
-        synchronized(keyCacheLock) { cachedKey = null }
-        generation += 1
-        _unlocked.value = false
+    suspend fun lock() = mutationGate.withLock {
+        guard.write {
+            access = null
+            synchronized(keyCacheLock) { cachedKey = null }
+            generation += 1
+            _unlocked.value = false
+        }
     }
 
     fun currentAccess(): VaultAccess? = guard.read { access }

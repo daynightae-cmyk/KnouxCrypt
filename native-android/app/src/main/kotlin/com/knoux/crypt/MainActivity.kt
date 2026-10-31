@@ -22,7 +22,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainActivity : FragmentActivity() {
-    private enum class GateAction { SETUP, UNLOCK, ROTATE }
+    private enum class GateAction { SETUP, UNLOCK, ROTATE, ROTATE_KEYS }
 
     private lateinit var container: AppContainer
     private lateinit var accessViewModel: AccessViewModel
@@ -46,6 +46,7 @@ class MainActivity : FragmentActivity() {
                     authenticate(if (setup) GateAction.SETUP else GateAction.UNLOCK)
                 },
                 onRequestGateRotation = { authenticate(GateAction.ROTATE) },
+                onRequestRotationAuth = { authenticate(GateAction.ROTATE_KEYS) },
             )
         }
     }
@@ -73,17 +74,19 @@ class MainActivity : FragmentActivity() {
      * resulting capability after BiometricPrompt succeeds.
      */
     private fun authenticate(action: GateAction) {
-        if (accessViewModel.state.value.busy) return
+        if (accessViewModel.state.value.busy || container.rotationAuthBroker.requesting.value) return
+        val keyRotation = action == GateAction.ROTATE_KEYS
+        if (keyRotation) container.rotationAuthBroker.beginRequest() else accessViewModel.setBusy(true)
         lifecycleScope.launch {
-            accessViewModel.setBusy(true)
             val cipher = try {
                 when (action) {
                     GateAction.SETUP -> container.unlockManager.prepareSetupCipher()
                     GateAction.UNLOCK -> container.unlockManager.prepareUnlockCipher()
                     GateAction.ROTATE -> container.unlockManager.prepareGateRotationCipher()
+                    GateAction.ROTATE_KEYS -> container.unlockManager.prepareRotationReauthCipher()
                 }
             } catch (failure: Exception) {
-                handleFailure(failure)
+                handleFailure(failure, action)
                 return@launch
             }
             showPrompt(action, cipher)
@@ -98,7 +101,7 @@ class MainActivity : FragmentActivity() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     val cipherUsed = result.cryptoObject?.cipher
                     if (cipherUsed == null) {
-                        accessViewModel.onError("Biometric result did not include a key cipher.")
+                        reportPromptMessage(action, "Biometric result did not include a key cipher.")
                         return
                     }
                     lifecycleScope.launch {
@@ -116,15 +119,21 @@ class MainActivity : FragmentActivity() {
                                     container.unlockManager.completeGateRotation(cipherUsed)
                                     accessViewModel.onGateRotated()
                                 }
+                                GateAction.ROTATE_KEYS -> {
+                                    val authorization =
+                                        container.unlockManager.completeRotationReauth(cipherUsed)
+                                    container.rotationAuthBroker.grant(authorization)
+                                }
                             }
                         } catch (failure: Exception) {
-                            handleFailure(failure)
+                            handleFailure(failure, action)
                         }
                     }
                 }
 
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    accessViewModel.onError(
+                    reportPromptMessage(
+                        action,
                         when (errorCode) {
                             BiometricPrompt.ERROR_NEGATIVE_BUTTON,
                             BiometricPrompt.ERROR_USER_CANCELED,
@@ -146,6 +155,7 @@ class MainActivity : FragmentActivity() {
             GateAction.SETUP -> "Set up secure unlock"
             GateAction.UNLOCK -> "Unlock your vault"
             GateAction.ROTATE -> "Verify before replacing the unlock gate"
+            GateAction.ROTATE_KEYS -> "Verify to rotate the vault data key"
         }
         val info = BiometricPrompt.PromptInfo.Builder()
             .setTitle("KNOUX Crypt")
@@ -157,7 +167,27 @@ class MainActivity : FragmentActivity() {
         prompt.authenticate(info, BiometricPrompt.CryptoObject(cipher))
     }
 
-    private fun handleFailure(failure: Exception) {
+    private fun reportPromptMessage(action: GateAction, message: String) {
+        if (action == GateAction.ROTATE_KEYS) {
+            container.rotationAuthBroker.fail(message)
+        } else {
+            accessViewModel.onError(message)
+        }
+    }
+
+    private fun handleFailure(failure: Exception, action: GateAction) {
+        if (action == GateAction.ROTATE_KEYS) {
+            val message = when (failure) {
+                is UnlockKeyInvalidatedException,
+                is KeyPermanentlyInvalidatedException,
+                -> "The biometric key was invalidated. Unlock or recover the gate before rotating."
+                is UnlockRejectedException -> "Authentication failed; rotation was not authorized."
+                is UnlockNotAuthorizedException -> "Unlock the vault before rotating its key."
+                else -> failure.message ?: "Rotation authorization failed."
+            }
+            container.rotationAuthBroker.fail(message)
+            return
+        }
         when (failure) {
             is UnlockKeyInvalidatedException,
             is KeyPermanentlyInvalidatedException,

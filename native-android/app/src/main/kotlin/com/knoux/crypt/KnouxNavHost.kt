@@ -1,6 +1,7 @@
 package com.knoux.crypt
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -24,6 +25,8 @@ import com.knoux.crypt.ui.SplashScreen
 import com.knoux.crypt.ui.TextCipherScreen
 import com.knoux.crypt.ui.ToolPlaceholderScreen
 import com.knoux.crypt.ui.ToolsScreen
+import com.knoux.crypt.ui.VaultKeyRotationScreen
+import kotlinx.coroutines.launch
 
 @Composable
 fun KnouxNavHost(
@@ -32,7 +35,11 @@ fun KnouxNavHost(
     accessViewModel: AccessViewModel,
     onRequestUnlock: (Boolean) -> Unit,
     onRequestGateRotation: () -> Unit,
+    onRequestRotationAuth: () -> Unit,
 ) {
+    val scope = rememberCoroutineScope()
+    val lockSession: () -> Unit = { scope.launch { container.session.lock() } }
+
     fun openTab(tab: KnouxTab) {
         val route = when (tab) {
             KnouxTab.HOME -> "home"
@@ -106,7 +113,8 @@ fun KnouxNavHost(
                 onTab = ::openTab,
                 onPrivacy = { nav.navigate("privacy") },
                 onRotateUnlock = onRequestGateRotation,
-                onLock = { container.session.lock() },
+                onKeyRotation = { nav.navigate("key_rotation") },
+                onLock = lockSession,
             )
         }
         composable("file_cipher") {
@@ -160,7 +168,15 @@ fun KnouxNavHost(
             PrivacyScreen(
                 container = container,
                 onBack = { nav.popBackStack() },
-                onLock = { container.session.lock() },
+                onLock = lockSession,
+            )
+        }
+        composable("key_rotation") {
+            VaultKeyRotationScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+                onRequestRotationAuth = onRequestRotationAuth,
             )
         }
         composable("recovery") {

@@ -55,6 +55,7 @@ fun AccountScreen(
     onTab: (KnouxTab) -> Unit,
     onPrivacy: () -> Unit,
     onRotateUnlock: () -> Unit,
+    onKeyRotation: () -> Unit,
     onLock: () -> Unit,
 ) {
     val settings by container.settings.settings.collectAsStateWithLifecycle(initialValue = com.knoux.crypt.data.AppSettings())
@@ -178,6 +179,25 @@ fun AccountScreen(
                     TextButton(onClick = accessViewModel::clearMessage) {
                         Text(tr("Dismiss", "إغلاق"), color = KnouxColors.Violet, fontSize = 11.sp)
                     }
+                }
+            }
+            Spacer(Modifier.height(10.dp))
+
+            GlassCard(Modifier.fillMaxWidth()) {
+                SectionLabel(tr("Vault data key", "مفتاح بيانات الخزنة"))
+                Spacer(Modifier.height(6.dp))
+                InfoRow(tr("Hierarchy", "التسلسل"), tr("Wrapped DEK · Keystore root", "مفتاح بيانات ملفوف · جذر Keystore"))
+                Text(
+                    tr(
+                        "Rotate the record data key with a fresh biometric verification. The Keystore root is retained so KNF1 device-key files remain readable.",
+                        "دوّر مفتاح بيانات السجلات بتحقق حيوي جديد. يبقى جذر Keystore محفوظًا لتبقى ملفات KNF1 بمفتاح الجهاز قابلة للقراءة.",
+                    ),
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+                if (unlocked) {
+                    Spacer(Modifier.height(8.dp))
+                    KnouxGhostButton(tr("Open vault key rotation", "فتح تدوير مفتاح الخزنة"), onKeyRotation)
                 }
             }
             Spacer(Modifier.height(10.dp))

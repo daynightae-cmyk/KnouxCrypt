@@ -136,6 +136,42 @@ class UnlockManager internal constructor(
     }
 
     /**
+     * Prepares a fresh owner verification for a sensitive key migration. The
+     * session must already be unlocked; this does not lock or re-mint it.
+     */
+    suspend fun prepareRotationReauthCipher(): Cipher {
+        if (!session.isUnlocked) throw UnlockNotAuthorizedException()
+        return prepareUnlockCipher()
+    }
+
+    /**
+     * Verifies the unlock token again over the auth-bound gate cipher and
+     * returns a short-lived authorization bound to the current capability.
+     * It does not mint a new session; if the session locked during the prompt,
+     * the migration is refused.
+     */
+    suspend fun completeRotationReauth(cipher: Cipher): RotationAuthorization {
+        if (!session.isUnlocked) throw UnlockNotAuthorizedException()
+        val gate = preparedUnlock ?: throw UnlockRejectedException()
+        if (gate.cipher !== cipher) throw UnlockRejectedException()
+        val slot = usableSlot() ?: throw UnlockNotConfiguredException()
+        val blob = tokens.blob(slot) ?: throw UnlockNotConfiguredException()
+        preparedUnlock = null
+        try {
+            session.verifyUnlockProof(gate, UnlockProtocol.payloadOf(blob))
+        } catch (failure: Exception) {
+            if (gates.isInvalidated(failure)) {
+                tokens.setRecoveryReason(RECOVERY_BIOMETRIC_INVALIDATED)
+                throw UnlockKeyInvalidatedException()
+            }
+            throw UnlockRejectedException()
+        }
+        val access = session.currentAccess() ?: throw UnlockNotAuthorizedException()
+        tokens.setRecoveryReason(null)
+        return RotationAuthorization(access)
+    }
+
+    /**
      * Starts an owner-authorized gate replacement. Only a live unlocked session
      * may call this. The current gate remains authoritative until
      * [completeGateRotation] succeeds.

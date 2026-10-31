@@ -24,6 +24,7 @@ import kotlinx.serialization.json.Json
 class VaultBackupManager(
     private val dao: SecretDao,
     private val session: SessionManager,
+    private val keys: VaultKeyManager,
     private val parameters: Argon2idParameters = Argon2idParameters.DEFAULT,
     private val envelope: PassphraseEnvelope = PassphraseEnvelope(),
 ) {
@@ -74,12 +75,14 @@ class VaultBackupManager(
         require(kinds.isNotEmpty()) { "Select at least one section" }
         require(kinds.all { it in SUPPORTED }) { "Unsupported backup section" }
         session.requireValid(access)
-        val codec = SecretCodec(session.key(access))
         val rows = dao.all().filter { it.kind in kinds }
         if (rows.size > MAX_RECORDS) throw BackupTooLargeException("Too many records for this build")
         val records = rows.map { row ->
             val payload = try {
-                codec.decrypt(row.kind, row.id, row.envelope)
+                val codec = SecretCodec(keys.keyFor(access, row.keyVersion))
+                codec.decrypt(row.kind, row.id, row.envelope, row.keyVersion)
+            } catch (failure: MissingVaultKeyException) {
+                throw BackupUnreadableRecordException(row.id, failure)
             } catch (failure: GeneralSecurityException) {
                 throw BackupUnreadableRecordException(row.id, failure)
             } catch (failure: IllegalArgumentException) {
@@ -140,29 +143,30 @@ class VaultBackupManager(
         val conflicts = filtered.count { it.id in existing }
         if (conflicts > 0) throw BackupConflictException(conflicts)
         if (filtered.isEmpty()) return@withContext 0
-        session.requireValid(access)
-        val codec = SecretCodec(session.key(access))
-        val now = System.currentTimeMillis()
-        val entities = filtered.map { record ->
-            session.requireValid(access)
-            SecretEntity(
-                id = record.id,
-                kind = record.kind,
-                envelope = codec.encrypt(record.kind, record.id, record.payload),
-                updatedAt = if (record.updatedAt > 0) record.updatedAt else now,
-            )
-        }
-        try {
-            session.requireValid(access)
-            dao.insertAll(entities)
-        } catch (failure: Exception) {
-            val message = failure.message.orEmpty()
-            if (message.contains("UNIQUE", ignoreCase = true) || message.contains("constraint", ignoreCase = true)) {
-                throw BackupConflictException(1, failure)
+        session.withAuthorizedMutation(access) {
+            val keyVersion = keys.activeVersion(access)
+            val codec = SecretCodec(keys.keyFor(access, keyVersion))
+            val now = System.currentTimeMillis()
+            val entities = filtered.map { record ->
+                SecretEntity(
+                    id = record.id,
+                    kind = record.kind,
+                    envelope = codec.encrypt(record.kind, record.id, record.payload, keyVersion),
+                    updatedAt = if (record.updatedAt > 0) record.updatedAt else now,
+                    keyVersion = keyVersion,
+                )
             }
-            throw BackupInvalidException("Restore failed; the transaction was rolled back", failure)
+            try {
+                dao.insertAll(entities)
+            } catch (failure: Exception) {
+                val message = failure.message.orEmpty()
+                if (message.contains("UNIQUE", ignoreCase = true) || message.contains("constraint", ignoreCase = true)) {
+                    throw BackupConflictException(1, failure)
+                }
+                throw BackupInvalidException("Restore failed; the transaction was rolled back", failure)
+            }
+            entities.size
         }
-        entities.size
     }
 
     private fun openManifest(sealed: ByteArray, passphrase: CharArray): Manifest {

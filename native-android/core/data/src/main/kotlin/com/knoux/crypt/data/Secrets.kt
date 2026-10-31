@@ -46,15 +46,36 @@ data class SecretRecord(
     val decryptionFailed: Boolean = false,
 )
 
-/** Encrypts payload bytes with AAD binding the record kind and identity. */
+/**
+ * Encrypts payload bytes with AAD binding the record kind and identity.
+ *
+ * [keyVersion] 0 writes/reads the legacy KNC1 envelope (root-key records).
+ * Positive versions use KNC2 and authenticate the key version in the header.
+ */
 class SecretCodec(private val key: SecretKey) {
     private val envelope = AuthenticatedEnvelope()
 
     fun encrypt(kind: String, id: String, payloadJson: String): ByteArray =
-        envelope.encrypt(key, payloadJson.toByteArray(Charsets.UTF_8), aad(kind, id))
+        encrypt(kind, id, payloadJson, keyVersion = 0)
+
+    fun encrypt(kind: String, id: String, payloadJson: String, keyVersion: Int): ByteArray {
+        val plaintext = payloadJson.toByteArray(Charsets.UTF_8)
+        return if (keyVersion == 0) {
+            envelope.encrypt(key, plaintext, aad(kind, id))
+        } else {
+            envelope.encryptVersioned(key, plaintext, aad(kind, id), keyVersion)
+        }
+    }
 
     fun decrypt(kind: String, id: String, blob: ByteArray): String =
-        String(envelope.decrypt(key, blob, aad(kind, id)), Charsets.UTF_8)
+        decrypt(kind, id, blob, keyVersion = 0)
+
+    fun decrypt(kind: String, id: String, blob: ByteArray, keyVersion: Int): String {
+        // Always bind the expected key version, including 0 -> KNC1, so a
+        // tampered row.keyVersion cannot select a more permissive format.
+        val plaintext = envelope.decryptVersioned(key, blob, aad(kind, id), keyVersion)
+        return String(plaintext, Charsets.UTF_8)
+    }
 
     private fun aad(kind: String, id: String): ByteArray =
         "knoux:secret:$kind:$id:v1".toByteArray(Charsets.UTF_8)

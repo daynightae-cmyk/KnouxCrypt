@@ -9,6 +9,8 @@ import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -142,7 +144,7 @@ class SecurityBoundaryTest {
         val repository = fixture.repository()
         val access = fixture.access()!!
         repository.save(access, SecretKinds.NOTE, null, """{"title":"secret","body":"plaintext"}""")
-        fixture.dao.observeHook = { fixture.session.lock() }
+        fixture.dao.observeHook = { runBlocking { fixture.session.lock() } }
 
         expect<VaultLockedException> {
             repository.observe(access, SecretKinds.NOTE).toList()
@@ -150,7 +152,7 @@ class SecurityBoundaryTest {
 
         fixture.unlock()
         val fresh = fixture.access()!!
-        fixture.dao.countHook = { fixture.session.lock() }
+        fixture.dao.countHook = { runBlocking { fixture.session.lock() } }
         expect<VaultLockedException> {
             repository.count(fresh, SecretKinds.NOTE).toList()
         }
@@ -213,7 +215,7 @@ class SecurityBoundaryTest {
                 sealed,
                 plaintext.size.toLong(),
             ) { progress ->
-                if (progress.processedBytes > 0) fixture.session.lock()
+                if (progress.processedBytes > 0) runBlocking { fixture.session.lock() }
             }
         }
         assertFalse(fixture.session.isUnlocked)
@@ -417,6 +419,95 @@ class SecurityBoundaryTest {
         assertTrue(record.payloadJson.isEmpty())
     }
 
+    @Test
+    fun rotationReauthRequiresThePreparedGateCipherAndAnUnlockedSession() = runBlocking {
+        val fixture = Fixture()
+        fixture.enroll()
+        val access = fixture.access()!!
+        val cipher = fixture.manager.prepareRotationReauthCipher()
+        val authorization = fixture.manager.completeRotationReauth(cipher)
+        assertSame(access, fixture.session.currentAccess())
+        assertTrue(fixture.session.isUnlocked)
+
+        val foreign = Cipher.getInstance("AES/GCM/NoPadding").apply {
+            init(Cipher.ENCRYPT_MODE, SecretKeySpec(ByteArray(32) { 4 }, "AES"))
+        }
+        expect<UnlockRejectedException> { fixture.manager.completeRotationReauth(foreign) }
+
+        fixture.session.lock()
+        expect<UnlockNotAuthorizedException> { fixture.manager.prepareRotationReauthCipher() }
+        assertFalse(fixture.session.isUnlocked)
+        assertTrue(authorization.issuedAt > 0)
+    }
+
+    @Test
+    fun revocationWaitsForAnAuthorizedWriteAndNeverLetsLaterWritesCommit() = runBlocking {
+        val fixture = Fixture()
+        fixture.enroll()
+        val repository = fixture.repository()
+        val access = fixture.access()!!
+        fixture.dao.blockUpsert = true
+
+        val save = async {
+            repository.save(access, SecretKinds.NOTE, "race", """{"title":"r","body":"b"}""")
+        }
+        fixture.dao.upsertEntered.await()
+        val lock = async { fixture.session.lock() }
+        // lock() must wait for the authorized in-flight commit instead of
+        // revoking underneath it and leaving a commit-after-revocation window.
+        assertNull(withTimeoutOrNull(100) { lock.await() })
+
+        fixture.dao.upsertRelease.complete(Unit)
+        assertEquals("race", save.await())
+        lock.await()
+        assertFalse(fixture.session.isUnlocked)
+        assertTrue(fixture.dao.rows.value.any { it.id == "race" })
+
+        expect<VaultLockedException> {
+            repository.save(access, SecretKinds.NOTE, "after", """{"title":"a","body":"b"}""")
+        }
+        assertFalse(fixture.dao.rows.value.any { it.id == "after" })
+    }
+
+    @Test
+    fun cancelledPendingWriteDoesNotCommitAndLockCompletes() = runBlocking {
+        val fixture = Fixture()
+        fixture.enroll()
+        val repository = fixture.repository()
+        val access = fixture.access()!!
+        fixture.dao.blockUpsert = true
+
+        val save = async {
+            repository.save(access, SecretKinds.NOTE, "cancelled", """{"title":"c","body":"b"}""")
+        }
+        fixture.dao.upsertEntered.await()
+        save.cancelAndJoin()
+        fixture.dao.upsertRelease.complete(Unit)
+        fixture.session.lock()
+
+        assertFalse(fixture.session.isUnlocked)
+        assertFalse(fixture.dao.rows.value.any { it.id == "cancelled" })
+        expect<VaultLockedException> {
+            repository.save(access, SecretKinds.NOTE, "late", """{"title":"l","body":"b"}""")
+        }
+    }
+
+    @Test
+    fun databaseFailureWritesNothingAndLeavesTheSessionRevocable() = runBlocking {
+        val fixture = Fixture()
+        fixture.enroll()
+        val repository = fixture.repository()
+        val access = fixture.access()!!
+        fixture.dao.failUpsert = IllegalStateException("disk full")
+
+        expect<IllegalStateException> {
+            repository.save(access, SecretKinds.NOTE, "failed", """{"title":"f","body":"b"}""")
+        }
+        assertFalse(fixture.dao.rows.value.any { it.id == "failed" })
+        fixture.session.lock()
+        assertFalse(fixture.session.isUnlocked)
+    }
+
     // ---------------------------------------------------------------------
 
     private class FakeVaultKeys : VaultKeySource {
@@ -488,6 +579,20 @@ class SecurityBoundaryTest {
         override suspend fun setRecoveryReason(reason: String?) { recovery = reason }
     }
 
+    internal class MemoryKeyRegistry : VaultKeyRegistry {
+        var active = 0
+        val wrapped = mutableMapOf<Int, ByteArray>()
+        var journal: RotationJournal? = null
+        override suspend fun activeVersion(): Int = active
+        override suspend fun setActiveVersion(version: Int) { active = version }
+        override suspend fun wrappedKey(version: Int): ByteArray? = wrapped[version]?.copyOf()
+        override suspend fun storeWrappedKey(version: Int, blob: ByteArray) { wrapped[version] = blob.copyOf() }
+        override suspend fun removeWrappedKey(version: Int) { wrapped.remove(version) }
+        override suspend fun versions(): List<Int> = wrapped.keys.sorted()
+        override suspend fun rotationJournal(): RotationJournal? = journal
+        override suspend fun setRotationJournal(journal: RotationJournal?) { this.journal = journal }
+    }
+
     private class FakeDao : SecretDao {
         val rows = MutableStateFlow<List<SecretEntity>>(emptyList())
         var observeHook: (() -> Unit)? = null
@@ -496,6 +601,10 @@ class SecurityBoundaryTest {
         val findEntered = CompletableDeferred<Unit>()
         val findRelease = CompletableDeferred<Unit>()
         var lastReturned: SecretEntity? = null
+        var blockUpsert = false
+        val upsertEntered = CompletableDeferred<Unit>()
+        val upsertRelease = CompletableDeferred<Unit>()
+        var failUpsert: Exception? = null
 
         override fun observe(kind: String): Flow<List<SecretEntity>> = flow {
             emit(snapshot(kind))
@@ -512,6 +621,11 @@ class SecurityBoundaryTest {
         }
 
         override suspend fun upsert(entity: SecretEntity) {
+            if (blockUpsert) {
+                upsertEntered.complete(Unit)
+                upsertRelease.await()
+            }
+            failUpsert?.let { throw it }
             rows.value = rows.value.filterNot { it.id == entity.id } + entity
         }
 
@@ -537,6 +651,20 @@ class SecurityBoundaryTest {
             rows.value = rows.value + entities
         }
 
+        override suspend fun pageByVersionAfter(version: Int, after: String, limit: Int): List<SecretEntity> =
+            rows.value.filter { it.keyVersion == version && it.id > after }.sortedBy { it.id }.take(limit)
+
+        override suspend fun countVersion(version: Int): Int = rows.value.count { it.keyVersion == version }
+
+        override suspend fun updateEnvelope(id: String, envelope: ByteArray, keyVersion: Int) {
+            rows.value = rows.value.map {
+                if (it.id == id) it.copy(envelope = envelope, keyVersion = keyVersion) else it
+            }
+        }
+
+        override suspend fun versionCounts(): List<VersionCount> =
+            rows.value.groupingBy { it.keyVersion }.eachCount().map { VersionCount(it.key, it.value) }
+
         private fun snapshot(kind: String) = rows.value.filter { it.kind == kind }
     }
 
@@ -547,8 +675,10 @@ class SecurityBoundaryTest {
         val session = SessionManager(vault)
         val manager = UnlockManager(gates, tokens, session)
         val dao = FakeDao()
+        val registry = MemoryKeyRegistry()
+        val keys = VaultKeyManager(session, registry)
 
-        fun repository() = SecretRepository(dao, session)
+        fun repository() = SecretRepository(dao, session, keys)
 
         fun access(): VaultAccess? = session.currentAccess()
 

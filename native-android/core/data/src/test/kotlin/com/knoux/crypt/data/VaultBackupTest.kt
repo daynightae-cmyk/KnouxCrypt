@@ -7,12 +7,16 @@ import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
@@ -25,7 +29,7 @@ class VaultBackupTest {
     fun backupRestoresIntoAFreshVaultWithItsOwnKey() = runBlocking {
         val source = Fixture()
         source.enroll()
-        val repo = SecretRepository(source.dao, source.session)
+        val repo = SecretRepository(source.dao, source.session, source.keys)
         val access = source.access()!!
         repo.save(access, SecretKinds.NOTE, "note-1", """{"title":"plan","body":"secret note"}""")
         repo.save(access, SecretKinds.PASSWORD, "pw-1", """{"title":"mail","username":"u","password":"p"}""")
@@ -43,7 +47,7 @@ class VaultBackupTest {
         assertEquals(0, targetPreview.conflicts)
         val restored = target.backup.restore(target.access()!!, sealed, pass)
         assertEquals(3, restored)
-        val targetRepo = SecretRepository(target.dao, target.session)
+        val targetRepo = SecretRepository(target.dao, target.session, target.keys)
         val note = targetRepo.find(target.access()!!, "note-1")!!
         assertTrue(SecretsJson.decodeNote(note.payloadJson)?.body == "secret note")
         val password = targetRepo.find(target.access()!!, "pw-1")!!
@@ -59,7 +63,7 @@ class VaultBackupTest {
     fun selectedSectionsOnly() = runBlocking {
         val fixture = Fixture()
         fixture.enroll()
-        val repo = SecretRepository(fixture.dao, fixture.session)
+        val repo = SecretRepository(fixture.dao, fixture.session, fixture.keys)
         val access = fixture.access()!!
         repo.save(access, SecretKinds.NOTE, "n", """{"title":"n","body":"b"}""")
         repo.save(access, SecretKinds.PASSWORD, "p", """{"title":"p"}""")
@@ -74,7 +78,7 @@ class VaultBackupTest {
     fun wrongPassphraseAndTamperingAreRejected() = runBlocking {
         val fixture = Fixture()
         fixture.enroll()
-        val repo = SecretRepository(fixture.dao, fixture.session)
+        val repo = SecretRepository(fixture.dao, fixture.session, fixture.keys)
         val access = fixture.access()!!
         repo.save(access, SecretKinds.NOTE, "n", """{"title":"n","body":"b"}""")
         val sealed = fixture.backup.export(access, pass)
@@ -92,7 +96,7 @@ class VaultBackupTest {
     fun backupCannotBeOpenedAsTextCiphertext() = runBlocking {
         val fixture = Fixture()
         fixture.enroll()
-        val repo = SecretRepository(fixture.dao, fixture.session)
+        val repo = SecretRepository(fixture.dao, fixture.session, fixture.keys)
         val access = fixture.access()!!
         repo.save(access, SecretKinds.NOTE, "n", """{"title":"n","body":"b"}""")
         val sealed = fixture.backup.export(access, pass)
@@ -105,7 +109,7 @@ class VaultBackupTest {
     fun conflictingRestoreWritesNothing() = runBlocking {
         val fixture = Fixture()
         fixture.enroll()
-        val repo = SecretRepository(fixture.dao, fixture.session)
+        val repo = SecretRepository(fixture.dao, fixture.session, fixture.keys)
         val access = fixture.access()!!
         repo.save(access, SecretKinds.NOTE, "n", """{"title":"n","body":"b"}""")
         val sealed = fixture.backup.export(access, pass)
@@ -122,7 +126,7 @@ class VaultBackupTest {
     fun exportFailsWholeWhenAnyRowIsUnreadable() = runBlocking {
         val fixture = Fixture()
         fixture.enroll()
-        val repo = SecretRepository(fixture.dao, fixture.session)
+        val repo = SecretRepository(fixture.dao, fixture.session, fixture.keys)
         val access = fixture.access()!!
         repo.save(access, SecretKinds.NOTE, "good", """{"title":"g","body":"b"}""")
         repo.save(access, SecretKinds.NOTE, "bad", """{"title":"x","body":"y"}""")
@@ -138,7 +142,7 @@ class VaultBackupTest {
     fun lockedCapabilityCannotExportPreviewOrRestore() = runBlocking {
         val fixture = Fixture()
         fixture.enroll()
-        val repo = SecretRepository(fixture.dao, fixture.session)
+        val repo = SecretRepository(fixture.dao, fixture.session, fixture.keys)
         val access = fixture.access()!!
         repo.save(access, SecretKinds.NOTE, "n", """{"title":"n","body":"b"}""")
         val sealed = fixture.backup.export(access, pass)
@@ -147,6 +151,32 @@ class VaultBackupTest {
         expect<VaultLockedException> { fixture.backup.export(access, pass) }
         expect<VaultLockedException> { fixture.backup.preview(access, sealed, pass) }
         expect<VaultLockedException> { fixture.backup.restore(access, sealed, pass) }
+    }
+
+    @Test
+    fun restoreMutationWaitsForRevocationAndCannotCommitAfterLock() = runBlocking {
+        val source = Fixture()
+        source.enroll()
+        val sourceRepo = SecretRepository(source.dao, source.session, source.keys)
+        val sourceAccess = source.access()!!
+        sourceRepo.save(sourceAccess, SecretKinds.NOTE, "n", """{"title":"n","body":"b"}""")
+        val sealed = source.backup.export(sourceAccess, pass)
+
+        val target = Fixture()
+        target.enroll()
+        val targetAccess = target.access()!!
+        target.dao.blockInsert = true
+        val restore = async { target.backup.restore(targetAccess, sealed, pass) }
+        target.dao.insertEntered.await()
+        val lock = async { target.session.lock() }
+        assertNull(withTimeoutOrNull(100) { lock.await() })
+        target.dao.insertRelease.complete(Unit)
+        assertEquals(1, restore.await())
+        lock.await()
+        assertFalse(target.session.isUnlocked)
+        assertEquals(1, target.dao.rows.value.size)
+        expect<VaultLockedException> { target.backup.restore(targetAccess, sealed, pass) }
+        assertEquals(1, target.dao.rows.value.size)
     }
 
     @Test
@@ -174,7 +204,7 @@ class VaultBackupTest {
     fun oversizedPlaintextIsRefused() = runBlocking {
         val fixture = Fixture()
         fixture.enroll()
-        val repo = SecretRepository(fixture.dao, fixture.session)
+        val repo = SecretRepository(fixture.dao, fixture.session, fixture.keys)
         val access = fixture.access()!!
         val chunk = "x".repeat(400 * 1024)
         repeat(3) { index ->
@@ -241,11 +271,40 @@ class VaultBackupTest {
         override fun count(kind: String): Flow<Int> = flow { emit(rows.value.count { it.kind == kind }) }
         override suspend fun all(): List<SecretEntity> = rows.value.sortedBy { it.updatedAt }
         override suspend fun ids(): List<String> = rows.value.map { it.id }
+        var blockInsert = false
+        val insertEntered = CompletableDeferred<Unit>()
+        val insertRelease = CompletableDeferred<Unit>()
         override suspend fun insertAll(entities: List<SecretEntity>) {
+            if (blockInsert) {
+                insertEntered.complete(Unit)
+                insertRelease.await()
+            }
             val existing = rows.value.map { it.id }.toSet()
             if (entities.any { it.id in existing }) throw IllegalStateException("UNIQUE constraint failed: secrets.id")
             rows.value = rows.value + entities
         }
+        override suspend fun pageByVersionAfter(version: Int, after: String, limit: Int): List<SecretEntity> =
+            rows.value.filter { it.keyVersion == version && it.id > after }.sortedBy { it.id }.take(limit)
+        override suspend fun countVersion(version: Int): Int = rows.value.count { it.keyVersion == version }
+        override suspend fun updateEnvelope(id: String, envelope: ByteArray, keyVersion: Int) {
+            rows.value = rows.value.map { if (it.id == id) it.copy(envelope = envelope, keyVersion = keyVersion) else it }
+        }
+        override suspend fun versionCounts(): List<VersionCount> =
+            rows.value.groupingBy { it.keyVersion }.eachCount().map { VersionCount(it.key, it.value) }
+    }
+
+    private class MemoryKeyRegistry : VaultKeyRegistry {
+        var active = 0
+        val wrapped = mutableMapOf<Int, ByteArray>()
+        var journal: RotationJournal? = null
+        override suspend fun activeVersion(): Int = active
+        override suspend fun setActiveVersion(version: Int) { active = version }
+        override suspend fun wrappedKey(version: Int): ByteArray? = wrapped[version]?.copyOf()
+        override suspend fun storeWrappedKey(version: Int, blob: ByteArray) { wrapped[version] = blob.copyOf() }
+        override suspend fun removeWrappedKey(version: Int) { wrapped.remove(version) }
+        override suspend fun versions(): List<Int> = wrapped.keys.sorted()
+        override suspend fun rotationJournal(): RotationJournal? = journal
+        override suspend fun setRotationJournal(journal: RotationJournal?) { this.journal = journal }
     }
 
     private class Fixture {
@@ -255,7 +314,9 @@ class VaultBackupTest {
         val session = SessionManager(vault)
         val manager = UnlockManager(gates, tokens, session)
         val dao = FakeDao()
-        val backup = VaultBackupManager(dao, session, Argon2idParameters(8 * 1024, 1, 1))
+        val registry = MemoryKeyRegistry()
+        val keys = VaultKeyManager(session, registry)
+        val backup = VaultBackupManager(dao, session, keys, Argon2idParameters(8 * 1024, 1, 1))
 
         fun access(): VaultAccess? = session.currentAccess()
 
