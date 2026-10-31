@@ -24,12 +24,12 @@ Capability cards `CLIPBOARD_GUARD`, `SECURE_RANDOM`, `HMAC_AUTHENTICITY` and
 fields and real test evidence; `scripts/check-capabilities.cjs` enforces the claim.
 
 ## Checks (real command output)
-- `node --test tests/batch07-privacy-labs.test.cjs` — 32/32 pass (RFC 4231 vectors,
+- `node --test tests/batch07-privacy-labs.test.cjs` — 33/33 pass (RFC 4231 vectors,
   lease ownership/skip/expiry/revocation, streamed-vs-memory HMAC equality,
   rejection sampling, QR round-trip through an independent reader, negative tests).
 - `node --test tests/vault-ipc.test.cjs` — 31/31 pass (channel contract, consent at
   the boundary, fail-closed without an adapter).
-- `npm test` — 317/317 pass.
+- `npm test` — 318/318 pass.
 - `npm run check` — routes, audio, capabilities, dependency security, Electron
   lifecycle and Electron runtime all PASS (exit 0).
 - `npm run check:electron:runtime` — real `file://` renderer + sandboxed preload;
