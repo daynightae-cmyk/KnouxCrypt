@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Knoux Crypt</string>
+    <string name="foundation_title">أساس أصلي — ليست خزنة</string>
+    <string name="foundation_notice">المصادقة والتخزين والاسترداد غير جاهزة. لا تُدخل أسرارًا حقيقية.</string>
+    <string name="enter">المتابعة إلى إعداد الوصول</string>
+    <string name="auth_title">الوصول الآمن</string>
+    <string name="auth_unavailable">المصادقة المحلية غير منفّذة. فتح الخزنة غير متاح.</string>
+    <string name="preview">فتح معاينة مرئية (نسخة التطوير فقط)</string>
+    <string name="home_preview">معاينة ضيف مرئية — دون وصول إلى أسرار</string>
+    <string name="back">العودة إلى البداية</string>
+</resources>
