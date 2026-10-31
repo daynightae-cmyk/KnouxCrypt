@@ -476,6 +476,45 @@ export function useVault() {
     [run, session],
   );
 
+  // ---- tasks 33-36: autofill preview, advisor, pairing, password audit -----
+
+  const autofillGet = useCallback(
+    () => (api ? api.autofillGet() : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const autofillUpdate = useCallback(
+    (patch) => (api ? api.autofillUpdate(patch) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const advisorFilters = useCallback(
+    () => (api ? api.advisorFilters() : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const advisorReview = useCallback(
+    (filter) => (api ? api.advisorReview(filter) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const pairingStart = useCallback(
+    (request) => (api ? api.pairingStart(request) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const pairingStatus = useCallback(
+    (sessionId) => (api ? api.pairingStatus(sessionId) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const pairingConfirm = useCallback(
+    (sessionId, request) => (api ? api.pairingConfirm(sessionId, request) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const pairingCancel = useCallback(
+    (sessionId) => (api ? api.pairingCancel(sessionId) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const passwordAudit = useCallback(
+    (input) => (api ? api.passwordAudit(input) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+
   const state = !available
     ? VAULT_STATE.UNAVAILABLE
     : session?.guest
@@ -584,6 +623,15 @@ export function useVault() {
     rotationRollback,
     packageInspect,
     packageVerify,
+    autofillGet,
+    autofillUpdate,
+    advisorFilters,
+    advisorReview,
+    pairingStart,
+    pairingStatus,
+    pairingConfirm,
+    pairingCancel,
+    passwordAudit,
   };
 }
 

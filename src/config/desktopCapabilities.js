@@ -534,6 +534,70 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
     displayStatusReason:
       "The inspector distinguishes an unauthenticated header claim from an authenticated verification, and it never claims decryptability without performing the authenticated check. Verification never writes plaintext; only a digest is recomputed.",
   },
+  {
+    id: "ANDROID_AUTOFILL",
+    title: "Android Autofill Control",
+    platformCapability:
+      "Desktop-side preview toggles for the Android Autofill concept, persisted as an app preference. The build reports that native Autofill, credential-provider registration and the settings CTA are unavailable on this platform.",
+    permissionNeeds: ["None — the preview toggles require no OS permission", "No Android provider is registered"],
+    requiresNetwork: false,
+    providerReady: false,
+    realTestEvidence: [
+      "tests/batch09-devices.test.cjs (preview defaults, toggles persist and reload, unknown keys ignored, out-of-range payload refused, and the capability report always reports nativeAutofill/canRegisterProvider/canOpenSettings as false)",
+      "tests/vault-ipc.test.cjs (autofill channels registered and payloads validated)",
+    ],
+    displayStatus: DISPLAY_STATUS.PARTIAL,
+    displayStatusReason:
+      "Only the local preview is real. Android Autofill itself is provided by the Android OS, which the desktop build cannot reach, so native autofill, provider registration and the settings CTA are reported UNAVAILABLE rather than simulated.",
+  },
+  {
+    id: "OFFLINE_ADVISOR",
+    title: "Offline Security Advisor",
+    platformCapability:
+      "A local readiness review built from the state this application actually owns: enrollment, session state, privacy preferences, backup count, transfer listener and armed clipboard leases. Topics the app cannot see are listed as manual checks.",
+    permissionNeeds: ["None — no OS scan is performed", "No elevated privileges"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch09-devices.test.cjs (observed rows quote real preference and status values, an unlocked session is flagged for attention, a missing backup is flagged, manual topics are never marked passed, filters are enforced, and the report states it did not scan the OS)",
+      "tests/vault-ipc.test.cjs (advisor channels registered and payloads validated)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Every OBSERVED row is derived from a real value this app holds, and each carries its evidence string. Rows the app cannot observe are labelled MANUAL and are never reported as passed, so the review cannot be mistaken for an operating-system audit.",
+  },
+  {
+    id: "DEVICE_PAIRING",
+    title: "Multi-Device Pairing",
+    platformCapability:
+      "Loopback pairing handshake: two ephemeral X25519 key pairs, a real Diffie-Hellman agreement and an HKDF-SHA256 short authentication string, compared in constant time. No socket is opened and no remote device is contacted.",
+    permissionNeeds: ["None — loopback only", "No elevated privileges", "No network access"],
+    requiresNetwork: false,
+    providerReady: false,
+    realTestEvidence: [
+      "tests/batch09-devices.test.cjs (a real X25519 agreement derives a six-word phrase, a wrong phrase or a declined match is refused, confirmation is constant-time, sessions expire and are swept, the private keys never cross the boundary, and the report always states networkOpened=false)",
+      "tests/vault-ipc.test.cjs (pairing channels registered and payloads validated)",
+    ],
+    displayStatus: DISPLAY_STATUS.PARTIAL,
+    displayStatusReason:
+      "The key agreement and phrase comparison are real, but both roles run inside this process: it is not a pairing with a second physical device and it does not create a trusted remote device. The UI states the loopback limit explicitly.",
+  },
+  {
+    id: "PASSWORD_AUDIT",
+    title: "Password Strength Audit",
+    platformCapability:
+      "Offline password strength estimator in the spirit of zxcvbn: dictionary, repeat, sequence, keyboard and date matchers, a dynamic-programming guess estimate and a 0-4 score. Runs locally; nothing is stored or transmitted.",
+    permissionNeeds: ["None — the input stays in memory", "No network access"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch09-devices.test.cjs (known-weak inputs score low and known-strong inputs score high, monotonicity across lengths, deterministic output, dictionary/repeat/sequence/keyboard/date patterns detected, over-long input refused, and the result states breachChecked=false and storedInput=false)",
+      "tests/vault-ipc.test.cjs (the audit channel validates input and returns a real estimate)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "The estimate is a real local computation and is deterministic, which is what makes it testable. It does not consult a breach database and does not assess a stored credential, and the result carries those limits as explicit fields rather than leaving the reader to assume.",
+  },
 ]);
 
 export function capabilityById(id) {

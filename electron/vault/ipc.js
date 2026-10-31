@@ -108,6 +108,17 @@ const CHANNELS = Object.freeze({
   ROTATION_ROLLBACK: "vault:rotation-rollback",
   PACKAGE_INSPECT: "vault:package-inspect",
   PACKAGE_VERIFY: "vault:package-verify",
+  // Tasks 33-36: Android Autofill preview, offline advisor, device pairing, password audit.
+  AUTOFILL_GET: "vault:autofill-get",
+  AUTOFILL_UPDATE: "vault:autofill-update",
+  ADVISOR_REVIEW: "vault:advisor-review",
+  ADVISOR_FILTERS: "vault:advisor-filters",
+  PAIRING_START: "vault:pairing-start",
+  PAIRING_STATUS: "vault:pairing-status",
+  PAIRING_CONFIRM: "vault:pairing-confirm",
+  PAIRING_CANCEL: "vault:pairing-cancel",
+  PAIRING_LIST: "vault:pairing-list",
+  PASSWORD_AUDIT: "vault:password-audit",
 });
 
 const STORE_COLLECTIONS = Object.freeze(["notes", "passwords", "authenticator", "keys"]);
@@ -1034,6 +1045,88 @@ function registerVaultIpc(service, getWindow) {
     safe(async (event, payload) => {
       const p = requireObject(payload);
       return service.packageVerify(requireString(p.sessionId, "sessionId"), requireString(p.inputPath, "inputPath", 4096));
+    }),
+  );
+
+  // ---- tasks 33-36: autofill preview, advisor, pairing, password audit -----
+
+  ipcMain.handle(
+    CHANNELS.AUTOFILL_GET,
+    safe(async () => service.autofillGet()),
+  );
+
+  ipcMain.handle(
+    CHANNELS.AUTOFILL_UPDATE,
+    safe(async (event, payload) => {
+      const p = payload ? requireObject(payload) : {};
+      return service.autofillUpdate({
+        suggestions: "suggestions" in p ? Boolean(p.suggestions) : undefined,
+        mask: "mask" in p ? Boolean(p.mask) : undefined,
+        confirmation: "confirmation" in p ? Boolean(p.confirmation) : undefined,
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.ADVISOR_FILTERS,
+    safe(async () => ({ filters: service.advisorFilters() })),
+  );
+
+  ipcMain.handle(
+    CHANNELS.ADVISOR_REVIEW,
+    safe(async (event, payload) => {
+      const p = payload ? requireObject(payload) : {};
+      const filter = typeof p.filter === "string" ? p.filter.slice(0, 32) : "All";
+      return service.advisorReview(filter);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.PAIRING_START,
+    safe(async (event, payload) => {
+      const p = payload ? requireObject(payload) : {};
+      return service.pairingStart({ label: typeof p.label === "string" ? p.label.slice(0, 64) : undefined });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.PAIRING_STATUS,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.pairingStatus(requireString(p.sessionId, "sessionId", 64));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.PAIRING_CONFIRM,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.pairingConfirm(requireString(p.sessionId, "sessionId", 64), {
+        matches: p.matches === true,
+        phrase: typeof p.phrase === "string" ? p.phrase.slice(0, 256) : "",
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.PAIRING_CANCEL,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.pairingCancel(requireString(p.sessionId, "sessionId", 64));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.PAIRING_LIST,
+    safe(async () => service.pairingList()),
+  );
+
+  ipcMain.handle(
+    CHANNELS.PASSWORD_AUDIT,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const input = typeof p.input === "string" ? p.input.slice(0, 256) : "";
+      return service.passwordAudit(input);
     }),
   );
 

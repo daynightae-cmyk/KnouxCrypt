@@ -334,3 +334,19 @@
     transition: none !important;
   }
 }
+
+.device-hint {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.8;
+  color: #a988bf;
+  word-break: break-all;
+}
+.device-hint span {
+  color: #d9b6ef;
+}
+.device-audit-gauge[data-score="0"] i { background: linear-gradient(90deg, #7a1f2b, #e0556b); }
+.device-audit-gauge[data-score="1"] i { background: linear-gradient(90deg, #7a4a1f, #e0993f); }
+.device-audit-gauge[data-score="2"] i { background: linear-gradient(90deg, #6b5a1f, #d9c04a); }
+.device-audit-gauge[data-score="3"] i { background: linear-gradient(90deg, #2f5a2a, #6ec46a); }
+.device-audit-gauge[data-score="4"] i { background: linear-gradient(90deg, #1f5a4a, #4fd6a8); }

@@ -577,3 +577,82 @@ test("package channels reject a non-vault file and validate the path", async () 
   assert.equal(noPath.ok, false);
   assert.equal(noPath.error.code, CODES.BAD_INPUT);
 });
+
+test("autofill channels validate payloads and report native Autofill as unavailable", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "knoux-ipc-autofill-"));
+  await unlockedIpc(dir);
+
+  const get = await call(CHANNELS.AUTOFILL_GET, {});
+  assert.equal(get.ok, true);
+  assert.equal(get.data.capabilities.nativeAutofill, false);
+
+  const update = await call(CHANNELS.AUTOFILL_UPDATE, { suggestions: true });
+  assert.equal(update.ok, true);
+  assert.equal(update.data.values.suggestions, true);
+
+  // A non-boolean is coerced, never trusted as a permission grant.
+  const coerced = await call(CHANNELS.AUTOFILL_UPDATE, { mask: "yes" });
+  assert.equal(coerced.ok, true);
+  assert.equal(coerced.data.values.mask, true);
+});
+
+test("advisor channels return a real review and reject an unknown filter", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "knoux-ipc-advisor-"));
+  await unlockedIpc(dir);
+
+  const filters = await call(CHANNELS.ADVISOR_FILTERS, {});
+  assert.equal(filters.ok, true);
+  assert.ok(filters.data.filters.includes("Vault"));
+
+  const review = await call(CHANNELS.ADVISOR_REVIEW, { filter: "All" });
+  assert.equal(review.ok, true);
+  assert.ok(review.data.rows.length > 0);
+  assert.match(review.data.disclaimer, /does not scan/);
+
+  const bad = await call(CHANNELS.ADVISOR_REVIEW, { filter: "Nonsense" });
+  assert.equal(bad.ok, false);
+  assert.equal(bad.error.code, CODES.BAD_INPUT);
+});
+
+test("pairing channels run a loopback handshake and validate session ids", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "knoux-ipc-pair-"));
+  await unlockedIpc(dir);
+
+  const start = await call(CHANNELS.PAIRING_START, {});
+  assert.equal(start.ok, true);
+  assert.equal(start.data.networkOpened, false);
+  const sessionId = start.data.sessionId;
+
+  const status = await call(CHANNELS.PAIRING_STATUS, { sessionId });
+  assert.equal(status.ok, true);
+
+  const badConfirm = await call(CHANNELS.PAIRING_CONFIRM, { sessionId, matches: false });
+  assert.equal(badConfirm.ok, false);
+  assert.equal(badConfirm.error.code, CODES.AUTH_FAILED);
+
+  const ok = await call(CHANNELS.PAIRING_CONFIRM, { sessionId, matches: true, phrase: start.data.sasText });
+  assert.equal(ok.ok, true);
+  assert.equal(ok.data.confirmed, true);
+
+  const missing = await call(CHANNELS.PAIRING_STATUS, {});
+  assert.equal(missing.ok, false);
+  assert.equal(missing.error.code, CODES.BAD_INPUT);
+
+  const list = await call(CHANNELS.PAIRING_LIST, {});
+  assert.equal(list.ok, true);
+  assert.ok(Array.isArray(list.data.sessions));
+});
+
+test("password audit channel returns a real estimate and refuses over-long input", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "knoux-ipc-audit-"));
+  await unlockedIpc(dir);
+
+  const weak = await call(CHANNELS.PASSWORD_AUDIT, { input: "password" });
+  assert.equal(weak.ok, true);
+  assert.ok(weak.data.score <= 1);
+  assert.equal(weak.data.limits.breachChecked, false);
+
+  const empty = await call(CHANNELS.PASSWORD_AUDIT, { input: "" });
+  assert.equal(empty.ok, false);
+  assert.equal(empty.error.code, CODES.BAD_INPUT);
+});

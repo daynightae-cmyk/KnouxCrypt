@@ -132,3 +132,36 @@ test("window controls are fire-and-forget on named channels", () => {
   api.window.close();
   assert.deepEqual(invocations.map((i) => i.channel), ["window-minimize", "window-maximize", "window-close"]);
 });
+
+test("batch 09 bridges call the documented channels", async () => {
+  const api = exposed.electronAPI;
+  invocations.length = 0;
+
+  await api.vault.autofillGet();
+  await api.vault.autofillUpdate({ suggestions: true });
+  await api.vault.advisorFilters();
+  await api.vault.advisorReview("Vault");
+  await api.vault.pairingStart({ label: "x" });
+  await api.vault.pairingStatus("sid");
+  await api.vault.pairingConfirm("sid", { matches: true, phrase: "a b" });
+  await api.vault.pairingCancel("sid");
+  await api.vault.pairingList();
+  await api.vault.passwordAudit("hunter2");
+
+  assert.deepEqual(invocations.map((i) => i.channel), [
+    "vault:autofill-get",
+    "vault:autofill-update",
+    "vault:advisor-filters",
+    "vault:advisor-review",
+    "vault:pairing-start",
+    "vault:pairing-status",
+    "vault:pairing-confirm",
+    "vault:pairing-cancel",
+    "vault:pairing-list",
+    "vault:password-audit",
+  ]);
+  assert.deepEqual(invocations[1].payload, { suggestions: true });
+  assert.deepEqual(invocations[3].payload, { filter: "Vault" });
+  assert.deepEqual(invocations[6].payload, { sessionId: "sid", matches: true, phrase: "a b" });
+  assert.deepEqual(invocations[9].payload, { input: "hunter2" });
+});

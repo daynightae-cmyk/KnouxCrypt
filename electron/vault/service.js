@@ -27,6 +27,10 @@ const { ClipboardGuard, DEMO_PLACEHOLDER, TIMER_CHOICES } = require("./clipboard
 const { CollectionService } = require("./collections");
 const { DocumentViewer } = require("./documentviewer");
 const { RotationService } = require("./rotation");
+const { SecurityAdvisor } = require("./posture");
+const { PairingService } = require("./pairing");
+const { AutofillPreview } = require("./autofill");
+const passwordaudit = require("./passwordaudit");
 const labs = require("./labs");
 
 // Explicitly supported key algorithms. Anything absent is refused rather than
@@ -174,6 +178,29 @@ class VaultService {
         userDataPath: options.userDataPath,
         collections: this.collections,
       });
+
+    // Tasks 33-36: Android Autofill preview, offline advisor, device pairing
+    // and the password audit. The advisor and the audit are pure functions over
+    // real local state; pairing is loopback-only key agreement; the Autofill
+    // preview persists only its own preview toggles.
+    this.autofill =
+      options.autofill ||
+      new AutofillPreview({ file: path.join(options.userDataPath || ".", "autofill-preview.json") });
+    this.advisor =
+      options.advisor ||
+      new SecurityAdvisor({
+        status: () => this.status(),
+        preferences: () => this.preferences.snapshot(),
+        runtimeSignals: () => ({
+          backups: this._backupCount,
+          transferListening: Boolean(this.transfer.serverInfo),
+          transferAddress: this.transfer.serverInfo ? `${this.transfer.serverInfo.host}:${this.transfer.serverInfo.port}` : null,
+          clipboardLeases: this.clipboard.status().activeLeases || 0,
+        }),
+      });
+    this.pairing = options.pairing || new PairingService();
+    this._backupCount = 0;
+    this._backupsScanned = false;
 
     // The session manager is the single choke point for every revocation path
     // (user lock, lock-all, idle sweep, quit), so forward its notification,
@@ -1410,6 +1437,82 @@ class VaultService {
     } finally {
       this.operations.delete(operationId);
     }
+  }
+
+  // ---- task 33: Android Autofill preview ----------------------------------
+
+  /** Preview toggles only. The capability report always says native Autofill is absent. */
+  async autofillGet() {
+    const snapshot = await this.autofill.load();
+    this._record("autofill", "Read the Autofill preview state");
+    return snapshot;
+  }
+
+  async autofillUpdate(patch = {}) {
+    const snapshot = await this.autofill.update(patch);
+    this._record("autofill", "Updated the Autofill preview toggles");
+    return snapshot;
+  }
+
+  // ---- task 34: offline security advisor ----------------------------------
+
+  advisorFilters() {
+    return this.advisor.filters();
+  }
+
+  /** Real local-state review. It never scans the operating system. */
+  async advisorReview(filter) {
+    if (!this._backupsScanned) {
+      try {
+        const { backups } = await this.backup.list();
+        this._backupCount = Array.isArray(backups) ? backups.length : 0;
+      } catch {
+        this._backupCount = 0;
+      }
+      this._backupsScanned = true;
+    }
+    const report = await this.advisor.review({ filter: filter || "All" });
+    this._record("advisor", `Produced a local readiness review (${report.counts.observed} observed row(s))`);
+    return report;
+  }
+
+  // ---- task 35: multi-device pairing (loopback only) ----------------------
+
+  /** Ephemeral X25519 agreement between two roles in this process. No socket. */
+  pairingStart(request = {}) {
+    const session = this.pairing.start(request);
+    this._record("pairing", "Started a loopback pairing session");
+    return session;
+  }
+
+  pairingStatus(sessionId) {
+    return this.pairing.status(sessionId);
+  }
+
+  pairingConfirm(sessionId, request = {}) {
+    const result = this.pairing.confirm(sessionId, request);
+    this._record("pairing", "Confirmed a pairing authentication phrase");
+    return result;
+  }
+
+  pairingCancel(sessionId) {
+    const result = this.pairing.cancel(sessionId);
+    this._record("pairing", "Cancelled a pairing session");
+    return result;
+  }
+
+  pairingList() {
+    return this.pairing.list();
+  }
+
+  // ---- task 36: password strength audit -----------------------------------
+
+  /** Offline estimate over the given text. Nothing is stored or transmitted. */
+  passwordAudit(input) {
+    const result = passwordaudit.audit(input);
+    // The input itself is never recorded; only its length and score.
+    this._record("password-audit", `Audited a ${result.length}-character string (score ${result.score}/4)`);
+    return result;
   }
 }
 
