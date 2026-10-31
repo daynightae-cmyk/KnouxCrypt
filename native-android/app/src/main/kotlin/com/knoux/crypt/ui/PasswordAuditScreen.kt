@@ -394,22 +394,6 @@ private fun FindingRow(finding: PasswordAuditFinding) {
 }
 
 @Composable
-private fun levelLabel(level: StrengthLevel): String = when (level) {
-    StrengthLevel.EMPTY -> tr("No secret stored", "لا يوجد سر مخزن")
-    StrengthLevel.VERY_WEAK -> tr("Very weak", "ضعيفة جدًا")
-    StrengthLevel.WEAK -> tr("Weak", "ضعيفة")
-    StrengthLevel.FAIR -> tr("Fair", "مقبولة")
-    StrengthLevel.STRONG -> tr("Strong", "قوية")
-    StrengthLevel.EXCELLENT -> tr("Excellent", "قوية جدًا")
-}
-
-private fun levelColor(level: StrengthLevel) = when (level) {
-    StrengthLevel.EMPTY, StrengthLevel.VERY_WEAK -> KnouxColors.Alert
-    StrengthLevel.WEAK, StrengthLevel.FAIR -> KnouxColors.Warn
-    StrengthLevel.STRONG, StrengthLevel.EXCELLENT -> KnouxColors.Success
-}
-
-@Composable
 private fun reasonLabels(finding: PasswordAuditFinding): List<String> {
     val reasons = ArrayList<String>()
     if (finding.reused) reasons += tr("same value elsewhere", "القيمة نفسها في مدخل آخر")

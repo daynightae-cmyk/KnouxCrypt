@@ -131,3 +131,31 @@ Commands (for reproducibility): `./gradlew :core:data:connectedDebugAndroidTest`
 `./gradlew :app:connectedDebugAndroidTest`, `./gradlew :app:installDebug`,
 `adb exec-out screencap -p`, `adb shell uiautomator dump`, `adb shell input tap|keyevent`,
 `adb shell run-as com.knoux.crypt.debug ls -l databases files`, `adb logcat -d`.
+
+## 8. Second hardware pass — TASK 09 and the localization fix (same device, later that night)
+
+The same itel S686LN (Android 15 / API 35) was used again after `d1aaeb2`.
+
+- `./gradlew :core:data:connectedDebugAndroidTest` → **10 tests, 0 failures**
+  (`instrumented-core-data-task09.xml`). New in this run:
+  `PasswordDetailRoomTest.detailRoundTripKeepsHistoryAndNeverStoresPlaintext` (0.036 s),
+  `PasswordDetailRoomTest.lockedExistingVaultRefusesANewEnrollmentGate` (0.006 s) and
+  `PasswordDetailRoomTest.generatorOutputIsStorableAndScoresStrong` (0.038 s). The stored Room
+  envelope was asserted not to contain either test secret or the account name.
+- The first version of the history test **failed on hardware** with
+  `UnlockReenrollmentBlockedException` when it tried to re-enroll after locking. That is the
+  application's own P0 rule refusing a new gate against an existing vault, so the test was changed
+  to assert the rule instead of routing around it. Recorded here because it is the second case in
+  one night where real hardware caught something the JVM suite could not.
+- `./gradlew :app:clean :app:assembleDebug` → 17,273,312 bytes,
+  SHA-256 `9d0eeb9eea62d5f3e8c624acdfc5e4e1b8871ef23a9fc0aba4d3c43b6215f242`; installed with
+  `:app:installDebug` ("Installed on 1 device") and cold-started. The process stayed alive and the
+  `crash` log buffer contained no entries for the package.
+- A `BiometricPrompt` window was found on top of the activity right after the cold start (carried
+  over from the previous session's pending prompt). It was dismissed with BACK without any
+  authentication; no capability was minted. No further biometric prompts were triggered, because
+  each one needs the owner.
+
+Still unverified on hardware after this pass: the password-detail screen itself (needs an
+authenticated session), rotation end to end, SAF backup, clipboard timing, package inspector on a
+real file, screen-off auto-lock timing, TalkBack/200 % font, and canonical screenshots.

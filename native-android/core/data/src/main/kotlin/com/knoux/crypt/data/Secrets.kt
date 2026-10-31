@@ -19,6 +19,18 @@ data class NotePayload(
     val body: String,
 )
 
+/**
+ * Metadata about a past save of a credential. It deliberately stores no old
+ * plaintext: previous secret values are not kept anywhere, so history can be
+ * shown honestly without extending the exposure of a retired password.
+ */
+@Serializable
+data class PasswordRevision(
+    val savedAt: Long,
+    val strength: String,
+    val changed: List<String> = emptyList(),
+)
+
 @Serializable
 data class PasswordPayload(
     val title: String,
@@ -26,6 +38,8 @@ data class PasswordPayload(
     val password: String = "",
     val url: String = "",
     val notes: String = "",
+    /** Newest first, bounded by [PasswordRevisions.MAX_ENTRIES]. */
+    val revisions: List<PasswordRevision> = emptyList(),
 )
 
 @Serializable

@@ -21,6 +21,7 @@ import com.knoux.crypt.ui.KeyForgeScreen
 import com.knoux.crypt.ui.NotesScreen
 import com.knoux.crypt.ui.PackageInspectorScreen
 import com.knoux.crypt.ui.PasswordAuditScreen
+import com.knoux.crypt.ui.PasswordDetailScreen
 import com.knoux.crypt.ui.PasswordsScreen
 import com.knoux.crypt.ui.PrivacyScreen
 import com.knoux.crypt.ui.RecoveryScreen
@@ -173,6 +174,19 @@ fun KnouxNavHost(
         composable("passwords") {
             PasswordsScreen(
                 container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+                onOpenAudit = { nav.navigate("password_audit") },
+                onOpenDetail = { id -> nav.navigate("password_detail/$id") },
+            )
+        }
+        composable(
+            route = "password_detail/{recordId}",
+            arguments = listOf(navArgument("recordId") { type = NavType.StringType }),
+        ) { entry ->
+            PasswordDetailScreen(
+                container = container,
+                recordId = entry.arguments?.getString("recordId").orEmpty(),
                 onBack = { nav.popBackStack() },
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
                 onOpenAudit = { nav.navigate("password_audit") },
