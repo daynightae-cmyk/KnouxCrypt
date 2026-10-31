@@ -4,6 +4,7 @@
 **Implementation commit:** `2975ec6b7508b9f51305a808470475453e1cf3ed`
 **Security P0 commit:** `c3f718f7cee4b8f663b05e9d3aae858101554029`
 **Argon2id/KNP2 commit:** `a2ec4b7d2122e40fa5182ade580245b9c26c7c30`
+**Backup/restore commit:** `aedb4c3f88910af4962d2ed517a1df2f1e8736ea`
 **PR #14 reconciliation merge:** `b4fe65c`
 **Base:** `integration/knoux-crypt-android-ready-20261030` @ `8f6f992`
 **PR #14 branch untouched:** `android/task00-foundation-review` @ `310665d` (still unmerged, not deleted).
@@ -20,8 +21,8 @@
 | APK SHA-256 | `sha256sum` | `7608ea31a33f4beb1a64c3ef776deb63a53358f01a26c5494d885e6f36482cd9` |
 | Android lint | `./gradlew :app:lintDebug` | PASS — 0 errors, 12 warnings (dependency updates, API-33 attribute) |
 | Instrumented test sources | `./gradlew :app:compileDebugAndroidTestKotlin :core:data:compileDebugAndroidTestKotlin` | PASS (compiled, **NOT RUN**) |
-| Argon2id fresh JVM suite | `./gradlew :core:security:test :core:data:test :app:testDebugUnitTest --rerun-tasks` | PASS — **70 tests**, 0 failures, 0 errors |
-| Argon2id debug APK | `./gradlew :app:assembleDebug` | PASS — 17,562,730 bytes, SHA-256 `8ff7768b…97af73` (BouncyCastle adds 3.18 MB) |
+| Backup/restore fresh JVM suite | `./gradlew :core:security:test :core:data:test :app:testDebugUnitTest --rerun-tasks` | PASS — **79 tests**, 0 failures, 0 errors |
+| Backup/restore debug APK | `./gradlew :app:assembleDebug` | PASS — 17,600,138 bytes, SHA-256 `c49f4831…bce5d` |
 | Security P0 lint | `./gradlew :core:data:lintDebug :app:lintDebug` | PASS — 0 errors |
 | Device availability | `adb devices`; `HypervisorPresent` | **No device; False** → no emulator |
 
@@ -46,7 +47,7 @@ Test distribution: FileEnvelope 13, PassphraseEnvelope 6, TOTP/Base32/hash/rando
 | 12 | Key Forge | **BUILD_VERIFIED** (ephemeral key only); persistent keyring open |
 | 13 | Key details | PLANNED |
 | 14 | Privacy Center | **BUILD_VERIFIED** (UI); security review open |
-| 15 | Backup / Recovery | **BLOCKED** — honest no-export screen |
+| 15 | Backup / Recovery | **PARTIAL / BUILD_VERIFIED + TESTED_LOCAL (9)**: KNP2/Argon2id data export & conflict-safe restore; no key rotation, no gate recovery; SAF **DEVICE_UNVERIFIED** |
 | 16 | Secure share | PLANNED |
 | 17 | Hash & Integrity | **BUILD_VERIFIED + TESTED**; device SAF open |
 | 18 | Text cipher | **BUILD_VERIFIED + TESTED (8)**; KNP2/Argon2id writes, KNP1 readable; device UI open |
@@ -78,12 +79,12 @@ Test distribution: FileEnvelope 13, PassphraseEnvelope 6, TOTP/Base32/hash/rando
 | 44 | Secure clipboard | PLANNED |
 | 45 | Final integration/verification | **BLOCKED by device availability** |
 
-Catalog accounting: 34 destinations total = **10 IMPLEMENTED**, **1 BLOCKED (Recovery)**, **23 DESIGN_ONLY**. Eight Home cards preserved in the accepted order.
+Catalog accounting: 34 destinations total = **11 IMPLEMENTED**, **0 BLOCKED**, **23 DESIGN_ONLY** (Recovery is implemented for encrypted data export/restore; gate recovery remains out of scope). Eight Home cards preserved in the accepted order.
 
 ## Reality of the implementation
 
 - Modules: `:app`, `:core:designsystem`, `:core:security`, `:core:data`.
-- Entry flow, 8 Home cards, 34-tool directory, AR/EN search + RTL + reduced motion, Account, truthful Privacy/Recovery.
+- Entry flow, 8 Home cards, 34-tool directory, AR/EN search + RTL + reduced motion, Account, truthful Privacy, encrypted KNP2 data backup/restore.
 - KNC1 small-record AEAD (PR14 code reused), KNF1 chunked file AEAD, KNP2/Argon2id passphrase envelope with KNP1 readable, RFC 6238 TOTP, SHA-256/HMAC, SecureRandom.
 - Keystore: non-exportable master data key; auth-per-use unlock keys + check token; sealed session capability; 30 s background lock; atomic owner-authorized gate rotation with no locked-state reset. **The data key is not auth-bound per use** — documented in-app and here.
 - Room stores only ciphertext rows plus id/kind/timestamp; DataStore stores nonsecret settings only; Android backup is disabled; no INTERNET permission.
@@ -94,18 +95,25 @@ Catalog accounting: 34 destinations total = **10 IMPLEMENTED**, **1 BLOCKED (Rec
 2. **No security audit**: formats and code are tested but not reviewed externally; no fuzzing or dependency CVE scan.
 3. **Crypto scope**: KNP2 text uses Argon2id; KNF1 file containers still use PBKDF2; no vault-key rotation or recovery; no large-file soak; nonce/key-usage limits not formally analyzed.
 4. **Auth binding**: master key use is gated by the app capability, not per-use biometric authorization.
-5. **Design-only majority**: 24 tools remain explicit placeholders; they do not fake operations.
-6. **Gate recovery**: a biometric-invalidated or lost gate now shows a truthful non-destructive recovery-required state; restore is BLOCKED on TASK 15.
+5. **Design-only majority**: 23 tools remain explicit placeholders; they do not fake operations.
+6. **Gate recovery**: a biometric-invalidated or lost gate now shows a truthful non-destructive recovery-required state. Data can be backed up/restored, but the gate and Keystore root key cannot; key rotation (TASK 31) is still absent.
 7. **Biometric cipher identity**: unlock passes the exact prepared `Cipher` back to the domain and rejects substitution; real `BiometricPrompt` same-instance behavior is still DEVICE_UNVERIFIED.
 6. **Visual parity**: PR15 is the accepted baseline, not pixel certification; the external Preview artifact is not the APK.
 7. **PR14 review branch** remains unmerged and untouched; this branch must be reviewed before any merge to `main`.
 
 ## Safe next actions (dependency-aware)
 
-1. **SecurityCritical:** TASK 31 vault-key rotation is the remaining P0 blocker; TASK 15 backup/recovery depends on it and on the now-implemented KNP2/Argon2id wrapper. Then 02 per-use data-key binding. Independent device execution and audit remain owner gates.
+1. **SecurityCritical:** TASK 31 vault-key rotation / versioned key hierarchy is the remaining P0 blocker; backup exists but gate recovery and key rotation do not. Then 02 per-use data-key binding. Independent device execution and audit remain owner gates.
 2. **Vertical slices:** 05 Vault (uses KNF1), 07 Notes editor, 09 Password detail, 21 Archive (uses KNF1), 43 File Integrity.
 3. **Device gate:** obtain a physical Android 8.0+ device with strong biometrics; install `app-debug.apk`, run both instrumented classes, then capture Compose screenshots at 360/390/441 widths in EN/AR and compare against canonical references.
 4. **Quality gate:** detekt/ktlint, dependency locking, CVE scan, R8 shrinking (BouncyCastle adds 3.18 MB), and a real CI workflow (the PR14 template remains uninstalled).
+
+## Backup & restore — 2026-10-31 (`aedb4c3`)
+
+- KNP2/Argon2id data backup of typed records via SAF; preview counts/conflicts without plaintext; import refuses conflicts and writes atomically; restore re-encrypts under the new device key.
+- UI is honest that files/media, the Keystore root key and biometric-gate recovery are not included; 1 MiB plaintext cap.
+- 9 new backup tests; full suite 79 tests, 0 failures; APK 17,600,138 bytes; lint 0 errors. Device/SAF remains DEVICE_UNVERIFIED.
+- TASK 31 rotation is still the blocking P0; TASK 15 is not fully closed.
 
 ## Argon2id / KNP2 — 2026-10-31 (`a2ec4b7`)
 
