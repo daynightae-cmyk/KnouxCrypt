@@ -56,7 +56,7 @@ object Catalog {
         ServiceDef("PUBLIC_KEY_QR", "Public Key QR", "رمز المفتاح العام", "Share a public key as a QR code", "شارك مفتاحًا عامًا كرمز QR", ServiceArt.KEY, null, ServiceStatus.DESIGN_ONLY, false),
         ServiceDef("COLLECTIONS", "Collections", "المجموعات", "Group vault items by project", "جمّع عناصر الخزنة حسب المشروع", ServiceArt.VAULT, null, ServiceStatus.DESIGN_ONLY, true),
         ServiceDef("DOCUMENT_VIEWER", "Document Viewer", "عارض المستندات", "Open decrypted documents in memory", "افتح المستندات المفكوكة في الذاكرة", ServiceArt.VAULT, null, ServiceStatus.DESIGN_ONLY, true),
-        ServiceDef("PACKAGE_INSPECTOR", "Package Inspector", "فاحص الحزم", "Inspect KNF/KNP headers without keys", "افحص ترويسات KNF/KNP دون مفاتيح", ServiceArt.ENCRYPT, null, ServiceStatus.DESIGN_ONLY, false),
+        ServiceDef("PACKAGE_INSPECTOR", "Package Inspector", "فاحص الحزم", "Inspect KNF/KNP headers without keys", "افحص ترويسات KNF/KNP دون مفاتيح", ServiceArt.ENCRYPT, "package_inspector", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("AUTOFILL", "Autofill", "الملء التلقائي", "Fill passwords through Android Autofill", "املأ كلمات المرور عبر خدمة أندرويد", ServiceArt.PASSWORDS, null, ServiceStatus.DESIGN_ONLY, true),
         ServiceDef("OFFLINE_ADVISOR", "Offline Security Advisor", "مستشار الأمان دون اتصال", "Review local security posture", "راجع الوضع الأمني المحلي", ServiceArt.PRIVACY, null, ServiceStatus.DESIGN_ONLY, false),
         ServiceDef("KEY_DERIVATION", "Key Derivation", "اشتقاق المفاتيح", "Derive keys with Argon2id", "اشتق المفاتيح باستخدام Argon2id", ServiceArt.KEY, "key_derivation", ServiceStatus.IMPLEMENTED, false),

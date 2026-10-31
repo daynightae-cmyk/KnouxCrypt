@@ -39,6 +39,84 @@ class PassphraseEnvelope(private val random: SecureRandom = SecureRandom()) {
         private const val MAX_ENVELOPE_BYTES = HEADER_V2_BYTES + TAG_BYTES + MAX_PLAINTEXT_BYTES
     }
 
+    /** Non-secret KNP header metadata; authenticity is not checked without the passphrase. */
+    data class HeaderInfo(
+        val version: Int,
+        val kdf: Int,
+        val memoryKib: Int?,
+        val iterations: Int?,
+        val parallelism: Int?,
+        val salt: ByteArray,
+        val nonce: ByteArray,
+        val headerBytes: Int,
+        val payloadBytes: Int,
+    )
+
+    /**
+     * Parses and bounds-checks a KNP header without deriving a key or touching
+     * ciphertext tags. A structurally valid header does not prove authenticity.
+     */
+    fun inspect(envelope: ByteArray): HeaderInfo {
+        require(envelope.size >= MIN_ENVELOPE_BYTES) { "Invalid envelope size" }
+        val magic = envelope.copyOfRange(0, 4)
+        val headerBytes: Int
+        val info: HeaderInfo
+        when {
+            magic.contentEquals(MAGIC_V1) -> {
+                require(envelope.size >= HEADER_V1_BYTES + TAG_BYTES) { "Truncated KNP1" }
+                val buffer = ByteBuffer.wrap(envelope).order(ByteOrder.BIG_ENDIAN)
+                buffer.position(4)
+                require(buffer.get().toInt() == VERSION_1) { "Unsupported KNP1 version" }
+                require(buffer.get().toInt() == KDF_PBKDF2_SHA256) { "Unsupported KNP1 KDF" }
+                val iterations = buffer.int
+                require(iterations in 1_000..10_000_000) { "Invalid KDF iterations" }
+                val salt = ByteArray(SALT_BYTES).also(buffer::get)
+                val nonce = ByteArray(NONCE_BYTES).also(buffer::get)
+                headerBytes = HEADER_V1_BYTES
+                info = HeaderInfo(
+                    version = VERSION_1,
+                    kdf = KDF_PBKDF2_SHA256,
+                    memoryKib = null,
+                    iterations = iterations,
+                    parallelism = null,
+                    salt = salt,
+                    nonce = nonce,
+                    headerBytes = headerBytes,
+                    payloadBytes = envelope.size - headerBytes,
+                )
+            }
+            magic.contentEquals(MAGIC_V2) -> {
+                require(envelope.size >= HEADER_V2_BYTES + TAG_BYTES) { "Truncated KNP2" }
+                val buffer = ByteBuffer.wrap(envelope).order(ByteOrder.BIG_ENDIAN)
+                buffer.position(4)
+                require(buffer.get().toInt() == VERSION_2) { "Unsupported KNP2 version" }
+                require(buffer.get().toInt() == KDF_ARGON2ID) { "Unsupported KNP2 KDF" }
+                val memoryKib = buffer.int
+                val iterations = buffer.int
+                val parallelism = buffer.int
+                val parameters = runCatching {
+                    Argon2idParameters(memoryKib, iterations, parallelism)
+                }.getOrElse { throw IllegalArgumentException("Invalid Argon2id parameters in envelope") }
+                val salt = ByteArray(SALT_BYTES).also(buffer::get)
+                val nonce = ByteArray(NONCE_BYTES).also(buffer::get)
+                headerBytes = HEADER_V2_BYTES
+                info = HeaderInfo(
+                    version = VERSION_2,
+                    kdf = KDF_ARGON2ID,
+                    memoryKib = parameters.memoryKib,
+                    iterations = parameters.iterations,
+                    parallelism = parameters.parallelism,
+                    salt = salt,
+                    nonce = nonce,
+                    headerBytes = headerBytes,
+                    payloadBytes = envelope.size - headerBytes,
+                )
+            }
+            else -> throw IllegalArgumentException("Not a KNP envelope")
+        }
+        return info
+    }
+
     /** Seals with KNP2 / Argon2id. This is the only path used for new ciphertext. */
     fun seal(
         plaintext: ByteArray,
