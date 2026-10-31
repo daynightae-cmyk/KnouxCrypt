@@ -28,13 +28,22 @@ const CHANNELS = Object.freeze({
   STORE_PUT: "vault:store-put",
   STORE_REMOVE: "vault:store-remove",
   STORE_CLEAR: "vault:store-clear",
+  AUTH_ADD: "vault:auth-add",
+  AUTH_LIST: "vault:auth-list",
+  AUTH_CODE: "vault:auth-code",
+  AUTH_REMOVE: "vault:auth-remove",
+  AUTH_PARSE_URI: "vault:auth-parse-uri",
+  KEY_GENERATE: "vault:key-generate",
+  KEY_LIST: "vault:key-list",
+  KEY_EXPORT_PRIVATE: "vault:key-export-private",
+  KEY_REMOVE: "vault:key-remove",
   PICK_INPUT: "vault:pick-input",
   PICK_OUTPUT: "vault:pick-output",
   PROGRESS: "vault:progress",
   REVOKED: "vault:revoked",
 });
 
-const STORE_COLLECTIONS = Object.freeze(["notes", "passwords"]);
+const STORE_COLLECTIONS = Object.freeze(["notes", "passwords", "authenticator", "keys"]);
 
 function requireCollection(value) {
   if (!STORE_COLLECTIONS.includes(value)) {
@@ -226,6 +235,100 @@ function registerVaultIpc(service, getWindow) {
       return service.storeClear(requireString(p.sessionId, "sessionId"), requireCollection(p.collection));
     }),
   );
+
+  // Authenticator: the secret crosses the boundary once on add, and never comes
+  // back. Codes are computed in the main process so a secret never has to live
+  // in renderer memory.
+  ipcMain.handle(
+    CHANNELS.AUTH_ADD,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const account = requireObject(p.account);
+      return service.authAdd(requireString(p.sessionId, "sessionId"), {
+        name: requireString(account.name, "name", 256),
+        issuer: account.issuer === undefined ? "" : requireString(account.issuer, "issuer", 256),
+        secret: requireString(account.secret, "secret", 512),
+        digits: account.digits,
+        period: account.period,
+        algorithm: account.algorithm,
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.AUTH_LIST,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.authList(requireString(p.sessionId, "sessionId"));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.AUTH_CODE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.authCode(requireString(p.sessionId, "sessionId"), requireString(p.id, "id", 128));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.AUTH_REMOVE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.authRemove(requireString(p.sessionId, "sessionId"), requireString(p.id, "id", 128));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.AUTH_PARSE_URI,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.authParseUri(requireString(p.sessionId, "sessionId"), requireString(p.uri, "uri", 2048));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.KEY_GENERATE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const request = requireObject(p.request);
+      return service.keyGenerate(requireString(p.sessionId, "sessionId"), {
+        algorithm: requireString(request.algorithm, "algorithm", 64),
+        name: requireString(request.name, "name", 256),
+        purpose: request.purpose === undefined ? "general" : requireString(request.purpose, "purpose", 64),
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.KEY_LIST,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.keyList(requireString(p.sessionId, "sessionId"));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.KEY_EXPORT_PRIVATE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const options = p.options === undefined ? {} : requireObject(p.options);
+      return service.keyExportPrivate(
+        requireString(p.sessionId, "sessionId"),
+        requireString(p.id, "id", 128),
+        { confirm: options.confirm === true },
+      );
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.KEY_REMOVE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.keyRemove(requireString(p.sessionId, "sessionId"), requireString(p.id, "id", 128));
+    }),
+  );
+
 
   ipcMain.handle(
     CHANNELS.PICK_INPUT,

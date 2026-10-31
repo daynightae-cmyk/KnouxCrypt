@@ -180,6 +180,46 @@ export function useVault() {
     [run, session],
   );
 
+  // Tasks 09-12: authenticator and key forge. These are deliberately not routed
+  // through `run` so the caller decides how a failure surfaces (a wrong code is
+  // an expected outcome, not a screen-level error).
+  const authAdd = useCallback(
+    (account) => (api ? api.authAdd(session?.sessionId, account) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api, session],
+  );
+  const authList = useCallback(
+    () => (api ? api.authList(session?.sessionId) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api, session],
+  );
+  const authCode = useCallback(
+    (id) => (api ? api.authCode(session?.sessionId, id) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api, session],
+  );
+  const authRemove = useCallback(
+    (id) => (api ? api.authRemove(session?.sessionId, id) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api, session],
+  );
+  const authParseUri = useCallback(
+    (uri) => (api ? api.authParseUri(session?.sessionId, uri) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api, session],
+  );
+  const keyGenerate = useCallback(
+    (request) => run((a) => a.keyGenerate(session?.sessionId, request)),
+    [run, session],
+  );
+  const keyList = useCallback(
+    () => (api ? api.keyList(session?.sessionId) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api, session],
+  );
+  const keyExportPrivate = useCallback(
+    (id, options) => run((a) => a.keyExportPrivate(session?.sessionId, id, options)),
+    [run, session],
+  );
+  const keyRemove = useCallback(
+    (id) => run((a) => a.keyRemove(session?.sessionId, id)),
+    [run, session],
+  );
+
   const state = !available
     ? VAULT_STATE.UNAVAILABLE
     : session?.guest
@@ -216,6 +256,15 @@ export function useVault() {
     storePut,
     storeRemove,
     storeClear,
+    authAdd,
+    authList,
+    authCode,
+    authRemove,
+    authParseUri,
+    keyGenerate,
+    keyList,
+    keyExportPrivate,
+    keyRemove,
   };
 }
 
