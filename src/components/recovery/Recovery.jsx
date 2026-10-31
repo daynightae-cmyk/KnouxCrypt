@@ -1,14 +1,17 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "../../i18n/Language";
 import { SCREENS } from "../../config/screens";
-import { Mark, PreviewSheet } from "../security/ScreenUI";
+import { Mark, PreviewSheet, CapabilityCard } from "../security/ScreenUI";
+import { useVault, VAULT_STATE } from "../../hooks/useVault";
 import "./recovery.css";
 
 const MODE_IDS = ["create", "restore"];
 export function Recovery() {
   const { t, locale, dir } = useLanguage();
   const { state } = useLocation();
+  const vault = useVault();
+  const unlocked = vault.state === VAULT_STATE.UNLOCKED;
   const parent =
     state?.returnTo === SCREENS.PRIVACY ? SCREENS.PRIVACY : SCREENS.HOME;
   const [mode, setMode] = useState("create");
@@ -23,32 +26,108 @@ export function Recovery() {
   });
   const [sheet, setSheet] = useState(null);
   const [tutorial, setTutorial] = useState(0);
+  const [backups, setBackups] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState(null);
   const creating = mode === "create";
+
+  const refreshBackups = useCallback(async () => {
+    if (!unlocked) {
+      setBackups([]);
+      return;
+    }
+    const res = await vault.backupList();
+    if (res?.ok) setBackups(res.data.backups);
+  }, [unlocked, vault]);
+
+  useEffect(() => {
+    refreshBackups();
+  }, [refreshBackups]);
+
+  // Real encrypted backups. The container is AES-256-GCM with a sealed manifest.
+  const createBackup = useCallback(async () => {
+    setBusy(true);
+    setStatus(null);
+    try {
+      const res = await vault.backupCreate();
+      if (res?.ok) {
+        setStatus(
+          `${t("Encrypted backup created")} · ${res.data.manifest.length} ${t("collections")} · ${Math.round(res.data.size / 1024)} KB`,
+        );
+        await refreshBackups();
+      } else {
+        setStatus(res?.error?.message || t("The backup could not be created."));
+      }
+    } finally {
+      setBusy(false);
+    }
+  }, [refreshBackups, t, vault]);
+
+  const inspectBackup = useCallback(
+    async (id) => {
+      setBusy(true);
+      setStatus(null);
+      try {
+        const res = await vault.backupInspect(id);
+        if (res?.ok) {
+          setStatus(
+            `${t("Verified")} · ${res.data.totalRecords} ${t("records")} · ${res.data.createdAt}`,
+          );
+        } else {
+          setStatus(res?.error?.message || t("The backup could not be verified."));
+        }
+      } finally {
+        setBusy(false);
+      }
+    },
+    [t, vault],
+  );
+
+  const restoreBackup = useCallback(
+    async (id) => {
+      setBusy(true);
+      setStatus(null);
+      try {
+        const res = await vault.backupRestore(id, true);
+        if (res?.ok) {
+          setStatus(`${t("Restored")} · ${res.data.totalRecords} ${t("records")}`);
+          setAcknowledged((current) => ({ ...current, restore: true }));
+        } else {
+          setStatus(res?.error?.message || t("The restore did not complete."));
+        }
+      } finally {
+        setBusy(false);
+      }
+    },
+    [t, vault],
+  );
   const rows = [
     [
       "Backup scope",
-      "Fictional vault samples",
-      "No real notes, passwords or device keys are included.",
+      unlocked ? "All encrypted collections" : "Unlock the vault to back up",
+      unlocked
+        ? "Notes, passwords, authenticator seeds and keys, in one encrypted container."
+        : "No collection is read while the vault is locked.",
       "database",
     ],
     [
       creating ? "Backup destination" : "Backup source",
-      destinations[mode],
+      creating ? destinations.create : `${backups.length} ${t("on this device")}`,
       creating
-        ? "Select an illustrative destination label."
-        : "Select a fictional backup label, not a device file.",
+        ? "Backups are written to the encrypted vault store on this device."
+        : "Select a verified backup below to inspect or restore it.",
       "folder",
     ],
     [
       "Recovery credentials",
-      "Not configured",
-      "No recovery password, seed or private key is collected.",
+      "Vault password",
+      "The backup is sealed with your vault key; the vault password is the only way to open it.",
       "key",
     ],
     [
       "Backup protection",
-      "Preview only",
-      "No encryption, file verification or storage is active.",
+      "AES-256-GCM · sealed manifest",
+      "Every collection is checksummed in a sealed manifest; tampering and truncation are detected.",
       "shield",
     ],
   ];
@@ -157,25 +236,68 @@ export function Recovery() {
             </button>
           ))}
         </section>
+        <CapabilityCard id="BACKUP" />
         <aside className="recovery-warning">
           <Mark name="info" />
           <p>
             {t(
-              "Preserve your originals. This visual demo does not create a backup or recover data. Do not enter real recovery secrets.",
+              "Backups stay on this device inside the encrypted vault store. No cloud destination is connected, and a backup cannot be opened without your vault password.",
             )}
           </p>
         </aside>
-        <button
-          className="security-primary recovery-configure"
-          type="button"
-          onClick={() =>
-            setSheet(creating ? "Configure Backup" : "Review Restore")
-          }
-        >
-          <Mark name={creating ? "lock" : "folder"} />
-          {t(creating ? "Configure Backup" : "Review Restore")}
-          <Mark name="arrow" />
-        </button>
+        {creating ? (
+          <button
+            className="security-primary recovery-configure"
+            type="button"
+            disabled={!unlocked || busy}
+            onClick={createBackup}
+          >
+            <Mark name="lock" />
+            {busy ? t("Working…") : t("Create Encrypted Backup")}
+            <Mark name="arrow" />
+          </button>
+        ) : (
+          <section className="recovery-setup" aria-label={t("Available backups")}>
+            {backups.length === 0 ? (
+              <p className="recovery-status" role="status">
+                {t(
+                  unlocked
+                    ? "No encrypted backup exists yet on this device."
+                    : "Unlock the vault to list encrypted backups.",
+                )}
+              </p>
+            ) : (
+              backups.map((backup) => (
+                <div className="recovery-row" key={backup.id}>
+                  <span className="recovery-row-icon">
+                    <Mark name="database" />
+                  </span>
+                  <span className="recovery-row-copy">
+                    <small>{new Date(backup.modifiedAt).toLocaleString(locale)}</small>
+                    <strong>{Math.round(backup.size / 1024)} KB</strong>
+                    <span>{backup.id}</span>
+                  </span>
+                  <button
+                    type="button"
+                    className="security-choice"
+                    disabled={busy}
+                    onClick={() => inspectBackup(backup.id)}
+                  >
+                    {t("Verify")}
+                  </button>
+                  <button
+                    type="button"
+                    className="security-choice"
+                    disabled={busy}
+                    onClick={() => restoreBackup(backup.id)}
+                  >
+                    {t("Restore")}
+                  </button>
+                </div>
+              ))
+            )}
+          </section>
+        )}
         <button
           className="recovery-test"
           type="button"
@@ -189,11 +311,12 @@ export function Recovery() {
           <Mark name="chevron" />
         </button>
         <p className="recovery-status" role="status">
-          {t(
-            acknowledged[mode]
-              ? "Preview reviewed only. Recovery credentials remain Not configured."
-              : "Visual demo · backup and recovery are not configured",
-          )}
+          {status ||
+            t(
+              unlocked
+                ? "Ready · backups are sealed with your vault key"
+                : "Locked · unlock the vault to create or restore backups",
+            )}
         </p>
       </div>
       {sheet && (

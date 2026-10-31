@@ -37,6 +37,18 @@ const CHANNELS = Object.freeze({
   KEY_LIST: "vault:key-list",
   KEY_EXPORT_PRIVATE: "vault:key-export-private",
   KEY_REMOVE: "vault:key-remove",
+  KEY_GET: "vault:key-get",
+  KEY_UPDATE: "vault:key-update",
+  BACKUP_CREATE: "vault:backup-create",
+  BACKUP_LIST: "vault:backup-list",
+  BACKUP_INSPECT: "vault:backup-inspect",
+  BACKUP_RESTORE: "vault:backup-restore",
+  BACKUP_REMOVE: "vault:backup-remove",
+  SHARE_CREATE: "vault:share-create",
+  SHARE_INSPECT: "vault:share-inspect",
+  SHARE_OPEN: "vault:share-open",
+  PREFS_GET: "vault:prefs-get",
+  PREFS_UPDATE: "vault:prefs-update",
   PICK_INPUT: "vault:pick-input",
   PICK_OUTPUT: "vault:pick-output",
   PROGRESS: "vault:progress",
@@ -71,6 +83,26 @@ function requireObject(payload) {
     throw new VaultError(CODES.BAD_INPUT, "Request payload must be an object");
   }
   return payload;
+}
+
+/** A share package is either an envelope object or its base64/JSON text form. */
+function requireEnvelope(payload) {
+  const value = payload.envelope !== undefined ? payload.envelope : payload.bytes;
+  if (typeof value === "string") {
+    const text = value.length > 0 && /^[A-Za-z0-9+/=\s]+$/.test(value) && !value.trim().startsWith("{")
+      ? Buffer.from(value, "base64").toString("utf8")
+      : value;
+    if (text.length === 0 || text.length > 32 * 1024 * 1024) {
+      throw new VaultError(CODES.BAD_INPUT, "The share package is empty or too large");
+    }
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new VaultError(CODES.BAD_INPUT, "The share package is not valid JSON");
+    }
+  }
+  if (value && typeof value === "object" && !Array.isArray(value)) return value;
+  throw new VaultError(CODES.BAD_INPUT, "A share package is required");
 }
 
 /**
@@ -329,6 +361,119 @@ function registerVaultIpc(service, getWindow) {
     }),
   );
 
+
+  ipcMain.handle(
+    CHANNELS.KEY_GET,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.keyGet(requireString(p.sessionId, "sessionId"), requireString(p.id, "id", 128));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.KEY_UPDATE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.keyUpdate(requireString(p.sessionId, "sessionId"), requireString(p.id, "id", 128), {
+        name: typeof p.name === "string" ? p.name : undefined,
+        purpose: typeof p.purpose === "string" ? p.purpose : undefined,
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.BACKUP_CREATE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const request = {};
+      if (Array.isArray(p.collections)) request.collections = p.collections.map((name) => requireCollection(name));
+      return service.backupCreate(requireString(p.sessionId, "sessionId"), request);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.BACKUP_LIST,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.backupList(requireString(p.sessionId, "sessionId"));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.BACKUP_INSPECT,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.backupInspect(requireString(p.sessionId, "sessionId"), requireString(p.id, "id", 128));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.BACKUP_RESTORE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.backupRestore(requireString(p.sessionId, "sessionId"), requireString(p.id, "id", 128), {
+        confirm: p.confirm === true,
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.BACKUP_REMOVE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.backupRemove(requireString(p.sessionId, "sessionId"), requireString(p.id, "id", 128));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.SHARE_CREATE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const request = {
+        model: typeof p.model === "string" ? p.model : undefined,
+        payload: typeof p.payload === "string" ? p.payload.slice(0, 1024 * 1024) : undefined,
+        sender: typeof p.sender === "string" ? p.sender.slice(0, 128) : undefined,
+        expiresAt: typeof p.expiresAt === "string" ? p.expiresAt : null,
+      };
+      if (typeof p.passphrase === "string") request.passphrase = p.passphrase;
+      if (typeof p.recipientPublicPem === "string") request.recipientPublicPem = p.recipientPublicPem.slice(0, 16384);
+      return service.shareCreate(requireString(p.sessionId, "sessionId"), request);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.SHARE_INSPECT,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.shareInspect(requireString(p.sessionId, "sessionId"), requireEnvelope(p));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.SHARE_OPEN,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const credential = {};
+      if (typeof p.passphrase === "string") credential.passphrase = p.passphrase;
+      if (typeof p.privatePem === "string") credential.privatePem = p.privatePem.slice(0, 16384);
+      return service.shareOpen(requireString(p.sessionId, "sessionId"), requireEnvelope(p), credential);
+    }),
+  );
+
+  ipcMain.handle(CHANNELS.PREFS_GET, safe(async () => service.preferencesGet()));
+
+  ipcMain.handle(
+    CHANNELS.PREFS_UPDATE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const patch = {};
+      if ("idleLockSeconds" in p) patch.idleLockSeconds = p.idleLockSeconds;
+      if ("retentionDays" in p) patch.retentionDays = p.retentionDays;
+      if ("lockOnSuspend" in p) patch.lockOnSuspend = p.lockOnSuspend;
+      if ("clearClipboard" in p) patch.clearClipboard = p.clearClipboard;
+      return service.preferencesUpdate(patch);
+    }),
+  );
 
   ipcMain.handle(
     CHANNELS.PICK_INPUT,

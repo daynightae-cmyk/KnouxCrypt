@@ -20,6 +20,7 @@ const {
   protocol,
   net,
   nativeImage,
+  powerMonitor,
 } = require("electron");
 const { autoUpdater } = require("electron-updater");
 const path = require("path");
@@ -511,6 +512,26 @@ if (!gotLock) {
 
     setupAutoUpdater();
     createSplashWindow();
+
+    // Real session-lock controls (task 14). Locking on OS suspend and on screen
+    // lock is what actually protects a session that is left unattended; it is
+    // not a cosmetic indicator. These events are OS-provided, not app-guessed.
+    if (powerMonitor) {
+      const lockForReason = async (reason, preference) => {
+        if (!vaultService) return;
+        if (preference) {
+          try {
+            const { values } = await vaultService.preferencesGet();
+            if (values && values[preference] === false) return;
+          } catch {
+            // Fall through and lock: failing closed is the safe default.
+          }
+        }
+        vaultService.lockAll(reason);
+      };
+      powerMonitor.on("suspend", () => lockForReason("suspend", "lockOnSuspend"));
+      powerMonitor.on("lock-screen", () => lockForReason("screen-lock", "lockOnSuspend"));
+    }
 
     app.on("activate", () => {
       if (BrowserWindow.getAllWindows().length === 0) createMainWindow();

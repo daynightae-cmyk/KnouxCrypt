@@ -219,6 +219,54 @@ export function useVault() {
     (id) => run((a) => a.keyRemove(session?.sessionId, id)),
     [run, session],
   );
+  const keyGet = useCallback(
+    (id) => (api ? api.keyGet(session?.sessionId, id) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api, session],
+  );
+  const keyUpdate = useCallback(
+    (id, patch) => run((a) => a.keyUpdate(session?.sessionId, id, patch)),
+    [run, session],
+  );
+  const backupCreate = useCallback(
+    (options) => run((a) => a.backupCreate(session?.sessionId, options)),
+    [run, session],
+  );
+  const backupList = useCallback(
+    () => (api ? api.backupList(session?.sessionId) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api, session],
+  );
+  const backupInspect = useCallback(
+    (id) => (api ? api.backupInspect(session?.sessionId, id) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api, session],
+  );
+  const backupRestore = useCallback(
+    (id, confirm) => run((a) => a.backupRestore(session?.sessionId, id, confirm)),
+    [run, session],
+  );
+  const backupRemove = useCallback(
+    (id) => run((a) => a.backupRemove(session?.sessionId, id)),
+    [run, session],
+  );
+  const shareCreate = useCallback(
+    (request) => run((a) => a.shareCreate(session?.sessionId, request)),
+    [run, session],
+  );
+  const shareInspect = useCallback(
+    (envelope) => (api ? api.shareInspect(session?.sessionId, envelope) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api, session],
+  );
+  const shareOpen = useCallback(
+    (envelope, credential) => run((a) => a.shareOpen(session?.sessionId, envelope, credential)),
+    [run, session],
+  );
+  const preferencesGet = useCallback(
+    () => (api ? api.preferencesGet() : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const preferencesUpdate = useCallback(
+    (patch) => run((a) => a.preferencesUpdate(patch)),
+    [run],
+  );
 
   const state = !available
     ? VAULT_STATE.UNAVAILABLE
@@ -265,6 +313,18 @@ export function useVault() {
     keyList,
     keyExportPrivate,
     keyRemove,
+    keyGet,
+    keyUpdate,
+    backupCreate,
+    backupList,
+    backupInspect,
+    backupRestore,
+    backupRemove,
+    shareCreate,
+    shareInspect,
+    shareOpen,
+    preferencesGet,
+    preferencesUpdate,
   };
 }
 

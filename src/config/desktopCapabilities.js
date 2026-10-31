@@ -226,6 +226,54 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
     displayStatusReason:
       "Fingerprints are derived from the real key material. No external trust chain or CA validation is claimed.",
   },
+  {
+    id: "PRIVACY_CENTER",
+    title: "Privacy Center",
+    platformCapability:
+      "App-scoped privacy preferences (idle auto-lock window, lock-on-suspend, clipboard clearing, log retention) are stored on disk and enforced in the main process. The OS suspend and screen-lock events lock the vault through Electron powerMonitor.",
+    permissionNeeds: ["None for settings", "Unlocked vault session to change settings"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch04-services.test.cjs (defaults on a missing file, clamping of out-of-range values, non-numeric refusal, persistence across reload, listener notification, corrupt-file fallback, and re-arming of the live session idle window)",
+      "scripts/electron-lifecycle-check.cjs (the main process wires powerMonitor suspend and lock-screen to vault lock-all)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Preferences are persisted and applied to the real session idle timer. The app does not and cannot claim OS-wide permission or surveillance control, so those are labelled unavailable.",
+  },
+  {
+    id: "BACKUP",
+    title: "Backup & Recovery",
+    platformCapability:
+      "Encrypted versioned backups: a single authenticated container holds a manifest with a SHA-256 per collection plus every encrypted collection. Restore validates the manifest and checksums and is atomic, rolling back if a write fails.",
+    permissionNeeds: ["Unlocked vault session", "Explicit confirmation for restore"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch04-services.test.cjs (round-trip and checksum verification, wrong-key refusal, tamper detection, truncation refusal, empty-file refusal, NOT_FOUND for a missing file, confirmation required for restore, atomic restore, path-traversal id rejection, and end-to-end create/list/inspect/restore through the service)",
+      "tests/vault-store.test.cjs (the underlying store is encrypted like every other record store)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Backups are real AES-256-GCM containers written with a temp-file-then-rename and verified against a sealed manifest. Cloud or remote backup destinations are not implemented.",
+  },
+  {
+    id: "SECURE_SHARE",
+    title: "Secure Share",
+    platformCapability:
+      "Encrypted share packages with two explicit models: a shared-secret package keyed by PBKDF2-HMAC-SHA256, or a recipient-key package whose content key is wrapped with RSA-OAEP-SHA256 for the recipient's public key. Expiry is recorded and enforced on open.",
+    permissionNeeds: ["Unlocked vault session", "Recipient public key or share passphrase"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch04-services.test.cjs (shared-secret open with the right passphrase only, short-passphrase refusal, passphrase required, RSA recipient open with the matching private key only, wrong-key refusal, non-RSA refusal, expiry enforcement on open, past-expiry refusal at creation, malformed-envelope refusal, tamper detection, empty-payload refusal, and service-level create/open)",
+      "tests/vault-engine.test.cjs (the container format the package is built on)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Packages are real authenticated containers. Expiry is enforced when a package is opened, but an already-exported copy cannot be forcibly recalled, and the UI states this. No server-side delivery or revocation service exists.",
+  },
 ]);
 
 export function capabilityById(id) {
