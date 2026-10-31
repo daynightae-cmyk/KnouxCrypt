@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { SCREENS } from "../../config/screens";
 import { useLanguage } from "../../i18n/Language";
@@ -202,10 +202,63 @@ function KeyLattice({ expanded }) {
 }
 export function KeyDetails() {
   const { t, locale, dir } = useLanguage();
+  const vault = useVault();
+  const unlocked = vault.state === VAULT_STATE.UNLOCKED;
   const [expanded, setExpanded] = useState(null);
   const [sheet, setSheet] = useState(null);
   const [alias, setAlias] = useState("Knoux Demo Key");
   const [configured, setConfigured] = useState(false);
+  const [keys, setKeys] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [status, setStatus] = useState(null);
+
+  const refresh = useCallback(async () => {
+    if (!unlocked) {
+      setKeys([]);
+      setSelected(null);
+      return;
+    }
+    const res = await vault.keyList();
+    if (res?.ok) {
+      setKeys(res.data.keys || []);
+      if (res.data.keys?.length) {
+        // keyGet returns the public detail; it never includes private material.
+        const detail = await vault.keyGet(res.data.keys[0].id);
+        if (detail?.ok) setSelected(detail.data);
+      }
+    }
+  }, [unlocked, vault]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const selectKey = useCallback(
+    async (id) => {
+      const res = await vault.keyGet(id);
+      if (res?.ok) {
+        setSelected(res.data);
+        setStatus(null);
+      } else {
+        setStatus(res?.error?.message || t("The key could not be read."));
+      }
+    },
+    [t, vault],
+  );
+
+  const renameKey = useCallback(
+    async (id, name) => {
+      const res = await vault.keyUpdate(id, { name });
+      if (res?.ok) {
+        setSelected(res.data);
+        await refresh();
+        setStatus(t("Key renamed."));
+      } else {
+        setStatus(res?.error?.message || t("The key could not be renamed."));
+      }
+    },
+    [refresh, t, vault],
+  );
   return (
     <main
       className="keys-screen keys-details-screen"
@@ -222,7 +275,64 @@ export function KeyDetails() {
           <h1>{t("Key Forge")}</h1>
           <p>{t("Device Keys")}</p>
         </header>
-        <Link className="keys-secondary" to={SCREENS.KEY_DERIVATION}>{t("Key Derivation")}</Link><section className="keys-metadata" aria-label={t("Key metadata")}>
+        <Link className="keys-secondary" to={SCREENS.KEY_DERIVATION}>{t("Key Derivation")}</Link>
+        <CapabilityCard id="KEY_DETAILS" />
+        {unlocked && keys.length > 0 && (
+          <section className="keys-metadata" aria-label={t("Stored keys")}>
+            {keys.map((key) => (
+              <div key={key.id} className="keys-metadata-item">
+                <button
+                  type="button"
+                  aria-pressed={selected?.id === key.id}
+                  onClick={() => selectKey(key.id)}
+                >
+                  <span>{key.name}</span>
+                  <strong>{key.algorithm}</strong>
+                  <Mark name="chevron" />
+                </button>
+              </div>
+            ))}
+          </section>
+        )}
+        {selected && (
+          <section className="keys-metadata" aria-label={t("Key detail")}>
+            <div className="keys-metadata-item">
+              <span>{t("Fingerprint")}</span>
+              <code dir="ltr">{selected.fingerprint}</code>
+            </div>
+            <div className="keys-metadata-item">
+              <span>{t("Algorithm")}</span>
+              <strong>{selected.algorithm}</strong>
+            </div>
+            <div className="keys-metadata-item">
+              <span>{t("Private material")}</span>
+              <strong>{selected.hasPrivate ? t("Sealed in the vault") : t("None")}</strong>
+            </div>
+            <div className="keys-metadata-item">
+              <span>{t("Public key")}</span>
+              <textarea dir="ltr" readOnly rows={4} value={selected.publicPem || "—"} />
+            </div>
+            <button
+              className="keys-secondary"
+              type="button"
+              onClick={() => {
+                const next = window.prompt(t("New key name"), selected.name);
+                if (next && next.trim()) renameKey(selected.id, next.trim());
+              }}
+            >
+              {t("Rename key")}
+            </button>
+          </section>
+        )}
+        <p className="keys-demo-caption" role="status">
+          {status ||
+            t(
+              unlocked
+                ? "Public material and fingerprints are read from the encrypted store. Private keys never leave the main process."
+                : "Unlock the vault to inspect stored keys.",
+            )}
+        </p>
+        <section className="keys-metadata" aria-label={t("Key metadata")}>
           {KEY_METADATA.map((row) => (
             <div key={row.id} className="keys-metadata-item">
               <button

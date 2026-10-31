@@ -186,6 +186,24 @@ class VaultSessionManager {
     }
   }
 
+  /**
+   * Change the idle window for current and future sessions (task 14). Existing
+   * sessions are re-armed against the new value immediately, so lowering the
+   * timeout takes effect at once rather than only after the next activity.
+   */
+  setIdleLockMs(ms) {
+    const value = Number(ms);
+    if (!Number.isFinite(value) || value < 1000) return false;
+    this.idleLockMs = value;
+    const now = this.now();
+    for (const session of this.sessions.values()) {
+      session.expiresAt = session.lastActivity + this.idleLockMs;
+      if (session.expiresAt <= now) session.expiresAt = now + 1;
+    }
+    this._armIdleTimer();
+    return true;
+  }
+
   revoke(sessionId, reason = "user") {
     const session = this.sessions.get(sessionId);
     if (!session) return false;

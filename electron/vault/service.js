@@ -14,6 +14,9 @@ const { VaultError, CODES } = require("./errors");
 const { VaultEngine } = require("./engine");
 const { VaultSessionManager } = require("./session");
 const { EncryptedStore } = require("./store");
+const { VaultBackup } = require("./backup");
+const { ShareService } = require("./share");
+const { Preferences } = require("./preferences");
 const totp = require("./totp");
 
 // Explicitly supported key algorithms. Anything absent is refused rather than
@@ -60,6 +63,24 @@ class VaultService {
     this.store =
       options.store ||
       new EncryptedStore({ root: path.join(options.userDataPath || ".", "vault-store"), engine: this.engine });
+    this.backup =
+      options.backup ||
+      new VaultBackup({
+        root: path.join(options.userDataPath || ".", "vault-store"),
+        engine: this.engine,
+        store: this.store,
+      });
+    this.share = options.share || new ShareService({ engine: this.engine });
+    this.preferences =
+      options.preferences ||
+      new Preferences({
+        file: path.join(options.userDataPath || ".", "privacy-preferences.json"),
+        onChange: (snapshot) => {
+          if (this.manager && typeof this.manager.setIdleLockMs === "function" && snapshot.values) {
+            this.manager.setIdleLockMs(snapshot.values.idleLockSeconds * 1000);
+          }
+        },
+      });
     // The session manager is the single choke point for every revocation path
     // (user lock, lock-all, idle sweep, quit), so forward its notification.
     this.manager.onRevoke = (event) => this._emitRevoked(event.sessionId, event.reason);
@@ -451,6 +472,127 @@ class VaultService {
     this.manager.touch(sessionId);
     if (result.removed) this._record("key-remove", "Removed a key");
     return { removed: result.removed };
+  }
+
+  /** Key Detail (task 13): one key with public material and fingerprint only. */
+  async keyGet(sessionId, id) {
+    const rawKey = this.manager.getDek(sessionId);
+    const { records } = await this.store.list("keys", rawKey);
+    const record = records.find((r) => r.id === id);
+    if (!record) throw new VaultError(CODES.NOT_FOUND, "No such key");
+    this.manager.touch(sessionId);
+    return {
+      id: record.id,
+      name: record.name,
+      algorithm: record.algorithm,
+      purpose: record.purpose,
+      fingerprint: record.fingerprint,
+      publicPem: record.publicPem,
+      hasPrivate: Boolean(record.privatePem || record.secret),
+      createdAt: record.createdAt,
+    };
+  }
+
+  /** Rename / repurpose a key without touching its material. */
+  async keyUpdate(sessionId, id, { name, purpose } = {}) {
+    const rawKey = this.manager.getDek(sessionId);
+    const { records } = await this.store.list("keys", rawKey);
+    const record = records.find((r) => r.id === id);
+    if (!record) throw new VaultError(CODES.NOT_FOUND, "No such key");
+    if (name !== undefined) {
+      const label = String(name).trim();
+      if (!label) throw new VaultError(CODES.BAD_INPUT, "A key name is required");
+      record.name = label.slice(0, 256);
+    }
+    if (purpose !== undefined) record.purpose = String(purpose).trim().slice(0, 64) || "general";
+    await this.store.put("keys", rawKey, record);
+    this.manager.touch(sessionId);
+    this._record("key-update", "Updated key metadata");
+    return this.keyGet(sessionId, id);
+  }
+
+  // ---- task 15: encrypted backup and recovery ------------------------------
+
+  async backupCreate(sessionId, { collections } = {}) {
+    const rawKey = this.manager.getDek(sessionId);
+    const result = await this.backup.create(rawKey, collections ? { collections } : {});
+    this.manager.touch(sessionId);
+    this._record("backup-create", `Created an encrypted backup (${result.manifest.length} collection(s))`);
+    return result;
+  }
+
+  async backupList(sessionId) {
+    this.manager.getDek(sessionId);
+    this.manager.touch(sessionId);
+    return this.backup.list();
+  }
+
+  /** Dry-run: decrypt and verify without writing anything. */
+  async backupInspect(sessionId, id) {
+    const rawKey = this.manager.getDek(sessionId);
+    this.manager.touch(sessionId);
+    return this.backup.inspect(this.backup.pathFor(id), rawKey);
+  }
+
+  async backupRestore(sessionId, id, { confirm } = {}) {
+    const rawKey = this.manager.getDek(sessionId);
+    const result = await this.backup.restore(this.backup.pathFor(id), rawKey, { confirm });
+    this.manager.touch(sessionId);
+    this._record("backup-restore", `Restored an encrypted backup (${result.totalRecords} record(s))`);
+    return result;
+  }
+
+  async backupRemove(sessionId, id) {
+    this.manager.getDek(sessionId);
+    const result = await this.backup.remove(id);
+    this.manager.touch(sessionId);
+    this._record("backup-remove", "Removed a backup file");
+    return result;
+  }
+
+  // ---- task 16: encrypted package sharing ----------------------------------
+
+  async shareCreate(sessionId, request = {}) {
+    this.manager.getDek(sessionId);
+    this.manager.touch(sessionId);
+    const { model, passphrase, recipientPublicPem, payload, expiresAt, sender } = request;
+    if (model === "recipient-key") {
+      const result = this.share.createForRecipient({ recipientPublicPem, payload, expiresAt, sender });
+      this._record("share-create", "Created a recipient-key share package");
+      return { model: result.envelope.model, envelope: result.envelope, bytes: result.bytes.toString("base64"), fingerprint: result.fingerprint };
+    }
+    if (model === "shared-secret") {
+      const result = this.share.createSharedSecret({ passphrase, payload, expiresAt, sender });
+      this._record("share-create", "Created a shared-secret share package");
+      return { model: result.envelope.model, envelope: result.envelope, bytes: result.bytes.toString("base64"), fingerprint: result.fingerprint };
+    }
+    throw new VaultError(CODES.BAD_INPUT, `Unsupported share model "${model}"`);
+  }
+
+  shareInspect(sessionId, envelope) {
+    this.manager.getDek(sessionId);
+    this.manager.touch(sessionId);
+    return this.share.inspect(envelope);
+  }
+
+  shareOpen(sessionId, envelope, credential = {}) {
+    this.manager.getDek(sessionId);
+    this.manager.touch(sessionId);
+    const result = this.share.open(envelope, credential);
+    this._record("share-open", "Opened a share package");
+    return result;
+  }
+
+  // ---- task 14: privacy preferences ----------------------------------------
+
+  async preferencesGet() {
+    return this.preferences.load();
+  }
+
+  async preferencesUpdate(patch) {
+    const snapshot = await this.preferences.update(patch);
+    this._record("preferences-update", "Updated local privacy preferences");
+    return snapshot;
   }
 
   _emitProgress(operationId, direction, progress) {
