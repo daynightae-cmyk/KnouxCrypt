@@ -48,6 +48,8 @@ import com.knoux.crypt.design.KnouxColors
 import com.knoux.crypt.design.KnouxGhostButton
 import com.knoux.crypt.design.KnouxPrimaryButton
 import com.knoux.crypt.design.KnouxTextField
+import com.knoux.crypt.HmacJobGate
+import com.knoux.crypt.HmacStreamer
 import com.knoux.crypt.design.SectionLabel
 import com.knoux.crypt.security.Hashing
 import com.knoux.crypt.tr
@@ -55,6 +57,8 @@ import java.util.Locale
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -86,6 +90,7 @@ fun HmacLabScreen(onBack: () -> Unit) {
     var error by remember { mutableStateOf<String?>(null) }
     var copied by remember { mutableStateOf(false) }
     var job by remember { mutableStateOf<Job?>(null) }
+    val jobGate = remember { HmacJobGate() }
     val keyRequired = tr("Enter a secret key first.", "أدخل مفتاحًا سريًا أولاً.")
     val fileRequired = tr("Choose a file first.", "اختر ملفًا أولاً.")
     val messageTooLarge = tr(
@@ -93,8 +98,20 @@ fun HmacLabScreen(onBack: () -> Unit) {
         "الرسالة النصية أكبر من 1 ميبيبايت. استخدم وضع الملف للمدخلات الكبيرة.",
     )
 
+    fun invalidateWork() {
+        jobGate.invalidate()
+        job?.cancel()
+        job = null
+        busy = false
+        progress = 0f
+        tagHex = null
+        tagBytes = null
+        copied = false
+    }
+
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
+        invalidateWork()
         var name: String? = null
         var size = -1L
         runCatching {
@@ -142,52 +159,63 @@ fun HmacLabScreen(onBack: () -> Unit) {
         tagBytes = null
         progress = 0f
         busy = true
+        job?.cancel()
+        val requestId = jobGate.issue()
+        val runMode = mode
+        val runMessage = message
+        val runUri = fileUri
+        val runLength = fileSize ?: -1L
         val keyBytes = key.toByteArray(Charsets.UTF_8)
         job = scope.launch {
+            val self = currentCoroutineContext()[Job]
             try {
-                val result = if (mode == HmacMode.TEXT) {
+                val result = if (runMode == HmacMode.TEXT) {
                     withContext(Dispatchers.Default) {
-                        Hashing.hmacSha256(keyBytes, message.toByteArray(Charsets.UTF_8))
+                        Hashing.hmacSha256(keyBytes, runMessage.toByteArray(Charsets.UTF_8))
                     }
                 } else {
-                    val uri = fileUri ?: throw IllegalStateException("No file selected")
-                    val length = fileSize ?: -1L
+                    val uri = runUri ?: throw IllegalStateException("No file selected")
                     withContext(Dispatchers.IO) {
-                        context.contentResolver.openInputStream(uri)?.use { input ->
-                            Hashing.hmacSha256(keyBytes, input, length) { processed ->
-                                if (length > 0) {
-                                    progress = (processed.toDouble() / length).toFloat().coerceIn(0f, 1f)
+                        val input = context.contentResolver.openInputStream(uri)
+                            ?: throw java.io.IOException("Cannot read the selected file")
+                        input.use { stream ->
+                            HmacStreamer.compute(keyBytes, stream, runLength) { processed ->
+                                if (jobGate.isCurrent(requestId) && runLength > 0) {
+                                    progress = (processed.toDouble() / runLength).toFloat().coerceIn(0f, 1f)
                                 }
                             }
-                        } ?: throw java.io.IOException("Cannot read the selected file")
+                        }
                     }
                 }
+                self?.ensureActive()
+                if (!jobGate.isCurrent(requestId)) return@launch
                 tagBytes = result
                 tagHex = Hashing.toHex(result)
                 progress = 1f
             } catch (_: CancellationException) {
-                tagHex = null
-                tagBytes = null
-                progress = 0f
+                if (jobGate.isCurrent(requestId)) {
+                    tagHex = null
+                    tagBytes = null
+                    progress = 0f
+                }
             } catch (failure: Exception) {
+                if (self?.isActive == false) return@launch
+                if (!jobGate.isCurrent(requestId)) return@launch
                 error = failure.message ?: "HMAC computation failed; no tag was retained."
                 tagHex = null
                 tagBytes = null
             } finally {
                 keyBytes.fill(0)
-                busy = false
-                job = null
+                if (jobGate.isCurrent(requestId)) {
+                    busy = false
+                    job = null
+                }
             }
         }
     }
 
     fun cancel() {
-        job?.cancel()
-        job = null
-        busy = false
-        progress = 0f
-        tagHex = null
-        tagBytes = null
+        invalidateWork()
     }
 
     val normalizedExpected = expected.trim().lowercase(Locale.ROOT)
@@ -220,16 +248,14 @@ fun HmacLabScreen(onBack: () -> Unit) {
         Spacer(Modifier.height(10.dp))
         Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
             ModeChip(tr("Text", "نص"), mode == HmacMode.TEXT, Modifier.weight(1f)) {
+                invalidateWork()
                 mode = HmacMode.TEXT
-                tagHex = null
-                tagBytes = null
                 expected = ""
                 error = null
             }
             ModeChip(tr("File", "ملف"), mode == HmacMode.FILE, Modifier.weight(1f)) {
+                invalidateWork()
                 mode = HmacMode.FILE
-                tagHex = null
-                tagBytes = null
                 expected = ""
                 error = null
             }
@@ -240,7 +266,7 @@ fun HmacLabScreen(onBack: () -> Unit) {
             Spacer(Modifier.height(6.dp))
             KnouxTextField(
                 value = key,
-                onValueChange = { key = it; tagHex = null; tagBytes = null; error = null },
+                onValueChange = { invalidateWork(); key = it; error = null },
                 label = tr("HMAC key (UTF-8 bytes)", "مفتاح HMAC (بايتات UTF-8)"),
                 visualTransformation = if (showKey) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingContent = {
@@ -263,12 +289,10 @@ fun HmacLabScreen(onBack: () -> Unit) {
                 color = KnouxColors.Faint,
             )
             TextButton(onClick = {
+                invalidateWork()
                 key = ""
                 showKey = false
-                tagHex = null
-                tagBytes = null
                 expected = ""
-                copied = false
             }) {
                 Text(tr("Clear key and results", "مسح المفتاح والنتائج"), color = KnouxColors.Muted)
             }
@@ -280,7 +304,7 @@ fun HmacLabScreen(onBack: () -> Unit) {
                 Spacer(Modifier.height(6.dp))
                 KnouxTextField(
                     value = message,
-                    onValueChange = { message = it; tagHex = null; tagBytes = null; error = null },
+                    onValueChange = { invalidateWork(); message = it; error = null },
                     label = tr("Message (empty is allowed)", "الرسالة (الفراغ مسموح)"),
                     singleLine = false,
                     minLines = 4,

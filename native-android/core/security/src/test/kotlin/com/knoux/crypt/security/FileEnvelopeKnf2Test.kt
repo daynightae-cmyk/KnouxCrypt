@@ -116,6 +116,29 @@ class FileEnvelopeKnf2Test {
     }
 
     @Test
+    fun lateChunkTagFailureThrowsAndRequiresDiscardingPartialOutput() {
+        val data = ByteArray(3 * 1024 + 17) { (it * 11).toByte() }
+        val envelope = sealWrapped(data)
+        val tampered = envelope.clone()
+        tampered[tampered.size - 1] = (tampered[tampered.size - 1].toInt() xor 1).toByte()
+        val output = ByteArrayOutputStream()
+        try {
+            FileEnvelope(chunkSize = 1024).decryptDevice(
+                ByteArrayInputStream(tampered),
+                output,
+                context,
+                keyProvider = { fileKey },
+            )
+            fail("Late-chunk tamper accepted")
+        } catch (_: GeneralSecurityException) {
+        }
+        // Earlier authenticated chunks may already be emitted by the streaming
+        // API; callers (and the UI) must discard the temporary output.
+        assertTrue(output.size() > 0)
+        assertTrue(output.size() < data.size)
+    }
+
+    @Test
     fun wrappedKeyHeaderTruncationAndLengthTamperFailClosed() {
         val full = sealWrapped(ByteArray(1024))
         val header = FileEnvelope().readHeader(ByteArrayInputStream(full))
