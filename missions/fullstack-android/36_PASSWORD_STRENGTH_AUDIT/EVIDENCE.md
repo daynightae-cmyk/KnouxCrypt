@@ -55,9 +55,17 @@ Classification: **SOURCE_IMPLEMENTED + JVM_TESTED + BUILD_VERIFIED**.
 | Aggregate JVM | result XML count | **156 tests, 0 skipped, 0 failures, 0 errors** |
 | Lint | `:app:lintDebug :core:data:lintDebug` | PASS, exit 0 — **0 errors**, 12 app + 10 core:data warnings (unchanged from baseline) |
 | androidTest compile | `:app:compileDebugAndroidTestKotlin :core:data:compileDebugAndroidTestKotlin` | PASS (**compiled, NOT RUN**); adds `PasswordAuditRoomTest` |
-| Debug APK | `:app:assembleDebug --no-daemon` | PASS, exit 0 — **17,759,009 bytes** |
-| APK SHA-256 | `sha256sum` | `49182316b7703db2ff19b47873b8b36fa78a6b2140ac048ecd04ff9b71a68fb3` |
+| Debug APK (post-merge, clean rebuild) | `./gradlew :app:clean :app:assembleDebug --no-daemon` on merged `main` `0851785` | PASS, exit 0 — **17,191,392 bytes** |
+| APK SHA-256 (authoritative) | `sha256sum` | `a39077d7f4707aca269725020add894f484061ef922b57d4fda2fe40cc9d06ea` |
+| Re-verification on merged baseline | `:core:security:test :core:data:testDebugUnitTest :app:testDebugUnitTest :app:assembleDebug --rerun-tasks` | PASS, exit 0 — **156 tests, 0 failures**; the merged `main` brought only Desktop paths (`src/`, `electron/`, `tests/`, `scripts/`), zero overlap with `native-android/` |
 | Device | `adb devices` | **No device attached** → nothing installed or launched |
+
+APK-artifact note (recorded because it affects reproducibility): the first APK of this session
+came from an incremental build and measured 17,759,009 bytes with SHA-256
+`49182316b7703db2ff19b47873b8b36fa78a6b2140ac048ecd04ff9b71a68fb3`. After `:app:clean`,
+`assembleDebug` reproduces 17,191,392 bytes / `a39077d7…06ea` consistently, so the clean-build
+hash above is the one to compare against; the incremental artifact should not be quoted as the
+canonical package.
 
 New test coverage: 12 strength known-answer vectors (blank, common word, wrapped common word,
 keyboard row, repeated run, year-like, sequential, repeated unit, FAIR/EXCELLENT entropy

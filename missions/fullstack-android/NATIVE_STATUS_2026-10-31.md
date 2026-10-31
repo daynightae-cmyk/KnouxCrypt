@@ -153,8 +153,16 @@ Catalog accounting: 34 destinations total = **17 IMPLEMENTED**, **0 BLOCKED**, *
   including lock-mid-scan, cancellation, gaps, stale clock, truncation, 200-record progress,
   stale-capability refusal and kind filtering). Aggregate **156 tests, 0 failures** (security 70,
   data 75, app 11); lint 0 errors (12 app/10 core warnings, unchanged); `PasswordAuditRoomTest`
-  compiled but **NOT RUN**; APK 17,759,009 bytes, SHA-256
-  `49182316b7703db2ff19b47873b8b36fa78a6b2140ac048ecd04ff9b71a68fb3`.
+  compiled but **NOT RUN**.
+- APK: the first artifact came from an incremental build (17,759,009 bytes,
+  `49182316…8fb3`). After `:app:clean :app:assembleDebug` the reproducible package is
+  **17,191,392 bytes, SHA-256 `a39077d7f4707aca269725020add894f484061ef922b57d4fda2fe40cc9d06ea`**
+  — quote the clean-build hash as canonical.
+- Re-verified after consolidation: TASK 36 merged into `main` (`6d451ae`), `main` merged with the
+  Desktop PRs #20/#21 work (`0851785`, zero file overlap with `native-android/`), and the whole
+  Android gate was re-run green on that merged baseline (156 tests, 0 failures; same APK hash).
+  The branch was then fast-forwarded to the same `0851785` commit, so local `main`,
+  `origin/main`, this branch and `origin/` all point at one tree.
 - Catalog is now 17 implemented / 0 blocked / 17 design-only, still 34 unique destinations and 8
   Home cards. Strength is a local heuristic, not a breach check (no network, 48-entry weak list);
   UI rendering, RTL, TalkBack, real Room timing and 1,000-record performance remain
