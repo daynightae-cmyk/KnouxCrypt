@@ -4,6 +4,7 @@ import { LanguageProvider, useLanguage } from "./i18n/Language";
 import { NotesProvider } from "./components/notes/NotesContext";
 import { PasswordProvider } from "./components/passwords/PasswordContext";
 import { ScreenLoadBoundary } from "./components/shell/ScreenLoadBoundary";
+import { DesktopRoute } from "./components/desktop/DesktopWorkspace";
 import { AppShell } from "./components/shell/AppShell";
 import { SCREENS } from "./config/screens";
 import { MISSION_ROUTES } from "./config/missionRoutes";
@@ -24,7 +25,7 @@ function App() {
     <ScreenLoadBoundary>
     <Suspense fallback={<LoadingScreen/>}>
       <Routes>
-        {screens.map(({id,suffix,Screen}) => <Route key={id} path={SCREENS[id]+suffix} element={<Screen/>}/>)}
+        {screens.map(({id,suffix,Screen}) => <Route key={id} path={SCREENS[id]+suffix} element={<DesktopRoute id={id}><Screen/></DesktopRoute>}/>)}
         <Route path={SCREENS.TOOLS} element={<Home tools/>}/>
         <Route path="*" element={<LegacyApp/>}/>
       </Routes>

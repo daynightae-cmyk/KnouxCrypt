@@ -1,0 +1,74 @@
+{
+  "baseline": "3ce168973436ba81010ab717d083bcc691fa623a",
+  "branch": "desktop/electron-fullstack-44-services-20261031",
+  "visualSlots": [
+    "01",
+    "02",
+    "03",
+    "04"
+  ],
+  "canonicalTaskIds": [
+    "03_HOME",
+    "04_FILE_CIPHER",
+    "05_SHADOW_VAULT",
+    "06_NOTES",
+    "07_NOTES_EDITOR"
+  ],
+  "status": "PARTIAL",
+  "implementation": [
+    "Shared desktop shell, collapsible navigation, translated command search, route tabs, status bar and existing Electron window controls",
+    "Eight-card Home with original stag and service artwork, live selection metadata queue, locked empty vault explorer, in-memory notes editor/list/format/pin/search"
+  ],
+  "tests": [
+    {
+      "command": "npm run check",
+      "exitCode": 0,
+      "result": "44 AR/EN SSR routes, audio checks and Vite build passed"
+    },
+    {
+      "command": "python3 scripts/check-desktop-workspace.py",
+      "exitCode": 0,
+      "result": "24 desktop route/viewport/locale checks, interaction checks, duplicate-file regression, mobile fallback passed"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "files": [
+    "src/App.jsx",
+    "src/components/shell/AppShell.jsx",
+    "src/components/desktop/DesktopWorkspace.jsx",
+    "src/components/desktop/desktop.css",
+    "src/i18n/ar.js",
+    "src/i18n/desktop-ar.js",
+    "scripts/check-desktop-workspace.py"
+  ],
+  "inputs": {
+    "src/App.jsx": "ae5d5af7664b34a08d893192416c8d03e45d538791ae199213d44843d977abff",
+    "src/components/shell/AppShell.jsx": "4e4ce208884ef8619d99934a5427df104ecfff39a7f9593ea7d916b91d8a072e",
+    "src/components/desktop/DesktopWorkspace.jsx": "cdd95105011049dea085e777c191599cf282bd77a2a27f41dc601ae1fba79263",
+    "src/components/desktop/desktop.css": "e797d21a1d4e54424757551de1f14a31f06a7f75efaac94c094225171679279f",
+    "src/i18n/ar.js": "46f8d1d3300e1eb1195bebcb8735fe3834ba3812b29e397f248c256be429fdb8",
+    "src/i18n/desktop-ar.js": "dda3e05cf999772605f4a47634c1d59eb687dbb75795555ba332abfd6afc3f28",
+    "scripts/check-desktop-workspace.py": "d674e0b92009012b06a3d491a8004f2e0f17df49c245ab63b1edb05b695d752a"
+  },
+  "screenshots": "workspace output/desktop/increment-1 (real cloud Chromium, 1672x941, not Windows)",
+  "push": {
+    "status": "BLOCKED_POLICY",
+    "sha": null,
+    "reason": "Workspace only permits pushing coderabbit/desktop-workspace-visuals/83d7249a; owner only authorizes desktop/electron-fullstack-44-services-20261031. No remote write attempted."
+  },
+  "gaps": [
+    "Not pixel-identical to conceptual energy/landscape art",
+    "Windows Electron, DPI, installer and EXE unverified",
+    "File engine, vault authentication/storage and encrypted notes persistence not connected; UI states disclose limitations",
+    "Existing mobile route implementations preserved"
+  ],
+  "nextVisualSlots": [
+    "05_PASSWORD_MANAGER",
+    "06_AUTHENTICATOR_DASHBOARD",
+    "07_KEY_FORGE_LAB",
+    "08_PRIVACY_CENTER"
+  ]
+}

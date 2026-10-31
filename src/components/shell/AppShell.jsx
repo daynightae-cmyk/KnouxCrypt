@@ -5,6 +5,7 @@ import { SCREENS } from "../../config/screens";
 import "./shell.css";
 import "./interaction.css";
 import { NavigationEffects } from "./NavigationEffects";
+import { DesktopChrome } from "../desktop/DesktopWorkspace";
 import { AmbientSound } from "./AmbientSound";
 
 export const CYBER_TERMS = Object.freeze(["AES-256", "ENCRYPTION", "CIPHER", "SHA-256", "ZERO TRUST", "KEY EXCHANGE", "HMAC", "AEAD", "NONCE", "PUBLIC KEY", "AUTH TAG", "0x7F A9"]);
@@ -64,7 +65,7 @@ export function AppShell({ children }) {
     <NavigationEffects/>
     <CipherAtmosphere/>
     <div className="app-utility-bar"><LanguageToggle/>{guestPreview && <span className="app-guest-session">{t("Guest · visual demo")}</span>}<AmbientSound splash={pathname===SCREENS.SPLASH_ENTRY}/></div>
-    <div ref={scroll} className="app-scroll-region" id="app-content" tabIndex={0} role="region" aria-label={t("Page content")}>{children}</div>
+    <div ref={scroll} className="app-scroll-region" id="app-content" tabIndex={0} role="region" aria-label={t("Page content")}><DesktopChrome>{children}</DesktopChrome></div>
     {primary && <AppBottomNav/>}
   </div>;
 }
