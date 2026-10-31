@@ -11,6 +11,7 @@ import com.knoux.crypt.design.KnouxTab
 import com.knoux.crypt.ui.AccessScreen
 import com.knoux.crypt.ui.AccountScreen
 import com.knoux.crypt.ui.AuthenticatorScreen
+import com.knoux.crypt.ui.ClipboardGuardScreen
 import com.knoux.crypt.ui.FileCipherScreen
 import com.knoux.crypt.ui.HashIntegrityScreen
 import com.knoux.crypt.ui.HmacLabScreen
@@ -21,6 +22,7 @@ import com.knoux.crypt.ui.NotesScreen
 import com.knoux.crypt.ui.PasswordsScreen
 import com.knoux.crypt.ui.PrivacyScreen
 import com.knoux.crypt.ui.RecoveryScreen
+import com.knoux.crypt.ui.SecureClipboardScreen
 import com.knoux.crypt.ui.SecureRandomScreen
 import com.knoux.crypt.ui.SplashScreen
 import com.knoux.crypt.ui.TextCipherScreen
@@ -136,6 +138,22 @@ fun KnouxNavHost(
         }
         composable("hmac") {
             HmacLabScreen(onBack = { nav.popBackStack() })
+        }
+        composable("clipboard_guard") {
+            ClipboardGuardScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onOpenPrivacy = { nav.navigate("privacy") { launchSingleTop = true } },
+                onOpenSecureClipboard = { nav.navigate("secure_clipboard") { launchSingleTop = true } },
+            )
+        }
+        composable("secure_clipboard") {
+            SecureClipboardScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onOpenGuard = { nav.navigate("clipboard_guard") { launchSingleTop = true } },
+                onOpenPrivacy = { nav.navigate("privacy") { launchSingleTop = true } },
+            )
         }
         composable("random") {
             SecureRandomScreen(onBack = { nav.popBackStack() })

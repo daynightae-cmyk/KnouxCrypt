@@ -50,7 +50,7 @@ object Catalog {
         ServiceDef("LOCAL_TRANSFER", "Local Transfer", "نقل محلي", "Move sealed packages nearby", "انقل الحزم المختومة قريبًا", ServiceArt.KEY, null, ServiceStatus.DESIGN_ONLY, false),
         ServiceDef("FINGERPRINT_VERIFY", "Fingerprint Verify", "تحقق البصمة", "Compare key fingerprints", "قارن بصمات المفاتيح", ServiceArt.KEY, null, ServiceStatus.DESIGN_ONLY, false),
         ServiceDef("METADATA_CLEANER", "Metadata Cleaner", "منظف البيانات الوصفية", "Strip metadata before sharing", "أزل البيانات الوصفية قبل المشاركة", ServiceArt.ENCRYPT, null, ServiceStatus.DESIGN_ONLY, false),
-        ServiceDef("CLIPBOARD_GUARD", "Clipboard Guard", "حارس الحافظة", "Clear sensitive clipboard content", "امسح محتوى الحافظة الحساس", ServiceArt.PRIVACY, null, ServiceStatus.DESIGN_ONLY, false),
+        ServiceDef("CLIPBOARD_GUARD", "Clipboard Guard", "حارس الحافظة", "Inspect and clear clipboard exposure", "افحص وامسح تعرض الحافظة", ServiceArt.PRIVACY, "clipboard_guard", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("SECURE_RANDOM", "Secure Random Studio", "مولّد العشوائية الآمن", "Generate audited-source random values", "أنشئ قيمًا عشوائية آمنة", ServiceArt.KEY, "random", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("HMAC_AUTHENTICITY", "HMAC Authenticity Lab", "مختبر HMAC", "Prove message authenticity with HMAC", "أثبت أصالة الرسالة باستخدام HMAC", ServiceArt.KEY, "hmac", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("PUBLIC_KEY_QR", "Public Key QR", "رمز المفتاح العام", "Share a public key as a QR code", "شارك مفتاحًا عامًا كرمز QR", ServiceArt.KEY, null, ServiceStatus.DESIGN_ONLY, false),
@@ -64,7 +64,7 @@ object Catalog {
         ServiceDef("SECRET_CAPSULE", "Expiring Secret Capsule", "كبسولة سرية مؤقتة", "Seal a secret with an expiry label", "اختم سرًا مع تاريخ انتهاء", ServiceArt.KEY, null, ServiceStatus.DESIGN_ONLY, false),
         ServiceDef("SESSION_PRIVACY", "Session Privacy", "خصوصية الجلسة", "Control session lock behavior", "تحكّم في قفل الجلسة", ServiceArt.PRIVACY, null, ServiceStatus.DESIGN_ONLY, false),
         ServiceDef("FILE_INTEGRITY", "File Integrity", "سلامة الملف", "Check a file against a known hash", "قارن ملفًا ببصمة معروفة", ServiceArt.ENCRYPT, "file_integrity", ServiceStatus.IMPLEMENTED, false),
-        ServiceDef("SECURE_CLIPBOARD", "Secure Clipboard", "حافظة آمنة", "Time-bound clipboard handling", "تعامل مؤقت مع الحافظة", ServiceArt.PRIVACY, null, ServiceStatus.DESIGN_ONLY, false),
+        ServiceDef("SECURE_CLIPBOARD", "Secure Clipboard", "حافظة آمنة", "Managed clipboard copy lease", "نسخ مُدار بعقد للحافظة", ServiceArt.PRIVACY, "secure_clipboard", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("DEVICE_PAIRING", "Device Pairing", "اقتران الأجهزة", "Pair nearby devices for transfer", "اقرن أجهزة قريبة للنقل", ServiceArt.KEY, null, ServiceStatus.DESIGN_ONLY, false),
         ServiceDef("PASSWORD_AUDIT", "Password Audit", "تدقيق كلمات المرور", "Find reused and weak passwords locally", "اعثر على كلمات مرور ضعيفة محليًا", ServiceArt.PASSWORDS, null, ServiceStatus.DESIGN_ONLY, true),
     )
