@@ -95,6 +95,28 @@ app.whenReady().then(async () => {
         outputPath: base + "/probe-roundtrip.bin",
         operationId: "runtime-file-2",
       });
+      // Encrypted record store over the real IPC boundary (notes + credentials).
+      out.storeEmpty = await api.vault.storeList(enr.data.sessionId, "notes");
+      out.storePut = await api.vault.storePut(enr.data.sessionId, "notes", {
+        id: "runtime-note",
+        title: "Runtime note",
+        body: "secret body text",
+        category: "Work",
+      });
+      out.storePut2 = await api.vault.storePut(enr.data.sessionId, "passwords", {
+        id: "runtime-cred",
+        title: "Runtime credential",
+        username: "runtime@example.invalid",
+        password: "Public-Demo-Only!23",
+      });
+      const listed = await api.vault.storeList(enr.data.sessionId, "notes");
+      out.storeCount = listed.data?.records?.length;
+      out.storeRoundTrip = listed.data?.records?.[0]?.body;
+      out.storeUnknown = (await api.vault.storeList(enr.data.sessionId, "nope")).error?.code;
+      out.storeRemove = await api.vault.storeRemove(enr.data.sessionId, "notes", "runtime-note");
+      out.storeAfterRemove = (await api.vault.storeList(enr.data.sessionId, "notes")).data?.records?.length;
+      const guestStore = await api.vault.storePut(guest.data.sessionId, "notes", { id: "x" });
+      out.guestStoreDenied = guestStore.error?.code;
       // Revocation must reach the renderer without a polling call.
       out.revokedEvent = await new Promise((resolve) => {
         const timer = setTimeout(() => resolve("timeout"), 4000);
@@ -127,6 +149,15 @@ app.whenReady().then(async () => {
     );
     check("the source file is preserved", fs.existsSync(path.join(dir, "probe-source.bin")));
     check("session revocation reaches the renderer", probe.revokedEvent === "runtime-check", String(probe.revokedEvent));
+    check("an empty record store lists nothing", probe.storeEmpty?.ok === true && probe.storeEmpty?.data?.records?.length === 0);
+    check("a note is written to the encrypted store over IPC", probe.storePut?.ok === true, JSON.stringify(probe.storePut?.error));
+    check("a credential is written to the encrypted store over IPC", probe.storePut2?.ok === true, JSON.stringify(probe.storePut2?.error));
+    check("the stored note reads back", probe.storeCount === 1 && probe.storeRoundTrip === "secret body text", `${probe.storeCount}/${probe.storeRoundTrip}`);
+    // The IPC boundary validates the collection enum before the service sees it.
+    check("an unknown collection is refused over IPC", probe.storeUnknown === "BAD_INPUT", String(probe.storeUnknown));
+    check("a stored note can be removed over IPC", probe.storeRemove?.ok === true && probe.storeAfterRemove === 0, `${probe.storeRemove?.ok}/${probe.storeAfterRemove}`);
+    check("a guest session cannot write the store", probe.guestStoreDenied === "SESSION_REQUIRED", String(probe.guestStoreDenied));
+    check("no plaintext secret is left in the store file", !fs.readdirSync(dir).filter((f) => f.startsWith("store") || f.endsWith(".knvstore")).some((f) => fs.readFileSync(path.join(dir, f)).includes(Buffer.from("secret body text"))));
     check("renderer produced no console errors", consoleErrors.length === 0, consoleErrors.slice(0, 3).join(" | "));
   } catch (err) {
     check("runtime check completed without throwing", false, err.message);

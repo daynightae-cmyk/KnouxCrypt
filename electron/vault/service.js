@@ -13,6 +13,7 @@ const path = require("path");
 const { VaultError, CODES } = require("./errors");
 const { VaultEngine } = require("./engine");
 const { VaultSessionManager } = require("./session");
+const { EncryptedStore } = require("./store");
 
 class VaultService {
   constructor(options = {}) {
@@ -28,6 +29,9 @@ class VaultService {
       new VaultEngine({ kdfParams: { kdfId: 0, iterations: 0 }, chunkSize: options.chunkSize });
     this.activity = [];
     this.operations = new Map();
+    this.store =
+      options.store ||
+      new EncryptedStore({ root: path.join(options.userDataPath || ".", "vault-store"), engine: this.engine });
     // The session manager is the single choke point for every revocation path
     // (user lock, lock-all, idle sweep, quit), so forward its notification.
     this.manager.onRevoke = (event) => this._emitRevoked(event.sessionId, event.reason);
@@ -180,6 +184,43 @@ class VaultService {
 
   async inspect(inputPath) {
     return this.engine.inspect(inputPath);
+  }
+
+  // ---- encrypted record store (notes, credentials) ------------------------
+
+  /**
+   * Read a collection. Guest sessions hold no key, so this fails closed rather
+   * than returning anything at all.
+   */
+  async storeList(sessionId, collection) {
+    const rawKey = this.manager.getDek(sessionId);
+    const { records } = await this.store.list(collection, rawKey);
+    this.manager.touch(sessionId);
+    return { collection, records };
+  }
+
+  async storePut(sessionId, collection, record) {
+    const rawKey = this.manager.getDek(sessionId);
+    const result = await this.store.put(collection, rawKey, record);
+    this.manager.touch(sessionId);
+    this._record(result.created ? "store-create" : "store-update", `${result.created ? "Added" : "Updated"} a record in ${collection}`);
+    return { collection, created: result.created, id: record.id };
+  }
+
+  async storeRemove(sessionId, collection, id) {
+    const rawKey = this.manager.getDek(sessionId);
+    const result = await this.store.remove(collection, rawKey, id);
+    this.manager.touch(sessionId);
+    if (result.removed) this._record("store-delete", `Removed a record from ${collection}`);
+    return { collection, removed: result.removed };
+  }
+
+  async storeClear(sessionId, collection) {
+    const rawKey = this.manager.getDek(sessionId);
+    await this.store.write(collection, rawKey, { version: 1, records: [], updatedAt: new Date().toISOString() });
+    this.manager.touch(sessionId);
+    this._record("store-clear", `Cleared the ${collection} store`);
+    return { collection, cleared: true };
   }
 
   _emitProgress(operationId, direction, progress) {

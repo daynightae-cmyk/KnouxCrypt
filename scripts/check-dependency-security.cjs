@@ -40,10 +40,12 @@ const TOOLCHAIN_PACKAGES = new Set([
 const ACCEPTED = {
   minimatch: {
     reason:
-      "ReDoS/DoS in glob matching. Every affected copy is reached only through electron-builder's " +
-      "packaging toolchain; the patterns come from the repository, not from user input, and the " +
-      "code never runs in the shipped app. Fixing it requires downgrading electron-builder to " +
-      "20.23.1 (a major regression), so the finding is accepted and tracked.",
+      "ReDoS/DoS in glob matching (GHSA-g3hv-75wg-m249). Every affected copy is reached only " +
+      "through electron-builder's packaging toolchain; the patterns come from the repository, not " +
+      "from user input, and the code never runs in the shipped app. A package.json override to " +
+      "minimatch@11 was tried and reverted: minimatch >=11 dropped the callable CommonJS export, " +
+      "so glob@7 (used by @electron/asar) throws `charAt of undefined` and packaging breaks. The " +
+      "finding is therefore accepted and tracked until electron-builder updates its toolchain.",
   },
 };
 

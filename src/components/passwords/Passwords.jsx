@@ -3,11 +3,10 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { SCREENS } from "../../config/screens";
 import { useLanguage } from "../../i18n/Language";
 import { StagEmblem } from "../entry/StagEmblem";
-import { Mark, PreviewSheet } from "../security/ScreenUI";
+import { Mark, PreviewSheet, CapabilityCard } from "../security/ScreenUI";
 import {
-  buildPreviewPassword,
+  generatePassword,
   PASSWORD_CATEGORIES,
-  PUBLIC_DEMO_PASSWORD,
   usePasswords,
 } from "./PasswordContext";
 import "./passwords.css";
@@ -75,13 +74,10 @@ function Generator() {
     digits: true,
     symbols: true,
   });
-  const [revision, setRevision] = useState(0);
   const [result, setResult] = useState("");
   const [count, setCount] = useState(0);
   function generate() {
-    const next = revision + 1;
-    setRevision(next);
-    setResult(buildPreviewPassword(length, sets, next));
+    setResult(generatePassword(length, sets));
     setCount((c) => c + 1);
   }
   return (
@@ -152,7 +148,7 @@ function Generator() {
 }
 export function Passwords() {
   const { t, locale, dir } = useLanguage();
-  const { accounts, selectedId, setSelectedId } = usePasswords();
+  const { accounts, selectedId, setSelectedId, persisted, createAccount } = usePasswords();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [revealed, setRevealed] = useState({});
@@ -175,6 +171,7 @@ export function Passwords() {
     >
       <div className="password-shell">
         <PasswordHeader />
+        <CapabilityCard id="PASSWORDS" />
         <div className="password-search">
           <Mark name="search" />
           <input
@@ -208,7 +205,7 @@ export function Passwords() {
         </div>
         <section
           className="password-records"
-          aria-label={t("Public sample credentials")}
+          aria-label={t(persisted ? "Encrypted credentials" : "Public sample credentials")}
         >
           {visible.map((item, index) => (
             <article
@@ -228,14 +225,14 @@ export function Passwords() {
                   <strong>{t(item.title)}</strong>
                   <small dir="ltr">{item.username}</small>
                   <code dir="ltr">
-                    {revealed[item.id] ? PUBLIC_DEMO_PASSWORD : "••••••••••••"}
+                    {revealed[item.id] ? item.password : "••••••••••••"}
                   </code>
                 </span>
               </button>
               <div className="password-record-actions">
                 <button
                   type="button"
-                  aria-label={`${t(revealed[item.id] ? "Hide sample password" : "Reveal sample password")}: ${t(item.title)}`}
+                  aria-label={`${t(revealed[item.id] ? "Hide password" : "Reveal password")}: ${t(item.title)}`}
                   aria-pressed={!!revealed[item.id]}
                   onClick={() =>
                     setRevealed({ ...revealed, [item.id]: !revealed[item.id] })
@@ -243,13 +240,13 @@ export function Passwords() {
                 >
                   <Mark name={revealed[item.id] ? "unlock" : "lock"} />
                 </button>
-                <DemoCopy value={PUBLIC_DEMO_PASSWORD} />
+                <DemoCopy value={item.password} />
               </div>
             </article>
           ))}
           {!visible.length && (
             <p role="status" className="password-disclaimer">
-              {t("No sample credentials match.")}
+              {t(persisted ? "No credentials stored yet." : "No sample credentials match.")}
             </p>
           )}
         </section>
@@ -264,23 +261,33 @@ export function Passwords() {
           </button>
         </div>
         <section className="password-expanded">
-          <h2>{t(selected.title)}</h2>
-          <p dir="ltr">{selected.username}</p>
-          <p>{t("Selected fictional record · no real credentials")}</p>
-          <button
-            type="button"
-            className="security-primary"
-            onClick={() =>
-              navigate(`${SCREENS.PASSWORD_DETAIL}/${selected.id}`)
-            }
-          >
-            {t("View Details")}
-            <Mark name="chevron" />
-          </button>
+          <h2>{t(selected?.title || "No credential selected")}</h2>
+          <p dir="ltr">{selected?.username}</p>
+          <p>
+            {t(
+              persisted
+                ? "Stored record · encrypted with your vault key"
+                : "Selected preview record · no real credentials",
+            )}
+          </p>
+          {selected && (
+            <button
+              type="button"
+              className="security-primary"
+              onClick={() =>
+                navigate(`${SCREENS.PASSWORD_DETAIL}/${selected.id}`)
+              }
+            >
+              {t("View Details")}
+              <Mark name="chevron" />
+            </button>
+          )}
         </section>
         <p className="password-disclaimer">
           {t(
-            "Use fictional data only. No password manager or encryption is active.",
+            persisted
+              ? "Stored in the encrypted vault record store. Nothing is written while the vault is locked."
+              : "Preview data only. Unlock a vault to store real credentials.",
           )}
         </p>
       </div>
@@ -309,15 +316,21 @@ export function Passwords() {
             <>
               <p>
                 {t(
-                  "Add Secret is a local draft preview. Edit the fictional example account only; never enter real credentials.",
+                  persisted
+                    ? "Create a new credential. It is written straight into the encrypted vault record store."
+                    : "Add Secret is a local draft preview. Unlock a vault to store real credentials.",
                 )}
               </p>
               <button
                 type="button"
                 className="security-choice"
-                onClick={() => navigate(`${SCREENS.PASSWORD_DETAIL}/sample-1`)}
+                onClick={() => {
+                  const newId = persisted ? createAccount() : "sample-1";
+                  setSheet(null);
+                  navigate(`${SCREENS.PASSWORD_DETAIL}/${newId}`);
+                }}
               >
-                {t("Open sample draft")}
+                {t(persisted ? "Create credential" : "Open sample draft")}
               </button>
             </>
           )}
@@ -329,7 +342,7 @@ export function Passwords() {
 export function PasswordDetail() {
   const { t, locale, dir } = useLanguage();
   const { id } = useParams();
-  const { accounts, updateAccount, setSelectedId } = usePasswords();
+  const { accounts, updateAccount, setSelectedId, removeAccount, persisted } = usePasswords();
   const note = accounts.find((a) => a.id === id);
   const [reveal, setReveal] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -370,7 +383,9 @@ export function PasswordDetail() {
               <Mark name="dots" />
             </button>
           </div>
-          <p className="password-demo-label">{t("Public sample account")}</p>
+          <p className="password-demo-label">
+            {t(persisted ? "Encrypted with your vault key" : "Public sample account")}
+          </p>
           <label>
             {t("Account name")}
             <input
@@ -399,26 +414,34 @@ export function PasswordDetail() {
               <input
                 dir="ltr"
                 type={reveal ? "text" : "password"}
-                value={PUBLIC_DEMO_PASSWORD}
-                readOnly
-                aria-label={t("Public sample password")}
+                value={note.password}
+                readOnly={!editing}
+                onChange={(e) =>
+                  updateAccount(id, { password: e.target.value.slice(0, 256) })
+                }
+                aria-label={t("Password value")}
               />
               <button
                 type="button"
                 aria-pressed={reveal}
-                aria-label={t(
-                  reveal ? "Hide sample password" : "Reveal sample password",
-                )}
+                aria-label={t(reveal ? "Hide password" : "Reveal password")}
                 onClick={() => setReveal(!reveal)}
               >
                 <Mark name={reveal ? "unlock" : "lock"} />
               </button>
-              <DemoCopy value={PUBLIC_DEMO_PASSWORD} />
+              <DemoCopy value={note.password} />
             </div>
           </div>
           <label>
             {t("Website")}
-            <input dir="ltr" value={note.website} readOnly />
+            <input
+              dir="ltr"
+              value={note.website}
+              readOnly={!editing}
+              onChange={(e) =>
+                updateAccount(id, { website: e.target.value.slice(0, 200) })
+              }
+            />
           </label>
           <button
             className="security-choice"
@@ -426,11 +449,25 @@ export function PasswordDetail() {
             aria-pressed={editing}
             onClick={() => setEditing(!editing)}
           >
-            {t(editing ? "Finish sample edit" : "Edit sample")}
+            {t(editing ? "Finish editing" : "Edit credential")}
           </button>
+          {persisted && (
+            <button
+              className="security-choice"
+              type="button"
+              onClick={() => {
+                removeAccount(id);
+                setSheet("Deleted");
+              }}
+            >
+              {t("Delete credential")}
+            </button>
+          )}
           <p className="password-disclaimer">
             {t(
-              "Use fictional data only. No password manager or encryption is active.",
+              persisted
+                ? "Stored in the encrypted vault record store. Nothing is written while the vault is locked."
+                : "Preview data only. Unlock a vault to store real credentials.",
             )}
           </p>
         </section>
