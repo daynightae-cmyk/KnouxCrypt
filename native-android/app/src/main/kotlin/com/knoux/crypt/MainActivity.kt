@@ -1,5 +1,9 @@
 package com.knoux.crypt
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.view.WindowManager
@@ -10,6 +14,8 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.knoux.crypt.data.AppSettings
+import com.knoux.crypt.data.SessionPrivacyPolicy
 import com.knoux.crypt.data.UnlockKeyInvalidatedException
 import com.knoux.crypt.data.UnlockManager
 import com.knoux.crypt.data.UnlockNotAuthorizedException
@@ -27,11 +33,29 @@ class MainActivity : FragmentActivity() {
     private lateinit var container: AppContainer
     private lateinit var accessViewModel: AccessViewModel
     private var backgroundLockJob: Job? = null
+    private var privacySettings = AppSettings()
+    private var screenOffRegistered = false
+
+    private val screenOffReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == Intent.ACTION_SCREEN_OFF && privacySettings.lockOnScreenOff) {
+                lifecycleScope.launch { container.session.lock() }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        if (privacySettings.blockScreenshots) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
         container = AppContainer(applicationContext)
+        lifecycleScope.launch {
+            container.settings.settings.collect { settings ->
+                privacySettings = settings
+                applyScreenCapturePolicy(settings.blockScreenshots)
+            }
+        }
         accessViewModel = ViewModelProvider(
             this,
             viewModelFactory { AccessViewModel(application, container.unlockManager, container.session) },
@@ -55,16 +79,38 @@ class MainActivity : FragmentActivity() {
         super.onStart()
         backgroundLockJob?.cancel()
         backgroundLockJob = null
+        if (!screenOffRegistered) {
+            ContextCompat.registerReceiver(
+                this,
+                screenOffReceiver,
+                IntentFilter(Intent.ACTION_SCREEN_OFF),
+                ContextCompat.RECEIVER_NOT_EXPORTED,
+            )
+            screenOffRegistered = true
+        }
     }
 
     override fun onStop() {
         super.onStop()
+        if (screenOffRegistered) {
+            runCatching { unregisterReceiver(screenOffReceiver) }
+            screenOffRegistered = false
+        }
         if (isChangingConfigurations) return
-        // System pickers briefly background the app; keep a short grace period so
-        // returning from SAF does not silently discard an authorized session.
+        // Configurable grace period; the setting is validated by
+        // SessionPrivacyPolicy before it is persisted.
+        val timeoutSeconds = SessionPrivacyPolicy.requireAutoLockSeconds(privacySettings.autoLockSeconds)
         backgroundLockJob = lifecycleScope.launch {
-            delay(30_000)
+            if (timeoutSeconds > 0) delay(timeoutSeconds * 1000L)
             container.session.lock()
+        }
+    }
+
+    private fun applyScreenCapturePolicy(block: Boolean) {
+        if (block) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
     }
 

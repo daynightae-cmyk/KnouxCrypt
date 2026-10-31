@@ -1,6 +1,7 @@
 package com.knoux.crypt.data
 
 import java.security.MessageDigest
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.crypto.SecretKey
 import kotlin.concurrent.read
@@ -77,6 +78,7 @@ class SessionManager internal constructor(private val keys: VaultKeySource) {
      * This is coroutine-safe (unlike holding a thread lock across suspension).
      */
     private val mutationGate = Mutex()
+    private val lockListeners = CopyOnWriteArrayList<() -> Unit>()
 
     private var access: VaultAccess? = null
     private var cachedKey: SecretKey? = null
@@ -149,6 +151,14 @@ class SessionManager internal constructor(private val keys: VaultKeySource) {
         block()
     }
 
+    /**
+     * Registers a non-suspending cleanup hook (for example clipboard clearing)
+     * invoked after every revocation.
+     */
+    fun addOnLockListener(listener: () -> Unit) {
+        lockListeners.add(listener)
+    }
+
     /** Revokes the capability, drops the cached key handle and invalidates stale access objects. */
     suspend fun lock() = mutationGate.withLock {
         guard.write {
@@ -157,6 +167,7 @@ class SessionManager internal constructor(private val keys: VaultKeySource) {
             generation += 1
             _unlocked.value = false
         }
+        lockListeners.forEach { listener -> runCatching(listener) }
     }
 
     fun currentAccess(): VaultAccess? = guard.read { access }

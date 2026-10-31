@@ -23,12 +23,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -123,7 +122,7 @@ fun PasswordsScreen(container: AppContainer, onBack: () -> Unit, onNeedUnlock: (
         return
     }
     val application = LocalContext.current.applicationContext as Application
-    val clipboard = LocalClipboardManager.current
+    val scope = rememberCoroutineScope()
     val viewModel: PasswordsViewModel = viewModel(
         factory = viewModelFactory { PasswordsViewModel(application, container) },
     )
@@ -224,7 +223,7 @@ fun PasswordsScreen(container: AppContainer, onBack: () -> Unit, onNeedUnlock: (
                             revealed = if (isRevealed) revealed - record.id else revealed + record.id
                         }) { Text(if (isRevealed) tr("Hide", "إخفاء") else tr("Reveal", "إظهار"), color = KnouxColors.Violet, fontSize = 11.sp) }
                         TextButton(onClick = {
-                            clipboard.setText(AnnotatedString(payload.password))
+                            scope.launch { container.clipboard.copySensitive(payload.password) }
                             copiedId = record.id
                         }) {
                             Text(
@@ -239,7 +238,10 @@ fun PasswordsScreen(container: AppContainer, onBack: () -> Unit, onNeedUnlock: (
                     }
                     if (copiedId == record.id) {
                         Text(
-                            tr("Cleared manually? Clipboard contents persist until replaced.", "امسحها يدويًا؟ يبقى محتوى الحافظة حتى يُستبدل."),
+                            tr(
+                                "Copied under the session clipboard policy: it clears after the Privacy Center timeout or when the vault locks. The OS may retain data after process death.",
+                                "تم النسخ وفق سياسة الحافظة: تُمسح بعد المهلة المحددة في مركز الخصوصية أو عند قفل الخزنة. قد يحتفظ النظام بالبيانات بعد إنهاء العملية.",
+                            ),
                             style = MaterialTheme.typography.labelSmall,
                         )
                     }

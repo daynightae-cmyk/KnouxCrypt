@@ -14,10 +14,14 @@ import com.knoux.crypt.data.VaultBackupManager
 import com.knoux.crypt.data.VaultFileCipher
 import com.knoux.crypt.data.VaultKeyManager
 import com.knoux.crypt.data.VaultKeyRotationManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 /** Constructor-based dependency container; no service locator or reflection. */
 class AppContainer(context: Context) {
     private val appContext = context.applicationContext
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val database = DatabaseProvider.create(appContext)
     private val keystore = KeystoreManager()
 
@@ -27,6 +31,9 @@ class AppContainer(context: Context) {
     val vaultKeys = VaultKeyManager(session, keyRegistry)
     val secrets = SecretRepository(database.secrets(), session, vaultKeys)
     val settings = SettingsRepository(appContext)
+    val clipboard = ClipboardPrivacy(appContext, settings, appScope).also { privacy ->
+        session.addOnLockListener { privacy.clearNow() }
+    }
     val vaultFiles = VaultFileCipher(session)
     val backups = VaultBackupManager(database.secrets(), session, vaultKeys)
     val keyRotation = VaultKeyRotationManager(

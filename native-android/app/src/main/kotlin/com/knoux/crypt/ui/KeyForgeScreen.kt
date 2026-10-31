@@ -20,8 +20,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.knoux.crypt.design.BackHeader
@@ -36,12 +34,16 @@ import com.knoux.crypt.security.SecureRandomSource
 import com.knoux.crypt.tr
 
 @Composable
-fun KeyForgeScreen(onBack: () -> Unit, onNeedUnlock: () -> Unit, isUnlocked: Boolean) {
+fun KeyForgeScreen(
+    onBack: () -> Unit,
+    onNeedUnlock: () -> Unit,
+    isUnlocked: Boolean,
+    onSensitiveCopy: (String) -> Unit,
+) {
     if (!isUnlocked) {
         LockedScreen(tr("Key Forge", "مصنع المفاتيح"), onBack, onNeedUnlock)
         return
     }
-    val clipboard = LocalClipboardManager.current
     var keyHex by remember { mutableStateOf("") }
     var fingerprint by remember { mutableStateOf("") }
     var copied by remember { mutableStateOf(false) }
@@ -95,7 +97,7 @@ fun KeyForgeScreen(onBack: () -> Unit, onNeedUnlock: () -> Unit, isUnlocked: Boo
                     KnouxGhostButton(
                         if (copied) tr("Copied", "تم النسخ") else tr("Copy key", "نسخ المفتاح"),
                         {
-                            clipboard.setText(AnnotatedString(keyHex))
+                            onSensitiveCopy(keyHex)
                             copied = true
                         },
                     )

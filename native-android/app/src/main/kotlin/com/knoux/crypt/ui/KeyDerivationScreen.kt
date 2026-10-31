@@ -34,9 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -64,8 +62,7 @@ import kotlinx.coroutines.withContext
  * Memory/timing choices are explicit; there is no silent downgrade.
  */
 @Composable
-fun KeyDerivationScreen(onBack: () -> Unit) {
-    val clipboard = LocalClipboardManager.current
+fun KeyDerivationScreen(onBack: () -> Unit, onSensitiveCopy: (String) -> Unit) {
     val scope = rememberCoroutineScope()
     val random = remember { SecureRandom() }
     var passphrase by remember { mutableStateOf("") }
@@ -289,7 +286,7 @@ fun KeyDerivationScreen(onBack: () -> Unit) {
                 KnouxGhostButton(
                     if (copied) tr("Copied", "تم النسخ") else tr("Copy key hex", "نسخ المفتاح"),
                     {
-                        clipboard.setText(AnnotatedString(hex))
+                        onSensitiveCopy(hex)
                         copied = true
                     },
                 )

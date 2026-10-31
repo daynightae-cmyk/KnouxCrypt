@@ -152,10 +152,14 @@ fun KnouxNavHost(
                 onBack = { nav.popBackStack() },
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
                 isUnlocked = container.session.isUnlocked,
+                onSensitiveCopy = { value -> scope.launch { container.clipboard.copySensitive(value) } },
             )
         }
         composable("key_derivation") {
-            KeyDerivationScreen(onBack = { nav.popBackStack() })
+            KeyDerivationScreen(
+                onBack = { nav.popBackStack() },
+                onSensitiveCopy = { value -> scope.launch { container.clipboard.copySensitive(value) } },
+            )
         }
         composable("authenticator") {
             AuthenticatorScreen(
