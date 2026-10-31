@@ -1,0 +1,122 @@
+[
+  {
+    "slot": 1,
+    "file": "01_HOME_COMMAND_CENTER.png",
+    "route": "HOME",
+    "task": "03",
+    "sha256": "c1a2acabe9405d5ce8c573436d80959513ebc6bcbcd29c9856fcd9f6866075ca",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "importStatus": "PENDING_PNG_IMPORT"
+  },
+  {
+    "slot": 2,
+    "file": "02_FILE_CIPHER_WORKBENCH.png",
+    "route": "FILE_CIPHER",
+    "task": "04",
+    "sha256": "c0590c55a71cc9ac6feb18dc7c9e1e2a4a447a2b8c21fc63ce0af2f2ac54d670",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "importStatus": "PENDING_PNG_IMPORT"
+  },
+  {
+    "slot": 3,
+    "file": "03_SHADOW_VAULT_EXPLORER.png",
+    "route": "SHADOW_VAULT",
+    "task": "05",
+    "sha256": "c925a3ba91a306e73fd6c17ea1f693e4e9275cab807018cf485bcf91109a9d3e",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "importStatus": "PENDING_PNG_IMPORT"
+  },
+  {
+    "slot": 4,
+    "file": "04_SECURE_NOTES_STUDIO.png",
+    "route": "NOTES / NOTES_EDITOR",
+    "task": "06–07",
+    "sha256": "5f0d386ada587e047ce217a08ad655d9cce95f07c67fc5b95ac07526f5218c40",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "importStatus": "PENDING_PNG_IMPORT"
+  },
+  {
+    "slot": 5,
+    "file": "05_PASSWORD_MANAGER.png",
+    "route": "PASSWORDS / PASSWORD_DETAIL",
+    "task": "08–09",
+    "sha256": "cdcb76f3e3b5c809b345c376a4ea87a83d0ed547ff3771ee1c59dafb517a11f4",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "importStatus": "PENDING_PNG_IMPORT"
+  },
+  {
+    "slot": 6,
+    "file": "06_AUTHENTICATOR_DASHBOARD.png",
+    "route": "AUTHENTICATOR / AUTH_IMPORT",
+    "task": "10–11",
+    "sha256": "09848dd15a44a86b7394ee8096220e411829c9aaf86fd68127ed7c90b4fb43f4",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "importStatus": "PENDING_PNG_IMPORT"
+  },
+  {
+    "slot": 7,
+    "file": "07_KEY_FORGE_LAB.png",
+    "route": "KEY_FORGE / KEY_DETAILS",
+    "task": "12–13",
+    "sha256": "5e94e12b13ec09cbea77bd93e86dc6d839d47d8db54e8bd63204a257cf4ed540",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "importStatus": "PENDING_PNG_IMPORT"
+  },
+  {
+    "slot": 8,
+    "file": "08_PRIVACY_CENTER.png",
+    "route": "PRIVACY",
+    "task": "14",
+    "sha256": "cf3b7758cbb4eef06dd4b3a746b0489795e54c635f4bf80c5c62e08e2952bae2",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "importStatus": "PENDING_PNG_IMPORT"
+  },
+  {
+    "slot": 9,
+    "file": "09_BACKUP_RECOVERY_STUDIO.png",
+    "route": "BACKUP",
+    "task": "15",
+    "sha256": "fa07ab354dcb7b4db6aeae2acaa5673b53ad54a14e83e152e479c020fd320e59",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "importStatus": "PENDING_PNG_IMPORT"
+  },
+  {
+    "slot": 10,
+    "file": "10_TOOLS_SECURITY_LABS.png",
+    "route": "TOOLS catalogue / labs 17–44",
+    "task": "17–44",
+    "sha256": "eb6bb44d616b907d25f2d5efc98b5c25f37e040c5c252e089fe3641dca97adb8",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "importStatus": "PENDING_PNG_IMPORT"
+  }
+]
