@@ -28,19 +28,28 @@ Classification: **DOMAIN_IMPLEMENTED + INTEGRATED + TESTED_LOCAL (RFC vectors) +
 
 | Check | Command | Result |
 |---|---|---|
-| Security tests (fresh) | `./gradlew :core:security:test --rerun-tasks --no-daemon -Dorg.gradle.jvmargs=-Xmx1024m...` | **PASS, exit 0 — 53 tests**; `HmacTest` 2 |
+| Security tests (fresh) | `./gradlew :core:security:test --rerun-tasks --no-daemon -Dorg.gradle.jvmargs=-Xmx1024m...` | **PASS, exit 0 — 54 tests**; `HmacTest` 2 |
 | Data tests (fresh) | `./gradlew :core:data:testDebugUnitTest --rerun-tasks ...` | **PASS, exit 0 — 63 tests** |
-| App tests (fresh) | `./gradlew :app:testDebugUnitTest --rerun-tasks ...` | **PASS, exit 0 — 4 tests** |
-| Aggregate JVM | result XML count | **120 tests, 0 skipped, 0 failures, 0 errors** |
+| App tests (fresh) | `./gradlew :app:testDebugUnitTest --rerun-tasks ...` | **PASS, exit 0 — 11 tests**; job gate/stream cancellation/policy |
+| Aggregate JVM | result XML count | **128 tests, 0 skipped, 0 failures, 0 errors** |
 | Lint | `:core:data:lintDebug :app:lintDebug --no-daemon` | **PASS, 0 errors** (10 app/8 core warnings) |
 | androidTest compile | `:app:compileDebugAndroidTestKotlin :core:data:compileDebugAndroidTestKotlin --no-daemon` | **PASS (compiled, NOT RUN)** |
-| Debug APK | `:app:assembleDebug --no-daemon` | **PASS, exit 0 — 17,677,116 bytes** |
-| APK SHA-256 | `sha256sum` | `0a9e6fe2fbb1955f03157f64b60b530eef78073b9e2d4a9487f8de670312daac` |
+| Debug APK | `:app:assembleDebug --no-daemon` | **PASS, exit 0 — 17,714,701 bytes** |
+| APK SHA-256 | `sha256sum` | `40259ea5ee7aac869c30fba1687eaed0dca823ac9ba9f4622f3b001ae0526dd2` |
 | Device | `D:/Android/sdk/platform-tools/adb.exe devices`; Hypervisor | Empty; `HypervisorPresent=False` |
 
 HMAC tests include RFC 4231 cases 1 and 2, streaming vs in-memory equality, size mismatch,
 changed message/wrong key, and constant-time comparison. A combined larger Gradle run had
 previously exhausted host memory; split runs above are the authoritative results.
+
+## HMAC reliability hardening (`0124560`)
+
+- Results are generation-gated; key/message/mode/file changes, Clear Key, Cancel and
+  overlapping computations invalidate older tokens. A late job cannot repopulate results.
+- `HmacStreamer` closes the input from a cancellation watcher for best-effort unblocking;
+  file jobs check the job before/after streaming and at each chunk. The UI uses throw-away
+  state and clears staged values; tests cover blocking-stream cancellation, gate/token
+  behavior and late-chunk KNF2 failure.
 
 ## Review hardening included in the same commit
 

@@ -12,7 +12,7 @@ Updated: 2026-10-31 · Branch `android/native-implementation-20261031` · Securi
 hypervisor (`HypervisorPresent=False`), so BiometricPrompt, real Keystore
 invalidation, lifecycle and screenshot parity cannot be executed here.
 
-**What is already done:** all source, JVM tests (120 passing; split runs due host memory), androidTest compilation and the debug APK. Nothing is waiting on code. The exact device sequence is in `DEVICE_VERIFICATION_CHECKLIST.md`.
+**What is already done:** all source, JVM tests (128 passing; split runs due host memory), androidTest compilation and the debug APK. Nothing is waiting on code. The exact device sequence is in `DEVICE_VERIFICATION_CHECKLIST.md`.
 
 **Exact owner input needed:** a physical Android 8.0+ device (API 26+) with
 enrolled strong biometrics, USB debugging enabled, visible in `adb devices`.
@@ -45,7 +45,7 @@ wrapped per-file DEK, and that legacy KNF1 files still open. In Privacy Center,
 exercise every auto-lock timeout, screen-off lock, clipboard timeout and lock
 clear, the FLAG_SECURE toggle, and the app-switch cover. In File Integrity, hash
 a known file, compare correct/wrong references, cancel mid-hash, use a corrupt
-URI, and stream a 4 GB file if available; verify the in-memory report copy. In HMAC Lab, test text/file generation, RFC-style known values if available, wrong/changed tags, empty inputs, cancellation and RTL/keyboard.
+URI, and stream a 4 GB file if available; verify the in-memory report copy. In HMAC Lab, test text/file generation, RFC-style known values if available, wrong/changed tags, empty inputs, cancel mid-file, change key/message while a job runs, Clear Key after starting, and RTL/keyboard. In Clipboard Guard/Secure Clipboard, copy a managed value, wait for expiry, modify the clipboard externally, lock the vault, clear managed vs explicit foreign text, and test process death.
 
 **Still unverified until this runs:** same `Cipher` instance returned by
 `BiometricPrompt` (the boundary rejects substitution by identity), Keystore
@@ -91,5 +91,6 @@ activation test. Do not place secrets in the APK or repository.
   migration tool for existing external KNF1 files so they can eventually move
   off the retained root key. Current retention is safe and non-destructive; do
   not force its removal.
-- TASK 44 is **not dependency-ready**: it requires TASK 25 Clipboard Guard and
-  TASK 08. TASK 25 remains unimplemented; do not infer TASK 44 from TASK 42.
+- TASK 25 Clipboard Guard and TASK 44 Secure Clipboard are source-implemented on the
+  TASK 42 managed-lease service; both remain DEVICE_UNVERIFIED. They never claim
+  guaranteed clipboard erasure and never silently clear foreign clipboard text.

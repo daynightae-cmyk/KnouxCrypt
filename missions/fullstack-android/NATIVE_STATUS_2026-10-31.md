@@ -10,6 +10,8 @@
 **Keystore IV compatibility fix:** `ca7a1bce8ec6108318f6d60907218777d236ca56`
 **File integrity commit:** `1d26033d1cc89b4d0d68e1bb6da4ff6b1a8c5a90`
 **HMAC + review hardening commit:** `f82010e1761326fe7262c57f887d16288f320abb`
+**HMAC cancellation commit:** `012456058ca7f4579b93d5dc168a608a910f8977`
+**Clipboard Guard + Secure Clipboard commit:** `25b5acb6cffea6e4cc6423b07370ec5eae726c93`
 **PR #14 reconciliation merge:** `b4fe65c`
 **Base:** `integration/knoux-crypt-android-ready-20261030` @ `8f6f992`
 **PR #14 branch untouched:** `android/task00-foundation-review` @ `310665d` (still unmerged, not deleted).
@@ -26,16 +28,16 @@
 | APK SHA-256 | `sha256sum` | `7608ea31a33f4beb1a64c3ef776deb63a53358f01a26c5494d885e6f36482cd9` |
 | Android lint | `./gradlew :app:lintDebug` | PASS — 0 errors, 12 warnings (dependency updates, API-33 attribute) |
 | Instrumented test sources | `./gradlew :app:compileDebugAndroidTestKotlin :core:data:compileDebugAndroidTestKotlin` | PASS (compiled, **NOT RUN**) |
-| Current security tests (fresh, split) | `./gradlew :core:security:test --rerun-tasks --no-daemon -Dorg.gradle.jvmargs=-Xmx1024m...` | PASS, exit 0 — **53 tests** |
+| Current security tests (fresh, split) | `./gradlew :core:security:test --rerun-tasks --no-daemon -Dorg.gradle.jvmargs=-Xmx1024m...` | PASS, exit 0 — **54 tests** |
 | Current data tests (fresh, split) | `./gradlew :core:data:testDebugUnitTest --rerun-tasks --no-daemon ...` | PASS, exit 0 — **63 tests** |
-| Current app tests (fresh, split) | `./gradlew :app:testDebugUnitTest --rerun-tasks --no-daemon ...` | PASS, exit 0 — **4 tests** |
-| Aggregate JVM | result XML count | **120 tests, 0 skipped, 0 failures, 0 errors** (security 53, data 63, app 4) |
+| Current app tests (fresh, split) | `./gradlew :app:testDebugUnitTest --rerun-tasks --no-daemon ...` | PASS, exit 0 — **11 tests** |
+| Aggregate JVM | result XML count | **128 tests, 0 skipped, 0 failures, 0 errors** (security 54, data 63, app 11) |
 | Current lint | `./gradlew :core:data:lintDebug :app:lintDebug --no-daemon` | PASS, exit 0 — 0 errors (10 app/8 core warnings) |
-| Current debug APK | `./gradlew :app:compileDebugAndroidTestKotlin :core:data:compileDebugAndroidTestKotlin :app:assembleDebug --no-daemon` | PASS — 17,677,116 bytes, SHA-256 `0a9e6fe2…12daac` |
+| Current debug APK | `./gradlew :app:compileDebugAndroidTestKotlin :core:data:compileDebugAndroidTestKotlin :app:assembleDebug --no-daemon` | PASS — 17,714,701 bytes, SHA-256 `40259ea5…26dd2` |
 | Combined 1.5 GiB run | single `--rerun-tasks` invocation | **INCONCLUSIVE** — host JVM crashed (malloc/`hs_err`), not a test failure; split runs above are authoritative |
 | Device availability | `adb devices`; `HypervisorPresent` | **No device; False** → no emulator |
 
-Test distribution (current): security 53 (FileEnvelope 13 + KNF2 7 + Hashing 3 + HMAC 2 + Argon2id 3 + Foundation 10 + PassphraseEnvelope 8 + Totp 7); data 63 (SecretCodec 6, SecurityBoundary 26, VaultKeyRotation 16, VaultBackup 10, VaultKeyWrapper 3, SessionPrivacyPolicy 2); app 4.
+Test distribution (current): security 54 (FileEnvelope 13 + KNF2 8 + Hashing 3 + HMAC 2 + Argon2id 3 + Foundation 10 + PassphraseEnvelope 8 + Totp 7); data 63 (SecretCodec 6, SecurityBoundary 26, VaultKeyRotation 16, VaultBackup 10, VaultKeyWrapper 3, SessionPrivacyPolicy 2); app 11 (Catalog 4, HmacJobGate 3, HmacStreamer 2, ClipboardLeasePolicy 2).
 
 ## Classification by mission
 
@@ -66,7 +68,7 @@ Test distribution (current): security 53 (FileEnvelope 13 + KNF2 7 + Hashing 3 +
 | 22 | Local transfer | PLANNED |
 | 23 | Fingerprint verify | PLANNED |
 | 24 | Metadata cleaner | PLANNED |
-| 25 | Clipboard guard | PLANNED |
+| 25 | Clipboard guard | **BUILD_VERIFIED + JVM_TESTED (policy) — DEVICE_UNVERIFIED**: metadata-only exposure, managed/foreign/expired states, explicit clear, no silent foreign clearing; reuses TASK 42 service |
 | 26 | Secure random | **BUILD_VERIFIED + TESTED**; device UI open |
 | 27 | HMAC authenticity | **BUILD_VERIFIED + JVM_TESTED (RFC 4231) — DEVICE_UNVERIFIED**: text/file streaming HMAC-SHA-256, constant-time verify, local key handling, HMAC Lab route |
 | 28 | Public-key QR | PLANNED |
@@ -85,10 +87,10 @@ Test distribution (current): security 53 (FileEnvelope 13 + KNF2 7 + Hashing 3 +
 | 41 | Expiring capsule | PLANNED |
 | 42 | Session privacy controls | **BUILD_VERIFIED + JVM_TESTED policy (2) — DEVICE_UNVERIFIED**: configurable auto-lock, screen-off lock, clipboard timeout + lock clear, screenshot policy, app-switch cover, mutation/revocation serialization |
 | 43 | File integrity tool | **BUILD_VERIFIED + JVM_TESTED (hash vectors) — DEVICE_UNVERIFIED**: streaming SHA-256, checksum validation, match/mismatch evidence, cancel, in-memory reports, dedicated `file_integrity` route reusing Hash & Integrity |
-| 44 | Secure clipboard | PLANNED |
+| 44 | Secure clipboard | **BUILD_VERIFIED + JVM_TESTED (policy) — DEVICE_UNVERIFIED**: managed copy action, hidden staged value, timeout/clear, guard linkage; no guaranteed erasure |
 | 45 | Final integration/verification | **BLOCKED by device availability** |
 
-Catalog accounting: 34 destinations total = **13 IMPLEMENTED**, **0 BLOCKED**, **21 DESIGN_ONLY** (Recovery is implemented for encrypted data export/restore; gate recovery remains out of scope. Key rotation is an internal Account wizard, not a new Tools destination). Eight Home cards preserved in the accepted order.
+Catalog accounting: 34 destinations total = **15 IMPLEMENTED**, **0 BLOCKED**, **19 DESIGN_ONLY** (Recovery is implemented for encrypted data export/restore; gate recovery remains out of scope. Key rotation is an internal Account wizard, not a new Tools destination). Eight Home cards preserved in the accepted order.
 
 ## Reality of the implementation
 
@@ -113,9 +115,16 @@ Catalog accounting: 34 destinations total = **13 IMPLEMENTED**, **0 BLOCKED**, *
 ## Safe next actions (dependency-aware)
 
 1. **Device/audit gate:** run the new rotation, Keystore/KNF2 and Room migration instrumentation on real hardware; test privacy timing/clipboard and file-integrity SAF/cancel/4GB; capture AR/EN screenshots; commission independent review. TASK 31/42/43 are source-implemented but DEVICE_UNVERIFIED/AUDIT_PENDING. Root retention for existing external KNF1 files remains documented.
-2. **Vertical slices:** 25 Clipboard Guard first, then 44 Secure Clipboard (prerequisites 25/08); 05 Vault, 07 Notes editor, 09 Password detail, 21 Archive. TASK 44 must not be inferred from TASK 42.
+2. **Vertical slices:** 05 Vault, 07 Notes editor, 09 Password detail, 21 Archive, 32 Package Inspector; the clipboard chain 25/44 is source-complete but device-unverified.
 3. **Device gate:** follow `DEVICE_VERIFICATION_CHECKLIST.md`; install `app-debug.apk`, run all instrumented classes (access, Keystore record/KDK1/KNF2, Room migration), test privacy timing/clipboard/screen capture, HMAC/file integrity, then capture Compose screenshots at 360/390/441 widths in EN/AR and compare against canonical references.
 4. **Quality gate:** detekt/ktlint, dependency locking, CVE scan, R8 shrinking (BouncyCastle adds 3.18 MB), and a real CI workflow (the PR14 template remains uninstalled).
+
+## HMAC cancellation + clipboard guard/action — 2026-10-31 (`0124560`, `25b5acb`)
+
+- HMAC results are generation-gated; changed inputs, Clear Key, Cancel and overlaps invalidate older jobs. A cancellation watcher closes blocking inputs best-effort; job/chunk checks prevent late result publication. Deterministic gate, blocking-stream, concurrency and late-chunk KNF2 tests were added.
+- TASK 25 Clipboard Guard uses the existing managed-lease service: metadata-only exposure, exact same-process ownership, managed/expired/foreign states, explicit destructive clear with confirmation, never silent foreign clearing, and no guaranteed erasure.
+- TASK 44 Secure Clipboard is a distinct managed-copy action screen: hidden staged value, timeout/lock clearing, active lease metadata and guard links. Dependencies 25/08 were verified before starting.
+- Aggregate suite 128 tests, 0 failures; APK 17,714,701 bytes; lint 0 errors. Device clipboard/vendor/OS behavior remains DEVICE_UNVERIFIED; no audit.
 
 ## HMAC and review hardening — 2026-10-31 (`f82010e`)
 

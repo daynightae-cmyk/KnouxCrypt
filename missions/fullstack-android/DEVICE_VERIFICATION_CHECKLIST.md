@@ -132,10 +132,15 @@ Update the owning mission `EVIDENCE.md` and `NATIVE_STATUS_2026-10-31.md`. Do no
 `DEVICE_VERIFIED`, `SECURITY_REVIEWED`, or `RELEASE_READY` until the corresponding rows
 pass and an independent review exists.
 
-## 9. TASK 44 scope note
+## 9. TASK 25 / TASK 44 clipboard checks
 
-TASK 44 (`44_SECURE_CLIPBOARD/TASK.md`) has prerequisites **TASK 25 (Clipboard Guard) and
-TASK 08 (Passwords)**. TASK 25 is not implemented yet; it must be completed before TASK 44
-is started. TASK 44's actual scope is a secure-copy action screen with warnings,
-clear/expiration, exact owner checks, and minimal exposure UI; it must not be inferred or
-implemented as a duplicate of TASK 25. Read the task file again when starting it.
+TASK 25 (Clipboard Guard) and TASK 44 (Secure Clipboard) are now source-implemented on the
+TASK 42 managed-lease service; both remain DEVICE_UNVERIFIED. On device verify:
+
+- Managed copy from Passwords/Key Forge/Key Derivation and Secure Clipboard; timeout and
+  lock clear; external modification turns the state FOREIGN without silent clearing;
+  explicit clear warns and removes current text; process death leaves FOREIGN/unowned.
+- Clipboard Guard metadata only (no content preview), expiry countdown, restricted reads,
+  and Android/vendor clipboard restrictions.
+- Secure Clipboard stages a value hidden, clears the field after copy, and never claims
+  guaranteed erasure.
