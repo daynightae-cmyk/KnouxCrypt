@@ -1,8 +1,8 @@
 # KNOUX CRYPT — DESKTOP DESIGN REFERENCES (10 INDEPENDENT PNG FILES)
 
 **Branch:** `desktop/electron-fullstack-44-services-20261031`
-**Asset import state:** PENDING_PNG_IMPORT. This directory currently contains the manifest only. Do NOT claim the images are committed until 10 PNG blobs exist and are hash-verified.
-**Owner-supplied ZIP:** `KNOUX_CRYPT_DESKTOP_10_VISUAL_REFERENCES.zip` (SHA-256 `4d72269b9d786c9b13c02a1f07b3e64d3f48520225cb94802a353b1f78445e79`). The owner can attach the ZIP to the coding agent. Unpack into this exact folder without altering images.
+**Asset import state:** IMPORTED_VERIFIED_REMOTE — 10 original PNGs committed to this desktop branch at `092672dd9b05f85219d7fb9ce56e90d68f5fb1e6`; each original file verified against SHA-256 manifest. No ZIP upload needed.
+**Source archive:** `KNOUX_CRYPT_DESKTOP_10_VISUAL_REFERENCES.zip` (SHA-256 `4d72269b9d786c9b13c02a1f07b3e64d3f48520225cb94802a353b1f78445e79`); already extracted and committed. Preserve original PNG bytes.
 
 All 10 owner-uploaded references are separate 1672×941 images, NOT a collage. Never replace these exact originals with newly generated near-matches or thumbnails.
 
@@ -23,4 +23,4 @@ All 10 owner-uploaded references are separate 1672×941 images, NOT a collage. N
 
 **No security truth from images:** These are illustrative concepts with invented example filenames, credentials, OTP values, percentages, counters and statuses. Do not copy those data or claims into production. A green 'Active', 'Protected', '100% Encrypted', 'Verified' or 'Premium' status must be sourced from a verified backend or replaced with a neutral honest state. Never embed a real QR secret/OTP seed.
 
-**Next action for coding agent:** Import the ten PNGs from the owner-supplied ZIP (if provided) and verify every file's SHA-256; then execute the [Desktop Visual Integration Directive](../../missions/fullstack-desktop/DESKTOP_VISUAL_REFERENCE_INTEGRATION_2026-10-31.md) alongside the existing 44-service master. If archive inaccessible, report PENDING_PNG_IMPORT and continue independent security/service work; do not claim exact visual parity.
+**Next action for coding agent:** Re-check the committed original PNGs and their hashes; implement the [Desktop Visual Integration Directive](../../missions/fullstack-desktop/DESKTOP_VISUAL_REFERENCE_INTEGRATION_2026-10-31.md) alongside the existing 44-service master. The PNG references are concepts only; do not claim runtime parity without actual screenshots.

@@ -5,7 +5,7 @@
 **Exclusive working/integration branch:** `desktop/electron-fullstack-44-services-20261031`
 **Authoritative service register:** `missions/fullstack-desktop/KNOUX_DESKTOP_44_SERVICES_MASTER_EXECUTION.md`
 **Reference folder:** `visuals/DESKTOP_WORKSPACE_REFERENCES_01-10/`
-**Asset ZIP expected from owner:** `KNOUX_CRYPT_DESKTOP_10_VISUAL_REFERENCES.zip` (ten separate source PNGs plus manifest/README).
+**Asset state:** 10 original PNGs are already committed at `092672dd9b05f85219d7fb9ce56e90d68f5fb1e6`. Read them directly from the branch; no ZIP upload needed.
 **Platform:** real Windows Electron/React app, independent of Android.
 
 ## 0. BASELINE + PARALLEL WORK SAFETY
@@ -25,7 +25,7 @@ Before any edit, inspect actual desktop branch HEAD, origin/main, worktree statu
 09 — `09_BACKUP_RECOVERY_STUDIO.png` — route(s): `BACKUP` — mission(s): 15
 10 — `10_TOOLS_SECURITY_LABS.png` — route(s): `TOOLS catalogue / labs 17–44` — mission(s): 17–44
 
-Import the actual unmodified PNG files into `visuals/DESKTOP_WORKSPACE_REFERENCES_01-10/`. Compare their SHA-256 against `asset-manifest.json`, reject missing/replaced images, and preserve the 1672×941 dimensions. The reference assets are intentionally NOT included in the initial documentation-only commit; until imported, report them honestly as PENDING_PNG_IMPORT. If the owner ZIP is not in your workspace, request only that archive (or use the already attached images), and continue nonblocked tasks.
+The ten original PNG files have been committed into `visuals/DESKTOP_WORKSPACE_REFERENCES_01-10/`. Re-verify each SHA-256 against `asset-manifest.json` and preserve original 1672×941 dimensions. Do not request ZIPs or regenerate images. The remote asset import has been verified, but visual implementation and Windows runtime parity remain unverified.
 
 ## 2. VISUAL EXECUTION RULES
 
