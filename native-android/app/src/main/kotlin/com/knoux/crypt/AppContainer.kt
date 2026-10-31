@@ -4,6 +4,7 @@ import android.content.Context
 import com.knoux.crypt.data.DataStoreVaultKeyRegistry
 import com.knoux.crypt.data.DatabaseProvider
 import com.knoux.crypt.data.KeystoreManager
+import com.knoux.crypt.data.PasswordAuditService
 import com.knoux.crypt.data.RoomTransactionRunner
 import com.knoux.crypt.data.SecretRepository
 import com.knoux.crypt.data.SessionManager
@@ -35,6 +36,7 @@ class AppContainer(context: Context) {
         session.addOnLockListener { privacy.clearNow() }
     }
     val vaultFiles = VaultFileCipher(session)
+    val passwordAudit = PasswordAuditService(session, database.secrets(), secrets)
     val backups = VaultBackupManager(database.secrets(), session, vaultKeys)
     val keyRotation = VaultKeyRotationManager(
         session = session,

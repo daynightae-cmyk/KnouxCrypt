@@ -13,6 +13,8 @@
 **HMAC cancellation commit:** `012456058ca7f4579b93d5dc168a608a910f8977`
 **Clipboard Guard + Secure Clipboard commit:** `25b5acb6cffea6e4cc6423b07370ec5eae726c93`
 **Package Inspector source commit:** `fdbcb81d6974e0efaf6ed3165fc23b4d99397f53`
+**Password strength audit (TASK 36) commit:** `6db826329ba2131196d3b232b350ff19f9350258`
+**Branch sync to main (fast-forward) before TASK 36:** `607e9c3`
 **PR #14 reconciliation merge:** `b4fe65c`
 **Main merge (owner-requested consolidation):** `4bdb5614d415b2c8a8c07056af13fd8849b75c02`
 **Base:** `integration/knoux-crypt-android-ready-20261030` @ `8f6f992`
@@ -81,7 +83,7 @@ Test distribution (current): security 58 (FileEnvelope 13 + KNF2 8 + Hashing 3 +
 | 33 | Android autofill | PLANNED |
 | 34 | Offline advisor | PLANNED |
 | 35 | Multi-device pairing | PLANNED |
-| 36 | Password strength audit | PLANNED |
+| 36 | Password strength audit | **SOURCE_IMPLEMENTED + JVM_TESTED (12 engine + 12 audit) — DEVICE_UNVERIFIED / AUDIT_PENDING**: offline deterministic strength model v1, vault-wide reuse/blank/stale/unreadable audit through the revocation boundary, transient grouping digest, gaps never reported as clean, `password_audit` route |
 | 37 | Argon2id KDF | **BUILD_VERIFIED + TESTED_LOCAL (KAT)** — KNP2, KDF tool; passphrase files still KNF1/PBKDF2; device files KNF2; DEVICE_UNVERIFIED |
 | 38 | Signature studio | PLANNED |
 | 39 | Security activity | PLANNED |
@@ -90,9 +92,9 @@ Test distribution (current): security 58 (FileEnvelope 13 + KNF2 8 + Hashing 3 +
 | 42 | Session privacy controls | **BUILD_VERIFIED + JVM_TESTED policy (2) — DEVICE_UNVERIFIED**: configurable auto-lock, screen-off lock, clipboard timeout + lock clear, screenshot policy, app-switch cover, mutation/revocation serialization |
 | 43 | File integrity tool | **BUILD_VERIFIED + JVM_TESTED (hash vectors) — DEVICE_UNVERIFIED**: streaming SHA-256, checksum validation, match/mismatch evidence, cancel, in-memory reports, dedicated `file_integrity` route reusing Hash & Integrity |
 | 44 | Secure clipboard | **BUILD_VERIFIED + JVM_TESTED (policy) — DEVICE_UNVERIFIED**: managed copy action, hidden staged value, timeout/clear, guard linkage; no guaranteed erasure |
-| 45 | Final integration/verification | **SOURCE-LEVEL AUDIT DONE / DEVICE_BLOCKED / RELEASE_BLOCKED / AUDIT_PENDING**: 34 routes and 16 implemented/18 design-only; 132 tests, lint, APK; device/signing/audit/visual gates remain open |
+| 45 | Final integration/verification | **SOURCE-LEVEL AUDIT DONE / DEVICE_BLOCKED / RELEASE_BLOCKED / AUDIT_PENDING**: 34 routes and 17 implemented/17 design-only; 156 tests, lint, APK; device/signing/audit/visual gates remain open |
 
-Catalog accounting: 34 destinations total = **16 IMPLEMENTED**, **0 BLOCKED**, **18 DESIGN_ONLY** (Recovery is implemented for encrypted data export/restore; gate recovery remains out of scope. Key rotation is an internal Account wizard, not a new Tools destination). Eight Home cards preserved in the accepted order.
+Catalog accounting: 34 destinations total = **17 IMPLEMENTED**, **0 BLOCKED**, **17 DESIGN_ONLY** (Recovery is implemented for encrypted data export/restore; gate recovery remains out of scope. Key rotation is an internal Account wizard, not a new Tools destination. Password Audit is a Tools destination added by TASK 36). Eight Home cards preserved in the accepted order.
 
 ## Reality of the implementation
 
@@ -108,7 +110,7 @@ Catalog accounting: 34 destinations total = **16 IMPLEMENTED**, **0 BLOCKED**, *
 2. **No security audit**: formats and code are tested but not reviewed externally; no fuzzing or dependency CVE scan.
 3. **Crypto scope**: KNP2 text uses Argon2id; passphrase files remain KNF1/PBKDF2 and device files use KNF2; record DEK rotation exists but the Keystore root is retained and lost-gate recovery is absent; no large-file soak; nonce/key-usage limits not formally analyzed.
 4. **Auth binding**: master key use is gated by the app capability, not per-use biometric authorization.
-5. **Design-only majority**: 23 tools remain explicit placeholders; they do not fake operations.
+5. **Design-only majority**: 17 tools remain explicit placeholders; they do not fake operations.
 6. **Gate recovery**: a biometric-invalidated or lost gate shows a truthful non-destructive recovery-required state. Data can be backed up/restored, but the gate and Keystore root key cannot be restored. Data-key rotation exists; the root key is retained for KNF1 files.
 7. **Biometric cipher identity**: unlock passes the exact prepared `Cipher` back to the domain and rejects substitution; real `BiometricPrompt` same-instance behavior is still DEVICE_UNVERIFIED.
 6. **Visual parity**: PR15 is the accepted baseline, not pixel certification; the external Preview artifact is not the APK.
@@ -117,9 +119,54 @@ Catalog accounting: 34 destinations total = **16 IMPLEMENTED**, **0 BLOCKED**, *
 ## Safe next actions (dependency-aware)
 
 1. **Device/audit gate:** run the new rotation, Keystore/KNF2 and Room migration instrumentation on real hardware; test privacy timing/clipboard and file-integrity SAF/cancel/4GB; capture AR/EN screenshots; commission independent review. TASK 31/42/43 are source-implemented but DEVICE_UNVERIFIED/AUDIT_PENDING. Root retention for existing external KNF1 files remains documented.
-2. **Remaining vertical slices:** 05 Vault/Shadow Vault, 07 Notes editor, 09 Password detail, 11 Auth import, 19 Signatures, 21 Archive, 28 QR, 30 Document viewer, 33 Autofill, 36 Password audit, remaining design-only services.
+2. **Remaining vertical slices:** 05 Vault/Shadow Vault, 07 Notes editor, 09 Password detail (prerequisite 36 is now implemented), 11 Auth import, 19 Signatures, 21 Archive, 28 QR, 30 Document viewer, 33 Autofill, remaining design-only services.
 3. **Device gate:** follow `DEVICE_VERIFICATION_CHECKLIST.md`; install `app-debug.apk`, run all instrumented classes (access, Keystore record/KDK1/KNF2, Room migration), test privacy timing/clipboard/screen capture, HMAC/file integrity/package inspector, then capture Compose screenshots at 360/390/441 widths in EN/AR and compare against canonical references.
 4. **Quality gate:** detekt/ktlint, dependency locking, CVE scan, R8 shrinking (BouncyCastle adds 3.18 MB), and a real CI workflow (the PR14 template remains uninstalled).
+
+## Password strength audit — TASK 36 — 2026-11-01 (`6db8263`)
+
+- The branch was first fast-forwarded to `main` (`607e9c3`) so this work sits on the consolidated
+  Desktop + Android history; the pre-change baseline suite was green (132 tests, 0 failures).
+- New offline deterministic strength model (`PasswordStrength`, v1) in `:core:security`:
+  observed character-class pool, `length · log2(pool)` entropy, documented multiplicative
+  penalties (repeated run, sequential run, keyboard row, year-like digits, repeated unit, known
+  weak word, wrapped weak word) and structural caps so length cannot rescue a known-weak shape.
+  Metrics expose pool, raw/effective bits, level and flags; the evaluator never retains the value.
+- New `PasswordAuditService` in `:core:data` scans the live vault through the existing
+  authorization boundary: revocation checked before the id list, before each record and before
+  the report is returned; `ensureActive()` + `yield()` per record; notes/TOTP rows skipped by
+  kind; duplicates grouped by a transient SHA-256 digest that is cleared before returning.
+  Weak, reused, blank, stale (>365 d) and unreadable rows become findings; findings cap at 50
+  with truncation flagged.
+- No false reassurance: a lock or cancellation publishes **no report**, unreadable rows force
+  `COMPLETED_WITH_GAPS`, and `isClean` requires complete coverage plus zero findings.
+- New Compose route `password_audit` (catalog `PASSWORD_AUDIT` implemented, unlock-required) with
+  idle/running/completed/gaps/locked/cancelled/failed states, per-record progress, cancel,
+  coverage and distribution cards, reuse clusters, reason labels, re-run and a Passwords link.
+  The ViewModel drops the report (decrypted titles) the moment the session locks. EN/AR + RTL,
+  existing visual components, no new dependency.
+- Claim-boundary corrections in the same pass: Passwords no longer says records are KNC1 with no
+  clipboard clearing (KNC2 with readable legacy rows, managed clearing with timeout + lock), and
+  Key Forge/Key Derivation notes now describe the implemented managed clipboard instead of
+  "not auto-cleared yet".
+- Verification: 24 new tests (12 strength known-answer/cap/monotonicity/no-leak, 12 audit
+  including lock-mid-scan, cancellation, gaps, stale clock, truncation, 200-record progress,
+  stale-capability refusal and kind filtering). Aggregate **156 tests, 0 failures** (security 70,
+  data 75, app 11); lint 0 errors (12 app/10 core warnings, unchanged); `PasswordAuditRoomTest`
+  compiled but **NOT RUN**.
+- APK: the first artifact came from an incremental build (17,759,009 bytes,
+  `49182316…8fb3`). After `:app:clean :app:assembleDebug` the reproducible package is
+  **17,191,392 bytes, SHA-256 `a39077d7f4707aca269725020add894f484061ef922b57d4fda2fe40cc9d06ea`**
+  — quote the clean-build hash as canonical.
+- Re-verified after consolidation: TASK 36 merged into `main` (`6d451ae`), `main` merged with the
+  Desktop PRs #20/#21 work (`0851785`, zero file overlap with `native-android/`), and the whole
+  Android gate was re-run green on that merged baseline (156 tests, 0 failures; same APK hash).
+  The branch was then fast-forwarded to the same `0851785` commit, so local `main`,
+  `origin/main`, this branch and `origin/` all point at one tree.
+- Catalog is now 17 implemented / 0 blocked / 17 design-only, still 34 unique destinations and 8
+  Home cards. Strength is a local heuristic, not a breach check (no network, 48-entry weak list);
+  UI rendering, RTL, TalkBack, real Room timing and 1,000-record performance remain
+  DEVICE_UNVERIFIED; no audit. See `36_PASSWORD_STRENGTH_AUDIT/EVIDENCE.md` and checklist §10.
 
 ## Package inspector + TASK 45 source audit — 2026-10-31 (`fdbcb81`)
 

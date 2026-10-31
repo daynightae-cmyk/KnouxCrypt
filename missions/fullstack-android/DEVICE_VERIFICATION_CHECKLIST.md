@@ -147,3 +147,28 @@ TASK 42 managed-lease service; both remain DEVICE_UNVERIFIED. On device verify:
   and Android/vendor clipboard restrictions.
 - Secure Clipboard stages a value hidden, clears the field after copy, and never claims
   guaranteed erasure.
+
+## 10. TASK 36 password audit
+
+TASK 36 is source-implemented and JVM-tested; every runtime claim below is
+DEVICE_UNVERIFIED. On device verify:
+
+- Unlock, open Tools → Password Audit and run the scan against a vault holding: one
+  known-weak secret, one repeated secret in two records, one blank password, one strong
+  unique value and one deliberately corrupted row. Confirm the counts, the reuse cluster,
+  the `Completed with gaps` pill and that no "all clear" text appears while a row is
+  unreadable.
+- Lock the vault (screen off, timeout and manual Lock) mid-scan on a large vault: no
+  report may be published, no partial result may remain on screen, and re-entering the
+  screen must start from `Not run`.
+- Cancel a running scan; verify the pill shows `Cancelled`, nothing is published and the
+  button becomes usable again.
+- Confirm logcat contains no password value, no 64-hex grouping digest and no decrypted
+  label; `adb shell dumpsys` screenshots and recents must not carry a value (FLAG_SECURE
+  on).
+- Verify RTL/Arabic label wrapping for strength levels and reasons at 360 dp width and
+  200% font scaling; verify TalkBack reads level and reasons without reading the secret.
+- Confirm the screen works with an empty vault (`not run`, no findings) and that opening
+  it while locked routes to the unlock flow instead of auditing.
+- Performance on a 1,000-record vault: progress must advance per record and the UI must
+  stay responsive; record elapsed time and any dropped frames.

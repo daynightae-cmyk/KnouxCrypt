@@ -20,6 +20,7 @@ import com.knoux.crypt.ui.KeyDerivationScreen
 import com.knoux.crypt.ui.KeyForgeScreen
 import com.knoux.crypt.ui.NotesScreen
 import com.knoux.crypt.ui.PackageInspectorScreen
+import com.knoux.crypt.ui.PasswordAuditScreen
 import com.knoux.crypt.ui.PasswordsScreen
 import com.knoux.crypt.ui.PrivacyScreen
 import com.knoux.crypt.ui.RecoveryScreen
@@ -174,6 +175,15 @@ fun KnouxNavHost(
                 container = container,
                 onBack = { nav.popBackStack() },
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+                onOpenAudit = { nav.navigate("password_audit") },
+            )
+        }
+        composable("password_audit") {
+            PasswordAuditScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+                onOpenPasswords = { nav.navigate("passwords") { launchSingleTop = true } },
             )
         }
         composable("key_forge") {
