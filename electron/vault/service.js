@@ -9,6 +9,7 @@
  */
 const crypto = require("crypto");
 const path = require("path");
+const fsp = require("fs/promises");
 
 const { VaultError, CODES } = require("./errors");
 const { VaultEngine } = require("./engine");
@@ -18,6 +19,7 @@ const { VaultBackup } = require("./backup");
 const { ShareService } = require("./share");
 const { Preferences } = require("./preferences");
 const totp = require("./totp");
+const inspect = require("./inspect");
 
 // Explicitly supported key algorithms. Anything absent is refused rather than
 // silently downgraded, so a caller cannot ask for a weak or unknown algorithm.
@@ -593,6 +595,90 @@ class VaultService {
     const snapshot = await this.preferences.update(patch);
     this._record("preferences-update", "Updated local privacy preferences");
     return snapshot;
+  }
+
+  // ---- tasks 17-20: inspection and authenticity ----------------------------
+
+  /**
+   * Hash Integrity (task 17). Hashing and comparison are read-only, so they
+   * work without an unlocked vault; the comparison is constant-time.
+   */
+  async hashCompute({ algorithm, text, inputPath } = {}) {
+    const result = await inspect.hash({ algorithm, text, inputPath });
+    this._record("hash-compute", `Hashed ${result.size} bytes with ${result.algorithm}`);
+    return result;
+  }
+
+  hashCompare(left, right) {
+    const verdict = inspect.compareDigests(left, right);
+    this._record("hash-compare", verdict.equal ? "Digests matched" : "Digests differed");
+    return verdict;
+  }
+
+  /** Signing requires an unlocked vault so key material never leaves it. */
+  async signatureSign(sessionId, { keyId, text, inputPath } = {}) {
+    const rawKey = this.manager.getDek(sessionId);
+    const { records } = await this.store.list("keys", rawKey);
+    const record = records.find((r) => r.id === keyId);
+    if (!record) throw new VaultError(CODES.NOT_FOUND, "No such key");
+    if (!record.privatePem) {
+      throw new VaultError(CODES.BAD_INPUT, "That key has no signing private material");
+    }
+    const result = await inspect.sign({
+      algorithm: record.algorithm,
+      privatePem: record.privatePem,
+      text,
+      inputPath,
+    });
+    this.manager.touch(sessionId);
+    this._record("signature-sign", `Signed ${result.size} bytes with a ${record.algorithm} key`);
+    return {
+      keyId: record.id,
+      fingerprint: record.fingerprint,
+      algorithm: result.algorithm,
+      digest: result.digest,
+      signature: result.signature,
+      size: result.size,
+    };
+  }
+
+  /**
+   * Verification is public-key only. It needs no vault session when the caller
+   * supplies the public key; using a stored key by id requires an unlocked
+   * session because that material lives in the encrypted store.
+   */
+  async signatureVerify(sessionId, { keyId, publicPem, algorithm, signature, text, inputPath } = {}) {
+    let pem = publicPem;
+    let alg = algorithm;
+    let fingerprint = null;
+    if (!pem && keyId) {
+      const rawKey = this.manager.getDek(sessionId);
+      const { records } = await this.store.list("keys", rawKey);
+      const record = records.find((r) => r.id === keyId);
+      if (!record) throw new VaultError(CODES.NOT_FOUND, "No such key");
+      pem = record.publicPem;
+      alg = record.algorithm;
+      fingerprint = record.fingerprint;
+      this.manager.touch(sessionId);
+    }
+    if (!pem) throw new VaultError(CODES.BAD_INPUT, "A public key is required to verify");
+    const result = await inspect.verify({ algorithm: alg, publicPem: pem, signature, text, inputPath });
+    this._record("signature-verify", result.valid ? "Signature verified" : "Signature did not verify");
+    return { ...result, fingerprint };
+  }
+
+  async certificateInspect({ pem, inputPath } = {}) {
+    let text = pem;
+    if (!text && inputPath) {
+      const bytes = await fsp.readFile(inputPath).catch((err) => {
+        if (err.code === "ENOENT") throw new VaultError(CODES.NOT_FOUND, "The certificate file was not found");
+        throw new VaultError(CODES.IO_FAILED, "The certificate file could not be read");
+      });
+      text = bytes.toString("utf8");
+    }
+    const result = inspect.inspectCertificate(text);
+    this._record("certificate-inspect", `Parsed a certificate for ${result.subject}`);
+    return result;
   }
 
   _emitProgress(operationId, direction, progress) {

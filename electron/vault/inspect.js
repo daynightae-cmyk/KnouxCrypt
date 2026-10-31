@@ -1,0 +1,205 @@
+"use strict";
+
+/**
+ * Inspection and authenticity primitives (tasks 17-20).
+ *
+ * These are thin, pure wrappers over Node's OpenSSL bindings so the service
+ * layer can expose real hashing, real detached signatures and real X.509
+ * parsing instead of placeholder text. Nothing here holds vault state.
+ */
+const crypto = require("crypto");
+const fsp = require("fs/promises");
+
+const { VaultError, CODES } = require("./errors");
+
+// Only these digests are offered. md5/sha1 are deliberately absent so a caller
+// cannot request a broken algorithm through the UI.
+const DIGESTS = Object.freeze({
+  "SHA-256": "sha256",
+  "SHA-384": "sha384",
+  "SHA-512": "sha512",
+  "SHA3-256": "sha3-256",
+  "SHA3-512": "sha3-512",
+});
+
+// Signing algorithms mapped to the Node/OpenSSL digest used for each key type.
+const SIGN_ALGORITHMS = Object.freeze({
+  ED25519: { type: "ed25519", digest: null },
+  "P-256": { type: "ec", digest: "sha256" },
+  "P-384": { type: "ec", digest: "sha384" },
+  RSA_2048: { type: "rsa", digest: "sha256" },
+  RSA_4096: { type: "rsa", digest: "sha512" },
+});
+
+function badInput(message) {
+  return new VaultError(CODES.BAD_INPUT, message);
+}
+
+function digestFor(name) {
+  const digest = DIGESTS[name];
+  if (!digest) throw badInput(`Unsupported digest "${name}"`);
+  return digest;
+}
+
+/** Hash a buffer or a file with a supported digest. */
+async function hash({ algorithm = "SHA-256", text, inputPath }) {
+  const digest = digestFor(algorithm);
+  if (typeof text === "string" && text.length > 0) {
+    return {
+      algorithm,
+      digest: crypto.createHash(digest).update(Buffer.from(text, "utf8")).digest("hex"),
+      size: Buffer.byteLength(text, "utf8"),
+    };
+  }
+  if (typeof inputPath === "string" && inputPath.length > 0) {
+    let bytes;
+    try {
+      bytes = await fsp.readFile(inputPath);
+    } catch (err) {
+      if (err.code === "ENOENT") throw new VaultError(CODES.NOT_FOUND, "The file was not found");
+      throw new VaultError(CODES.IO_FAILED, "The file could not be read");
+    }
+    return {
+      algorithm,
+      digest: crypto.createHash(digest).update(bytes).digest("hex"),
+      size: bytes.length,
+    };
+  }
+  throw badInput("Provide text or a file path to hash");
+}
+
+/**
+ * Constant-time comparison of two hex digests. Returns a verdict object rather
+ * than a bare boolean so the caller cannot accidentally treat a length mismatch
+ * as "not equal by timing" instead of "different input".
+ */
+function compareDigests(a, b) {
+  const left = String(a || "").trim().toLowerCase();
+  const right = String(b || "").trim().toLowerCase();
+  if (!/^[0-9a-f]+$/.test(left) || !/^[0-9a-f]+$/.test(right)) {
+    throw badInput("Both digests must be hexadecimal");
+  }
+  const lb = Buffer.from(left, "hex");
+  const rb = Buffer.from(right, "hex");
+  const equal = lb.length === rb.length && crypto.timingSafeEqual(lb, rb);
+  return { equal, left, right, lengthMatch: lb.length === rb.length };
+}
+
+/** Produce a detached signature over text or a file. */
+async function sign({ algorithm, privatePem, text, inputPath }) {
+  const spec = SIGN_ALGORITHMS[algorithm];
+  if (!spec) throw badInput(`Unsupported signing algorithm "${algorithm}"`);
+  if (typeof privatePem !== "string" || !privatePem.includes("PRIVATE KEY")) {
+    throw badInput("A private key in PEM form is required to sign");
+  }
+  const payload = await payloadBytes({ text, inputPath });
+  let signature;
+  try {
+    signature = crypto.sign(spec.digest, payload, crypto.createPrivateKey(privatePem));
+  } catch {
+    throw badInput("The private key does not match the chosen algorithm");
+  }
+  return {
+    algorithm,
+    digest: spec.digest || "none",
+    signature: signature.toString("base64"),
+    size: payload.length,
+  };
+}
+
+/** Verify a detached signature. Never throws for a bad signature; it reports. */
+async function verify({ algorithm, publicPem, signature, text, inputPath }) {
+  const spec = SIGN_ALGORITHMS[algorithm];
+  if (!spec) throw badInput(`Unsupported signing algorithm "${algorithm}"`);
+  if (typeof publicPem !== "string" || !publicPem.includes("PUBLIC KEY")) {
+    throw badInput("A public key in PEM form is required to verify");
+  }
+  let sigBytes;
+  try {
+    sigBytes = Buffer.from(String(signature || ""), "base64");
+  } catch {
+    throw badInput("The signature is not valid base64");
+  }
+  if (sigBytes.length === 0) throw badInput("A signature is required");
+  const payload = await payloadBytes({ text, inputPath });
+  let valid = false;
+  try {
+    valid = crypto.verify(spec.digest, payload, crypto.createPublicKey(publicPem), sigBytes);
+  } catch {
+    valid = false;
+  }
+  return { valid, algorithm, size: payload.length };
+}
+
+/** Parse an X.509 certificate and return the fields a user can act on. */
+function inspectCertificate(pem) {
+  const text = String(pem || "").trim();
+  if (!text.includes("BEGIN CERTIFICATE")) {
+    throw badInput("That does not look like a PEM certificate");
+  }
+  let cert;
+  try {
+    cert = new crypto.X509Certificate(text);
+  } catch {
+    throw new VaultError(CODES.INTEGRITY_FAILED, "The certificate could not be parsed");
+  }
+
+  const now = Date.now();
+  const notBefore = Date.parse(cert.validFrom);
+  const notAfter = Date.parse(cert.validTo);
+  const expired = Number.isFinite(notAfter) && notAfter < now;
+  const notYetValid = Number.isFinite(notBefore) && notBefore > now;
+
+  // A self-signed certificate verifies against its own key. This is reported
+  // as a fact, not as "trusted": KnouxCrypt has no CA store and never claims
+  // that a chain is trusted.
+  let selfSigned = false;
+  try {
+    selfSigned = cert.verify(cert.publicKey);
+  } catch {
+    selfSigned = false;
+  }
+
+  const san = cert.subjectAltName
+    ? cert.subjectAltName.split(",").map((part) => part.trim()).filter(Boolean)
+    : [];
+
+  return {
+    subject: cert.subject,
+    issuer: cert.issuer,
+    serialNumber: cert.serialNumber,
+    validFrom: cert.validFrom,
+    validTo: cert.validTo,
+    expired,
+    notYetValid,
+    selfSigned,
+    fingerprint256: cert.fingerprint256,
+    subjectAltName: san,
+    keyType: cert.publicKey.asymmetricKeyType || "unknown",
+    keySize: cert.publicKey.asymmetricKeyDetails?.modulusLength || null,
+    isCA: cert.ca === true,
+  };
+}
+
+async function payloadBytes({ text, inputPath }) {
+  if (typeof text === "string" && text.length > 0) return Buffer.from(text, "utf8");
+  if (typeof inputPath === "string" && inputPath.length > 0) {
+    try {
+      return await fsp.readFile(inputPath);
+    } catch (err) {
+      if (err.code === "ENOENT") throw new VaultError(CODES.NOT_FOUND, "The file was not found");
+      throw new VaultError(CODES.IO_FAILED, "The file could not be read");
+    }
+  }
+  throw badInput("Provide text or a file path");
+}
+
+module.exports = {
+  DIGESTS,
+  SIGN_ALGORITHMS,
+  hash,
+  compareDigests,
+  sign,
+  verify,
+  inspectCertificate,
+};

@@ -267,6 +267,30 @@ export function useVault() {
     (patch) => run((a) => a.preferencesUpdate(patch)),
     [run],
   );
+  const hashCompute = useCallback(
+    (request) => (api ? api.hashCompute(request) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const hashCompare = useCallback(
+    (left, right) => (api ? api.hashCompare(left, right) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const sign = useCallback(
+    (request) => run((a) => a.sign(session?.sessionId, request)),
+    [run, session],
+  );
+  const signVerify = useCallback(
+    (request) => (api ? api.signVerify(session?.sessionId, request) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api, session],
+  );
+  const certInspect = useCallback(
+    (pem) => (api ? api.certInspect(pem) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const certInspectFile = useCallback(
+    (inputPath) => (api ? api.certInspect({ inputPath }) : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
 
   const state = !available
     ? VAULT_STATE.UNAVAILABLE
@@ -325,6 +349,12 @@ export function useVault() {
     shareOpen,
     preferencesGet,
     preferencesUpdate,
+    hashCompute,
+    hashCompare,
+    sign,
+    signVerify,
+    certInspect,
+    certInspectFile,
   };
 }
 

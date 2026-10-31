@@ -49,6 +49,11 @@ const CHANNELS = Object.freeze({
   SHARE_OPEN: "vault:share-open",
   PREFS_GET: "vault:prefs-get",
   PREFS_UPDATE: "vault:prefs-update",
+  HASH_COMPUTE: "vault:hash-compute",
+  HASH_COMPARE: "vault:hash-compare",
+  SIGN: "vault:sign",
+  SIGN_VERIFY: "vault:sign-verify",
+  CERT_INSPECT: "vault:cert-inspect",
   PICK_INPUT: "vault:pick-input",
   PICK_OUTPUT: "vault:pick-output",
   PROGRESS: "vault:progress",
@@ -472,6 +477,66 @@ function registerVaultIpc(service, getWindow) {
       if ("lockOnSuspend" in p) patch.lockOnSuspend = p.lockOnSuspend;
       if ("clearClipboard" in p) patch.clearClipboard = p.clearClipboard;
       return service.preferencesUpdate(patch);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.HASH_COMPUTE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const request = {};
+      if (typeof p.algorithm === "string") request.algorithm = p.algorithm;
+      if (typeof p.text === "string") request.text = p.text.slice(0, 4 * 1024 * 1024);
+      if (typeof p.inputPath === "string") request.inputPath = p.inputPath;
+      return service.hashCompute(request);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.HASH_COMPARE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.hashCompare(requireString(p.left, "left", 256), requireString(p.right, "right", 256));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.SIGN,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const request = { keyId: requireString(p.keyId, "keyId", 128) };
+      if (typeof p.text === "string") request.text = p.text.slice(0, 4 * 1024 * 1024);
+      if (typeof p.inputPath === "string") request.inputPath = p.inputPath;
+      return service.signatureSign(requireString(p.sessionId, "sessionId"), request);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.SIGN_VERIFY,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const request = {};
+      if (typeof p.publicPem === "string") request.publicPem = p.publicPem.slice(0, 16384);
+      if (typeof p.algorithm === "string") request.algorithm = p.algorithm;
+      if (typeof p.signature === "string") request.signature = p.signature.slice(0, 16384);
+      if (typeof p.text === "string") request.text = p.text.slice(0, 4 * 1024 * 1024);
+      if (typeof p.inputPath === "string") request.inputPath = p.inputPath;
+      if (typeof p.keyId === "string") request.keyId = p.keyId;
+      // Verification needs a session only when it resolves a stored key.
+      const sessionId = p.keyId ? requireString(p.sessionId, "sessionId") : (typeof p.sessionId === "string" ? p.sessionId : "");
+      return service.signatureVerify(sessionId, request);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.CERT_INSPECT,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const request = {};
+      if (typeof p.pem === "string") request.pem = p.pem.slice(0, 128 * 1024);
+      if (typeof p.inputPath === "string") request.inputPath = p.inputPath;
+      if (!request.pem && !request.inputPath) throw new VaultError(CODES.BAD_INPUT, "A PEM certificate or file path is required");
+      return service.certificateInspect(request);
     }),
   );
 
