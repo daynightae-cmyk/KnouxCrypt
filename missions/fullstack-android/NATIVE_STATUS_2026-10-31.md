@@ -396,3 +396,22 @@ Catalog accounting: 34 destinations total = **20 IMPLEMENTED**, **0 BLOCKED**, *
 - 21 new JVM tests cover guest reset/re-enrollment, stale and locked capabilities, in-flight revocation, invalidation, corrupt/substituted tokens, rotation atomicity and format compatibility. Biometric/Keystore behavior remains DEVICE_UNVERIFIED.
 
 The owner-requested consolidation merge to `main` was performed at `4bdb561` (normal merge, no force, no history rewrite). No release, signing, Play upload, production or device-verified security claim was made.
+
+## Secure Share — 2026-11-01 (TASK 16)
+
+- Recipient encryption uses X25519 key agreement + HKDF-SHA-256 from the Bouncy Castle build already
+  shipped for Argon2id; an EC/RSA **signing** key is refused by name, and `knouxkey:v1` QRs cannot be
+  imported as recipients. KSR1 is a versioned, authenticated, multi-recipient container with an
+  encrypted metadata block and per-chunk AAD binding the full header.
+- The identity key is a software X25519 pair stored as an encrypted vault record and labelled
+  `vault-software`, because the tested handset's Keystore offers no asymmetric algorithm.
+- Sealing is impossible until the recipient's full fingerprint has been typed back and matched; the
+  sender is added as an ordinary extra recipient so their own copy reopens.
+- Only KSR1 ciphertext can leave: the Sharesheet path re-reads the file header and refuses anything
+  that is not `KSR1`, through a FileProvider scoped to `cache/shares/` alone. Cancel, lock, failure
+  and screen destruction delete the temporary package/plaintext files.
+- 35 new JVM tests (247 total, 0 failures) including RFC 7748 and RFC 5869 known answers; lint 0
+  errors; APK 19,930,079 bytes `c3d05d88…a84d`, reproduced byte-for-byte by a second clean build.
+- `ShareDeviceTest` is written but **NOT RUN** (no handset attached in this pass). Cross-device
+  end-to-end sharing, the screen layout, RTL, camera import and the Sharesheet handoff remain
+  DEVICE_UNVERIFIED, and KSR1 is AUDIT_PENDING. See `16_SECURE_SHARE/EVIDENCE.md`.

@@ -9,6 +9,7 @@ import com.knoux.crypt.data.RoomTransactionRunner
 import com.knoux.crypt.data.SecretRepository
 import com.knoux.crypt.data.SessionManager
 import com.knoux.crypt.data.SettingsRepository
+import com.knoux.crypt.data.ShareService
 import com.knoux.crypt.data.SigningService
 import com.knoux.crypt.data.UnlockManager
 import com.knoux.crypt.data.UnlockManagers
@@ -39,6 +40,7 @@ class AppContainer(context: Context) {
         session.addOnLockListener { privacy.clearNow() }
     }
     val signing = SigningService(keystore, secrets, session)
+    val share = ShareService(session, secrets)
     val vaultFiles = VaultFileCipher(session)
     val passwordAudit = PasswordAuditService(session, database.secrets(), secrets)
     val backups = VaultBackupManager(database.secrets(), session, vaultKeys)

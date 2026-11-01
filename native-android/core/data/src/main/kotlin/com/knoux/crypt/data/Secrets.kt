@@ -14,6 +14,9 @@ object SecretKinds {
     const val SIGNATURE = "signature"
     const val SIGNING_KEY = "signing_key"
     const val PUBLIC_KEY = "public_key"
+    const val SHARE_IDENTITY = "share_identity"
+    const val SHARE_RECIPIENT = "share_recipient"
+    const val SHARE_RECEIPT = "share_receipt"
 }
 
 @Serializable
@@ -64,6 +67,70 @@ data class PublicKeyPayload(
     val fingerprint: String,
     val origin: String,
     val createdAt: Long,
+)
+
+/**
+ * A recipient this device may seal a Secure Share package to (TASK 16).
+ *
+ * [confirmedFingerprint] is only ever written after the person using the app has
+ * compared the full fingerprint against what the other side read out, so an
+ * unverified key stays visibly unverified in the UI and cannot be sealed to.
+ */
+@Serializable
+data class ShareRecipientPayload(
+    val label: String,
+    val spkiBase64: String,
+    val fingerprint: String,
+    val keyIdHex: String,
+    val algorithm: String,
+    val createdAt: Long,
+    val confirmedFingerprint: String = "",
+    val confirmedAt: Long = 0L,
+)
+
+/**
+ * This installation's X25519 sharing identity. The private half lives here and
+ * nowhere else, inside a vault record encrypted by the device key, and
+ * [origin] says honestly that it is a software key rather than Keystore-backed.
+ */
+@Serializable
+data class ShareIdentityPayload(
+    val spkiBase64: String,
+    val privatePkcs8Base64: String,
+    val fingerprint: String,
+    val origin: String,
+    val createdAt: Long,
+)
+
+/** The encrypted metadata block carried inside a KSR1 package. */
+@Serializable
+data class ShareMetadataPayload(
+    val fileName: String,
+    val mimeType: String,
+    val senderLabel: String,
+    val senderFingerprint: String,
+    val note: String = "",
+)
+
+/** What this device sealed or opened. No plaintext, no content key, no file body. */
+@Serializable
+data class ShareReceiptPayload(
+    val packageIdHex: String,
+    val displayName: String,
+    val plaintextLength: Long,
+    val createdAt: Long,
+    val expiresAt: Long,
+    val digestHex: String,
+    val direction: String,
+    val delivery: String,
+    val recipients: List<ShareReceiptRecipient> = emptyList(),
+)
+
+@Serializable
+data class ShareReceiptRecipient(
+    val label: String,
+    val fingerprint: String,
+    val verified: Boolean,
 )
 
 @Serializable
@@ -152,6 +219,30 @@ object SecretsJson {
 
     fun decodePublicKey(value: String): PublicKeyPayload? =
         runCatching { json.decodeFromString(PublicKeyPayload.serializer(), value) }.getOrNull()
+
+    fun encodeShareRecipient(payload: ShareRecipientPayload): String =
+        json.encodeToString(ShareRecipientPayload.serializer(), payload)
+
+    fun decodeShareRecipient(value: String): ShareRecipientPayload? =
+        runCatching { json.decodeFromString(ShareRecipientPayload.serializer(), value) }.getOrNull()
+
+    fun encodeShareIdentity(payload: ShareIdentityPayload): String =
+        json.encodeToString(ShareIdentityPayload.serializer(), payload)
+
+    fun decodeShareIdentity(value: String): ShareIdentityPayload? =
+        runCatching { json.decodeFromString(ShareIdentityPayload.serializer(), value) }.getOrNull()
+
+    fun encodeShareMetadata(payload: ShareMetadataPayload): String =
+        json.encodeToString(ShareMetadataPayload.serializer(), payload)
+
+    fun decodeShareMetadata(value: String): ShareMetadataPayload? =
+        runCatching { json.decodeFromString(ShareMetadataPayload.serializer(), value) }.getOrNull()
+
+    fun encodeShareReceipt(payload: ShareReceiptPayload): String =
+        json.encodeToString(ShareReceiptPayload.serializer(), payload)
+
+    fun decodeShareReceipt(value: String): ShareReceiptPayload? =
+        runCatching { json.decodeFromString(ShareReceiptPayload.serializer(), value) }.getOrNull()
 
     fun encodeSigningKey(payload: SigningKeyPayload): String =
         json.encodeToString(SigningKeyPayload.serializer(), payload)

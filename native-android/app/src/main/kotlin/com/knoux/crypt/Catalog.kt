@@ -42,7 +42,7 @@ object Catalog {
 
     val extras: List<ServiceDef> = listOf(
         ServiceDef("SIGNATURE", "Signature Verification", "التحقق من التوقيع", "Verify signatures with installed keys", "تحقق من التوقيعات بالمفاتيح المثبتة", ServiceArt.KEY, "signature", ServiceStatus.IMPLEMENTED, true),
-        ServiceDef("SECURE_SHARE", "Secure Share", "مشاركة آمنة", "Share encrypted packages safely", "شارك حزمًا مشفرة بأمان", ServiceArt.KEY, null, ServiceStatus.DESIGN_ONLY, false),
+        ServiceDef("SECURE_SHARE", "Secure Share", "مشاركة آمنة", "Share encrypted packages safely", "شارك حزمًا مشفرة بأمان", ServiceArt.KEY, "secure_share", ServiceStatus.IMPLEMENTED, true),
         ServiceDef("INTEGRITY", "Hash & Integrity", "التجزئة والسلامة", "Compute SHA-256 fingerprints", "احسب بصمات SHA-256", ServiceArt.ENCRYPT, "hash", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("TEXT_CIPHER", "Text Cipher", "تشفير النصوص", "Seal text with a passphrase", "شفّر النص بعبارة مرور", ServiceArt.ENCRYPT, "text_cipher", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("CERTIFICATE_INSPECTOR", "Certificate Inspector", "فاحص الشهادات", "Inspect X.509 certificate fields", "افحص حقول شهادات X.509", ServiceArt.KEY, null, ServiceStatus.DESIGN_ONLY, false),

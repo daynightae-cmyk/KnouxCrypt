@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Only sealed share packages leave the app through this provider, and only from
+  this one cache subdirectory. No vault database, no preference file and no
+  decrypted user document is ever addressable here.
+-->
+<paths>
+    <cache-path name="knoux_shares" path="shares/" />
+</paths>

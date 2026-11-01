@@ -32,6 +32,7 @@ import com.knoux.crypt.ui.PublicKeyQrScreen
 import com.knoux.crypt.ui.RecoveryScreen
 import com.knoux.crypt.ui.SecureClipboardScreen
 import com.knoux.crypt.ui.SecureRandomScreen
+import com.knoux.crypt.ui.SecureShareScreen
 import com.knoux.crypt.ui.SplashScreen
 import com.knoux.crypt.ui.TextCipherScreen
 import com.knoux.crypt.ui.ToolPlaceholderScreen
@@ -166,6 +167,13 @@ fun KnouxNavHost(
         }
         composable("signature") {
             DigitalSignatureScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
+        }
+        composable("secure_share") {
+            SecureShareScreen(
                 container = container,
                 onBack = { nav.popBackStack() },
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
