@@ -146,12 +146,55 @@ requires feeding hostile glob patterns to a build tool running on the developer'
 own machine; it does not affect a user's vault, and it is not present in the
 shipped code.
 
-## 6. What has not been verified
+## 6. Cross-platform reach of this change
+
+`acl.js` and the edited tests are shared with Linux and macOS, but **everything
+in this document was executed on Windows**. There is no CI coverage for
+non-Dependabot PRs: both `Desktop` and `Android JVM` jobs in
+`.github/workflows/dependabot-validation.yml` are gated on
+`github.event.pull_request.user.login == 'dependabot[bot]'`, so they report
+"skipping" here and would not have run the suite on Linux for this change even
+before it. No WSL distribution is installed on this host, and installing one was
+out of scope.
+
+Two POSIX-unsound assertions were found by reading the POSIX branches rather than
+running them, and corrected before merge:
+
+- **"a protected directory confines files created inside it" assumed NTFS
+  inheritance.** On POSIX a directory mode does not propagate to children — a new
+  file takes `0666 & ~umask`, typically `0644` — so asserting the child's mode
+  after `protectDirectory` would fail on Linux. POSIX confinement is the
+  directory denying group/world *traversal*, plus the explicit per-file `0600`,
+  and the test now asserts that.
+- **"a denied store root is refused" assumed a denial survives protection.** On
+  POSIX `protectDirectory` chmods the app's own root back to `0700`, overwriting
+  the `0500` the test applied. That is deliberate product behaviour — a store root
+  that cannot be written is a vault that can never be saved again — so the POSIX
+  branch now asserts the write succeeds *and* the result is owner-confined, while
+  the Windows branch keeps the original `PERMISSION_DENIED` expectation, where a
+  `DENY` ACE genuinely survives because `/grant:r` replaces allow entries only
+  and never touches an explicit deny.
+
+As a partial substitute for a real POSIX run, the non-Windows branches were
+exercised with `process.platform` spoofed to `linux` before `acl.js` loads: 16/16
+branches execute and return well-formed verdicts (`protectFile` takes the chmod
+path, `describeAccess` reports `posix-mode` with every field present,
+`enumerateAcl` returns null, `replaceDacl` refuses, `harden` reports
+`applied-unverified`, `denyChildCreation` uses the mode mechanism). That proves
+the code paths run; it cannot prove POSIX *mode outcomes*, because Windows
+synthesises `stat().mode` from the read-only attribute. Outcome-level POSIX
+behaviour remains unverified on a real filesystem until a Linux run happens, and
+the first Linux CI run of this suite is the check that would confirm it.
+
+## 7. What has not been verified
 
 Stated plainly, because these are the things a release decision needs:
 
 - **No independent security review.** Everything here is self-testing by the
   same change that introduced it.
+- **No CI executed any of this.** Both Actions jobs are Dependabot-only, so
+  `npm run check` ran solely on this Windows host. A second machine, and a Linux
+  run for the shared POSIX branches, are both still outstanding.
 - **Confidentiality against a second local user is argued from the DACL, not
   demonstrated from a second account.** The machine under test has one
   interactive user, so no ACE grants `Everyone`, `Authenticated Users`, `Users`,

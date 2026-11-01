@@ -241,6 +241,19 @@ async function protectDirectoryOnce(dirPath) {
 /**
  * Restrict a directory and everything inside it.
  *
+ * Platform asymmetry worth knowing: on POSIX this chmod is the whole operation,
+ * and it therefore *overwrites* a restrictive mode someone else put on the
+ * directory — a store root frozen at 0500 comes back to 0700. That is intended
+ * for the application's own directories, because a vault root that cannot be
+ * written is a vault that can never be saved again, and 0700 still denies group
+ * and world. It is not intended for user-chosen output directories, which this
+ * module never touches; those refusals surface as PERMISSION_DENIED from the
+ * engine's write probe instead.
+ *
+ * On Windows the same reasoning does not apply, because a DENY ACE is a separate
+ * trustee entry that `/grant:r` does not replace — an explicit refusal survives
+ * protection and is reported as a refusal.
+ *
  * The default is *not* to walk: measured on this host, Windows propagates a
  * parent DACL change into the inherited ACEs of children that already exist, so
  * one `/inheritance:r /grant:r …(OI)(CI)F` call on a vault root removed
