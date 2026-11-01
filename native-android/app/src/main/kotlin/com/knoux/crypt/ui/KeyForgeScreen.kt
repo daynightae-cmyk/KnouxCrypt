@@ -40,6 +40,7 @@ fun KeyForgeScreen(
     isUnlocked: Boolean,
     onSensitiveCopy: (String) -> Unit,
     onOpenDetails: () -> Unit = {},
+    onOpenStudio: () -> Unit = {},
 ) {
     if (!isUnlocked) {
         LockedScreen(tr("Key Forge", "مصنع المفاتيح"), onBack, onNeedUnlock)
@@ -94,6 +95,8 @@ fun KeyForgeScreen(
             KnouxPrimaryButton(tr("Generate 256-bit key", "توليد مفتاح 256 بت"), ::generate)
             Spacer(Modifier.height(8.dp))
             KnouxGhostButton(tr("Key details of the vault key", "تفاصيل مفتاح الخزنة"), onOpenDetails)
+            Spacer(Modifier.height(8.dp))
+            KnouxGhostButton(tr("Signature studio", "استوديو التوقيع"), onOpenStudio)
             if (keyHex.isNotBlank()) {
                 Spacer(Modifier.height(8.dp))
                 Row {

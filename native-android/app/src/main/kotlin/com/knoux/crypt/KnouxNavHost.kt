@@ -33,6 +33,7 @@ import com.knoux.crypt.ui.RecoveryScreen
 import com.knoux.crypt.ui.SecureClipboardScreen
 import com.knoux.crypt.ui.SecureRandomScreen
 import com.knoux.crypt.ui.SecureShareScreen
+import com.knoux.crypt.ui.SignatureStudioScreen
 import com.knoux.crypt.ui.SplashScreen
 import com.knoux.crypt.ui.TextCipherScreen
 import com.knoux.crypt.ui.ToolPlaceholderScreen
@@ -179,6 +180,13 @@ fun KnouxNavHost(
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
             )
         }
+        composable("signature_studio") {
+            SignatureStudioScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
+        }
         composable("clipboard_guard") {
             ClipboardGuardScreen(
                 container = container,
@@ -241,6 +249,7 @@ fun KnouxNavHost(
                 isUnlocked = container.session.isUnlocked,
                 onSensitiveCopy = { value -> scope.launch { container.clipboard.copySensitive(value) } },
                 onOpenDetails = { nav.navigate("key_details") },
+                onOpenStudio = { nav.navigate("signature_studio") },
             )
         }
         composable("key_details") {

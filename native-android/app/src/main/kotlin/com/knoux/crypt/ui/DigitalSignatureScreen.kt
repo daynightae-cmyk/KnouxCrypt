@@ -401,7 +401,16 @@ fun DigitalSignatureScreen(
         }
 
         GlassCard(Modifier.fillMaxWidth()) {
-            SectionLabel(tr("Verify an external signature", "التحقق من توقيع خارجي"))
+            SectionLabel(tr("Verify a signature made here", "تحقق من توقيع أُنشئ هنا"))
+            Spacer(Modifier.height(6.dp))
+            Text(
+                tr(
+                    "KNOUX signs the SHA-256 digest of the content, so a standard signature over the raw text — for example one produced by an external signing tool — will not verify in this box. Paste the key, signature and text that this app produced.",
+                    "يوقّع KNOUX البصمة SHA-256 للمحتوى، لذلك لا تُقبل هنا التواقيع القياسية المُنشأة على النص الخام بأدوات خارجية. الصق المفتاح والتوقيع والنص الذي أنتجه هذا التطبيق.",
+                ),
+                style = MaterialTheme.typography.labelSmall,
+                color = KnouxColors.Faint,
+            )
             Spacer(Modifier.height(6.dp))
             KnouxTextField(externalKey, { externalKey = it }, tr("Public key (base64 SPKI)", "المفتاح العام (base64 SPKI)"))
             Spacer(Modifier.height(6.dp))
@@ -410,7 +419,7 @@ fun DigitalSignatureScreen(
             KnouxTextField(externalContent, { externalContent = it }, tr("Signed text", "النص الموقَّع"), minLines = 3)
             Spacer(Modifier.height(8.dp))
             KnouxPrimaryButton(
-                text = tr("Verify external signature", "تحقق من توقيع خارجي"),
+                text = tr("Verify this signature", "تحقق من هذا التوقيع"),
                 onClick = { viewModel.verifyExternal(externalKey, externalSignature, externalContent) },
                 enabled = externalKey.isNotBlank() && externalSignature.isNotBlank() && externalContent.isNotBlank(),
             )

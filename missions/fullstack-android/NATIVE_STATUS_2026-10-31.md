@@ -415,3 +415,19 @@ The owner-requested consolidation merge to `main` was performed at `4bdb561` (no
 - `ShareDeviceTest` is written but **NOT RUN** (no handset attached in this pass). Cross-device
   end-to-end sharing, the screen layout, RTL, camera import and the Sharesheet handoff remain
   DEVICE_UNVERIFIED, and KSR1 is AUDIT_PENDING. See `16_SECURE_SHARE/EVIDENCE.md`.
+
+## Signature Studio — 2026-11-01 (TASK 38)
+
+- Built on the TASK 19 engine rather than a second one: `SigningService` still chooses Keystore vs
+  the encrypted software key and reports which, `DigitalSignatureService` still does the crypto.
+- KSG1 (detached) and KSA1 (attached) are versioned packages with strict, allocation-safe parsing.
+  A JVM test caught the first draft signing only the content, which left the metadata block — file
+  name, recorded size, recorded digest — rewritable under a still-valid signature; digest mode 2 now
+  binds `SHA-256(content) ‖ SHA-256(metadata)`, and mode 1 stays readable instead of reinterpreted.
+- Reports keep two answers separate: the signature is valid for these bytes, and the signer key is or
+  is not one this vault stores. Valid-but-unknown is shown as exactly that.
+- TASK 19's "verify an external signature" panel was renamed and annotated: KNOUX signs the SHA-256
+  digest of the content, so standard third-party signatures over raw text do not verify there.
+- 18 new JVM tests (265 total, 0 failures); lint 0 errors; APK 19,995,615 bytes
+  `687ed540…fca9`, reproduced byte-for-byte. `SignatureStudioDeviceTest` is written but NOT RUN —
+  no handset was attached, so the studio stays DEVICE_UNVERIFIED and AUDIT_PENDING.

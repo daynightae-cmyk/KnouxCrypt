@@ -59,6 +59,21 @@ data class SignaturePayload(
     val createdAt: Long,
 )
 
+/**
+ * The metadata block inside a KSG1/KSA1 signature package (TASK 38). It describes
+ * what was signed; the signed bytes themselves are never stored here.
+ */
+@Serializable
+data class SignaturePackageMeta(
+    val label: String,
+    val fileName: String,
+    val fileSize: Long,
+    val digestHex: String,
+    val signerFingerprint: String,
+    val keyOrigin: String,
+    val createdAt: Long,
+)
+
 /** A public key kept for fingerprint comparison and QR sharing. */
 @Serializable
 data class PublicKeyPayload(
@@ -213,6 +228,12 @@ object SecretsJson {
 
     fun decodeSignature(value: String): SignaturePayload? =
         runCatching { json.decodeFromString(SignaturePayload.serializer(), value) }.getOrNull()
+
+    fun encodeSignaturePackageMeta(payload: SignaturePackageMeta): String =
+        json.encodeToString(SignaturePackageMeta.serializer(), payload)
+
+    fun decodeSignaturePackageMeta(value: String): SignaturePackageMeta? =
+        runCatching { json.decodeFromString(SignaturePackageMeta.serializer(), value) }.getOrNull()
 
     fun encodePublicKey(payload: PublicKeyPayload): String =
         json.encodeToString(PublicKeyPayload.serializer(), payload)
