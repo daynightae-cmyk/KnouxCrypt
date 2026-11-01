@@ -7,6 +7,13 @@ object VaultKeyAliases {
     const val MASTER = "knoux.master.v2"
     const val GATE_PRIMARY = "knoux.unlock.v2"
     const val GATE_ALTERNATE = "knoux.unlock.v2.b"
+
+    /**
+     * Signing key pair for TASK 19. It is independent of the vault aliases: it
+     * never encrypts records and never takes part in rotation, and like every
+     * other alias it is never renamed or regenerated.
+     */
+    const val SIGNING = "knoux.signature.v1"
 }
 
 /**

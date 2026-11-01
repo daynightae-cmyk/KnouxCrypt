@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="com.knoux.crypt.data.AuthImportRoomTest" tests="13" failures="0" errors="0" skipped="0" time="1.703" timestamp="2026-11-01T02:51:06" hostname="localhost">
+  <properties>
+    <property name="device" value="itel S686LN - 15" />
+    <property name="flavor" value="" />
+    <property name="project" value=":core:data" />
+  </properties>
+  <testcase name="importedBatchIsAtomicEncryptedAndReadable" classname="com.knoux.crypt.data.AuthImportRoomTest" time="0.01" />
+  <testcase name="masterKeyMetadataComesFromTheRealKeystore" classname="com.knoux.crypt.data.KeyDetailsDeviceTest" time="0.0" />
+  <testcase name="recordEncryptionUsesAProviderChosenIvWithTheRealRoot" classname="com.knoux.crypt.data.KeystoreDeviceTest" time="0.0" />
+  <testcase name="gateKeyIsUserAuthenticationBound" classname="com.knoux.crypt.data.KeystoreDeviceTest" time="0.0" />
+  <testcase name="knf2DeviceFileUsesWrappedPerFileDekWithTheRealRoot" classname="com.knoux.crypt.data.KeystoreDeviceTest" time="0.001" />
+  <testcase name="dataKeyWrappingRoundTripsUnderTheRealKeystoreRoot" classname="com.knoux.crypt.data.KeystoreDeviceTest" time="0.0" />
+  <testcase name="masterKeyRoundTripsAnAuthenticatedRecord" classname="com.knoux.crypt.data.KeystoreDeviceTest" time="0.001" />
+  <testcase name="auditScansRealRoomRowsAndDetectsReuseWeaknessAndGaps" classname="com.knoux.crypt.data.PasswordAuditRoomTest" time="0.147" />
+  <testcase name="generatorOutputIsStorableAndScoresStrong" classname="com.knoux.crypt.data.PasswordDetailRoomTest" time="0.027" />
+  <testcase name="detailRoundTripKeepsHistoryAndNeverStoresPlaintext" classname="com.knoux.crypt.data.PasswordDetailRoomTest" time="0.082" />
+  <testcase name="lockedExistingVaultRefusesANewEnrollmentGate" classname="com.knoux.crypt.data.PasswordDetailRoomTest" time="0.024" />
+  <testcase name="signingWorksOnThisDeviceAndThePrivateKeyStaysEncrypted" classname="com.knoux.crypt.data.SigningDeviceTest" time="0.091" />
+  <testcase name="migration1To2PreservesRowsAndDefaultsKeyVersionZero" classname="com.knoux.crypt.data.VaultDatabaseMigrationTest" time="0.087" />
+</testsuite>

@@ -10,23 +10,34 @@ import androidx.navigation.navArgument
 import com.knoux.crypt.design.KnouxTab
 import com.knoux.crypt.ui.AccessScreen
 import com.knoux.crypt.ui.AccountScreen
+import com.knoux.crypt.ui.AuthImportScreen
 import com.knoux.crypt.ui.AuthenticatorScreen
+import com.knoux.crypt.ui.CertificateInspectorScreen
 import com.knoux.crypt.ui.ClipboardGuardScreen
+import com.knoux.crypt.ui.DigitalSignatureScreen
+import com.knoux.crypt.ui.EncryptedArchiveScreen
 import com.knoux.crypt.ui.FileCipherScreen
 import com.knoux.crypt.ui.HashIntegrityScreen
 import com.knoux.crypt.ui.HmacLabScreen
 import com.knoux.crypt.ui.HomeScreen
 import com.knoux.crypt.ui.KeyDerivationScreen
+import com.knoux.crypt.ui.KeyDetailsScreen
 import com.knoux.crypt.ui.KeyForgeScreen
+import com.knoux.crypt.ui.LocalTransferScreen
+import com.knoux.crypt.ui.MetadataCleanerScreen
 import com.knoux.crypt.ui.NotesScreen
 import com.knoux.crypt.ui.PackageInspectorScreen
+import com.knoux.crypt.ui.FingerprintVerifyScreen
 import com.knoux.crypt.ui.PasswordAuditScreen
 import com.knoux.crypt.ui.PasswordDetailScreen
 import com.knoux.crypt.ui.PasswordsScreen
 import com.knoux.crypt.ui.PrivacyScreen
+import com.knoux.crypt.ui.PublicKeyQrScreen
 import com.knoux.crypt.ui.RecoveryScreen
 import com.knoux.crypt.ui.SecureClipboardScreen
 import com.knoux.crypt.ui.SecureRandomScreen
+import com.knoux.crypt.ui.SecureShareScreen
+import com.knoux.crypt.ui.SignatureStudioScreen
 import com.knoux.crypt.ui.SplashScreen
 import com.knoux.crypt.ui.TextCipherScreen
 import com.knoux.crypt.ui.ToolPlaceholderScreen
@@ -145,6 +156,68 @@ fun KnouxNavHost(
         composable("package_inspector") {
             PackageInspectorScreen(onBack = { nav.popBackStack() })
         }
+        composable("fingerprint_verify") {
+            FingerprintVerifyScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
+        }
+        composable("public_key_qr") {
+            PublicKeyQrScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
+        }
+        composable("signature") {
+            DigitalSignatureScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
+        }
+        composable("secure_share") {
+            SecureShareScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
+        }
+        composable("signature_studio") {
+            SignatureStudioScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
+        }
+        composable("certificate_inspector") {
+            CertificateInspectorScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
+        }
+        composable("archive") {
+            EncryptedArchiveScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
+        }
+        composable("local_transfer") {
+            LocalTransferScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
+        }
+        composable("metadata_cleaner") {
+            MetadataCleanerScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+            )
+        }
         composable("clipboard_guard") {
             ClipboardGuardScreen(
                 container = container,
@@ -206,6 +279,17 @@ fun KnouxNavHost(
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
                 isUnlocked = container.session.isUnlocked,
                 onSensitiveCopy = { value -> scope.launch { container.clipboard.copySensitive(value) } },
+                onOpenDetails = { nav.navigate("key_details") },
+                onOpenStudio = { nav.navigate("signature_studio") },
+            )
+        }
+        composable("key_details") {
+            KeyDetailsScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+                onOpenForge = { nav.navigate("key_forge") },
+                onOpenRotation = { nav.navigate("key_rotation") },
             )
         }
         composable("key_derivation") {
@@ -216,6 +300,14 @@ fun KnouxNavHost(
         }
         composable("authenticator") {
             AuthenticatorScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+                onOpenImport = { nav.navigate("auth_import") },
+            )
+        }
+        composable("auth_import") {
+            AuthImportScreen(
                 container = container,
                 onBack = { nav.popBackStack() },
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },

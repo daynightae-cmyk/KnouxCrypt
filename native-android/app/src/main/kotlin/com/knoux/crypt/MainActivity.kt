@@ -54,6 +54,7 @@ class MainActivity : FragmentActivity() {
             container.settings.settings.collect { settings ->
                 privacySettings = settings
                 applyScreenCapturePolicy(settings.blockScreenshots)
+                container.audio.updateSettings(settings)
             }
         }
         accessViewModel = ViewModelProvider(
@@ -77,6 +78,7 @@ class MainActivity : FragmentActivity() {
 
     override fun onStart() {
         super.onStart()
+        container.audio.onForeground()
         backgroundLockJob?.cancel()
         backgroundLockJob = null
         if (!screenOffRegistered) {
@@ -92,6 +94,7 @@ class MainActivity : FragmentActivity() {
 
     override fun onStop() {
         super.onStop()
+        container.audio.onBackground()
         if (screenOffRegistered) {
             runCatching { unregisterReceiver(screenOffReceiver) }
             screenOffRegistered = false
@@ -104,6 +107,11 @@ class MainActivity : FragmentActivity() {
             if (timeoutSeconds > 0) delay(timeoutSeconds * 1000L)
             container.session.lock()
         }
+    }
+
+    override fun onDestroy() {
+        container.audio.release()
+        super.onDestroy()
     }
 
     private fun applyScreenCapturePolicy(block: Boolean) {
@@ -156,14 +164,17 @@ class MainActivity : FragmentActivity() {
                                 GateAction.SETUP -> {
                                     container.unlockManager.completeSetup(cipherUsed)
                                     accessViewModel.onUnlocked()
+                                    container.audio.play(UiSound.UNLOCK)
                                 }
                                 GateAction.UNLOCK -> {
                                     container.unlockManager.completeUnlock(cipherUsed)
                                     accessViewModel.onUnlocked()
+                                    container.audio.play(UiSound.UNLOCK)
                                 }
                                 GateAction.ROTATE -> {
                                     container.unlockManager.completeGateRotation(cipherUsed)
                                     accessViewModel.onGateRotated()
+                                    container.audio.play(UiSound.CONFIRM)
                                 }
                                 GateAction.ROTATE_KEYS -> {
                                     val authorization =

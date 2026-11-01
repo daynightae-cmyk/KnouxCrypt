@@ -1,14 +1,20 @@
 package com.knoux.crypt
 
 import android.content.Context
+import com.knoux.crypt.data.ArchiveService
+import com.knoux.crypt.data.CertificateVaultService
 import com.knoux.crypt.data.DataStoreVaultKeyRegistry
 import com.knoux.crypt.data.DatabaseProvider
 import com.knoux.crypt.data.KeystoreManager
+import com.knoux.crypt.data.MetadataCleaner
 import com.knoux.crypt.data.PasswordAuditService
 import com.knoux.crypt.data.RoomTransactionRunner
 import com.knoux.crypt.data.SecretRepository
 import com.knoux.crypt.data.SessionManager
 import com.knoux.crypt.data.SettingsRepository
+import com.knoux.crypt.data.ShareService
+import com.knoux.crypt.data.SignatureStudio
+import com.knoux.crypt.data.SigningService
 import com.knoux.crypt.data.UnlockManager
 import com.knoux.crypt.data.UnlockManagers
 import com.knoux.crypt.data.VaultBackupManager
@@ -24,9 +30,11 @@ class AppContainer(context: Context) {
     private val appContext = context.applicationContext
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val database = DatabaseProvider.create(appContext)
-    private val keystore = KeystoreManager()
+    val keystore = KeystoreManager()
 
     val session = SessionManager(keystore)
+    /** Application-scoped so screens can preview sounds; MainActivity drives lifecycle. */
+    val audio = AudioController(appContext, appScope)
     val unlockManager = UnlockManagers.create(appContext, keystore, session)
     private val keyRegistry = DataStoreVaultKeyRegistry(appContext)
     val vaultKeys = VaultKeyManager(session, keyRegistry)
@@ -35,7 +43,13 @@ class AppContainer(context: Context) {
     val clipboard = ClipboardPrivacy(appContext, settings, appScope).also { privacy ->
         session.addOnLockListener { privacy.clearNow() }
     }
+    val signing = SigningService(keystore, secrets, session)
+    val signatureStudio = SignatureStudio(signing, secrets, session)
+    val share = ShareService(session, secrets)
+    val certificates = CertificateVaultService(session, secrets)
     val vaultFiles = VaultFileCipher(session)
+    val archives = ArchiveService(session, vaultFiles, secrets) { appContext.cacheDir }
+    val metadataCleaner = MetadataCleaner()
     val passwordAudit = PasswordAuditService(session, database.secrets(), secrets)
     val backups = VaultBackupManager(database.secrets(), session, vaultKeys)
     val keyRotation = VaultKeyRotationManager(

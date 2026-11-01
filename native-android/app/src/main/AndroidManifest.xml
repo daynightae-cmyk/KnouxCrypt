@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- No INTERNET, broad storage, camera or contacts permission is requested.
+    <!-- No INTERNET, broad storage, contacts or camera-at-install permission is requested; CAMERA is requested at runtime only for QR import.
          Documents are reached through the Storage Access Framework only. -->
     <uses-feature android:name="android.hardware.biometrics" android:required="false" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
         android:allowBackup="false"
         android:fullBackupContent="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
-        android:icon="@drawable/knoux_stag"
-        android:roundIcon="@drawable/knoux_stag"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:usesCleartextTraffic="false"
@@ -27,5 +30,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- TASK 16: hands a sealed KSR1 package to another app under a single,
+             read-only, revocable grant. Not exported, and scoped to cache/shares. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 </manifest>

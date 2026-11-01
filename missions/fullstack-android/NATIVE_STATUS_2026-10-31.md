@@ -58,24 +58,24 @@ Test distribution (current): security 58 (FileEnvelope 13 + KNF2 8 + Hashing 3 +
 | 08 | Passwords | **BUILD_VERIFIED + codec TESTED**; sensitive-copy clipboard timeout wired; autofill/device open |
 | 09 | Password detail | **SOURCE_IMPLEMENTED + JVM_TESTED (17 new) + RULES DEVICE_VERIFIED (3 instrumented Room tests) — SCREEN DEVICE_UNVERIFIED / AUDIT_PENDING**: `password_detail/{recordId}` route, live-capability load with LOADING/READY/MISSING/UNREADABLE/LOCKED states, masked secret with 60 s freshness gate and 15 s auto-hide, managed-lease copy, validated origin, plaintext-free bounded history, session-only access log, real SecureRandom generator |
 | 10 | Authenticator | **BUILD_VERIFIED + TOTP TESTED (RFC 6238)**; device clock/UI open |
-| 11 | Auth import | PLANNED |
+| 11 | Auth import | **SOURCE_IMPLEMENTED + JVM_TESTED (13) + RULES DEVICE_VERIFIED (1 instrumented) — UI DEVICE_UNVERIFIED**: otpauth TOTP + bounded migration protobuf parser, ZXing image picker, CameraX scanner, per-account preview, duplicate Skip/Replace, atomic batch commit, typed refusals for HOTP/MD5/malformed |
 | 12 | Key Forge | **BUILD_VERIFIED** (ephemeral key only); persistent keyring open |
-| 13 | Key details | PLANNED |
+| 13 | Key details | **SOURCE_IMPLEMENTED + JVM_TESTED (4) + METADATA DEVICE_VERIFIED (1 instrumented) — SCREEN DEVICE_UNVERIFIED**: real Keystore alias/algorithm/purposes/protection class from KeyInfo, keyring integrity fingerprint, honest "no public key / signing unsupported" states, rotation delegated to the existing authorized wizard |
 | 14 | Privacy Center | **BUILD_VERIFIED** (UI); security review open |
 | 15 | Backup / Recovery | **PARTIAL / BUILD_VERIFIED + TESTED_LOCAL (10)**: KNP2/Argon2id data export & conflict-safe restore; rotation exists separately but the root is retained and gate recovery is absent; SAF **DEVICE_UNVERIFIED** |
 | 16 | Secure share | PLANNED |
 | 17 | Hash & Integrity | **BUILD_VERIFIED + TESTED**; device SAF open |
 | 18 | Text cipher | **BUILD_VERIFIED + TESTED (8)**; KNP2/Argon2id writes, KNP1 readable; device UI open |
-| 19 | Digital signature | PLANNED |
+| 19 | Digital signature | **SOURCE_IMPLEMENTED + JVM_TESTED (7) + CRYPTO DEVICE_VERIFIED (1 instrumented) — SCREEN DEVICE_UNVERIFIED**: detached SHA-256 signatures (ECDSA P-256 or RSA-2048 per device), Keystore key with a vault-encrypted software fallback for providers without asymmetric support, content-changed vs invalid-signature verdicts, public key export, no identity claim |
 | 20 | Certificate inspector | PLANNED |
 | 21 | Encrypted archive | PLANNED (KNF1 core exists; archive UI does not) |
 | 22 | Local transfer | PLANNED |
-| 23 | Fingerprint verify | PLANNED |
+| 23 | Fingerprint verify | **SOURCE_IMPLEMENTED + JVM_TESTED (5) — SCREEN DEVICE_UNVERIFIED**: SSH-style `SHA256:` fingerprint of public-key SPKI, compare against a pasted fingerprint or public key, imported public keys stored encrypted |
 | 24 | Metadata cleaner | PLANNED |
 | 25 | Clipboard guard | **BUILD_VERIFIED + JVM_TESTED (policy) — DEVICE_UNVERIFIED**: metadata-only exposure, managed/foreign/expired states, explicit clear, no silent foreign clearing; reuses TASK 42 service |
 | 26 | Secure random | **BUILD_VERIFIED + TESTED**; device UI open |
 | 27 | HMAC authenticity | **BUILD_VERIFIED + JVM_TESTED (RFC 4231) — DEVICE_UNVERIFIED**: text/file streaming HMAC-SHA-256, constant-time verify, local key handling, HMAC Lab route |
-| 28 | Public-key QR | PLANNED |
+| 28 | Public-key QR | **SOURCE_IMPLEMENTED + QR DEVICE_VERIFIED (round-trip decode) — SCREEN DEVICE_UNVERIFIED**: ZXing-generated code carrying `knouxkey:v1:` public-key URI with fingerprint and plain text beside it |
 | 29 | Vault collections | PLANNED |
 | 30 | Document viewer | PLANNED |
 | 31 | Vault key rotation | **SOURCE_IMPLEMENTED + JVM_TESTED (15) — DEVICE_UNVERIFIED / AUDIT_PENDING**: root-wrapped DEK hierarchy, KNC2/room v2, reauth, journal, resumable batches, retirement guard, real wizard; KNF2 device files + legacy KNF1 readable, root retained |
@@ -92,9 +92,9 @@ Test distribution (current): security 58 (FileEnvelope 13 + KNF2 8 + Hashing 3 +
 | 42 | Session privacy controls | **BUILD_VERIFIED + JVM_TESTED policy (2) — DEVICE_UNVERIFIED**: configurable auto-lock, screen-off lock, clipboard timeout + lock clear, screenshot policy, app-switch cover, mutation/revocation serialization |
 | 43 | File integrity tool | **BUILD_VERIFIED + JVM_TESTED (hash vectors) — DEVICE_UNVERIFIED**: streaming SHA-256, checksum validation, match/mismatch evidence, cancel, in-memory reports, dedicated `file_integrity` route reusing Hash & Integrity |
 | 44 | Secure clipboard | **BUILD_VERIFIED + JVM_TESTED (policy) — DEVICE_UNVERIFIED**: managed copy action, hidden staged value, timeout/clear, guard linkage; no guaranteed erasure |
-| 45 | Final integration/verification | **SOURCE-LEVEL AUDIT DONE / DEVICE PARTIALLY VERIFIED / RELEASE_BLOCKED / AUDIT_PENDING**: 34 Tools destinations (17 implemented / 17 design-only) plus the non-catalog `password_detail` route; 179 JVM tests and 10 instrumented tests passing on one Android 15 handset; device/signing/audit/visual gates remain open |
+| 45 | Final integration/verification | **SOURCE-LEVEL AUDIT DONE / DEVICE PARTIALLY VERIFIED / RELEASE_BLOCKED / AUDIT_PENDING**: 34 Tools destinations (20 implemented / 14 design-only) plus the non-catalog `password_detail`, `auth_import` and `key_details` routes; 212 JVM tests and 13 instrumented tests passing on one Android 15 handset; device/signing/audit/visual gates remain open |
 
-Catalog accounting: 34 destinations total = **17 IMPLEMENTED**, **0 BLOCKED**, **17 DESIGN_ONLY** (Recovery is implemented for encrypted data export/restore; gate recovery remains out of scope. Key rotation is an internal Account wizard, not a new Tools destination. Password Audit is a Tools destination added by TASK 36). Eight Home cards preserved in the accepted order.
+Catalog accounting: 34 destinations total = **20 IMPLEMENTED**, **0 BLOCKED**, **14 DESIGN_ONLY** (Recovery is implemented for encrypted data export/restore; gate recovery remains out of scope. Key rotation is an internal Account wizard, not a new Tools destination. Password Audit is a Tools destination added by TASK 36). Eight Home cards preserved in the accepted order.
 
 ## Reality of the implementation
 
@@ -127,6 +127,88 @@ Catalog accounting: 34 destinations total = **17 IMPLEMENTED**, **0 BLOCKED**, *
 2. **Remaining vertical slices:** 05 Vault/Shadow Vault, 07 Notes editor, 11 Auth import (dependency-ready), 19 Signatures, 21 Archive, 28 QR, 30 Document viewer, 33 Autofill, remaining design-only services.
 3. **Device gate:** follow `DEVICE_VERIFICATION_CHECKLIST.md`; install `app-debug.apk`, run all instrumented classes (access, Keystore record/KDK1/KNF2, Room migration), test privacy timing/clipboard/screen capture, HMAC/file integrity/package inspector, then capture Compose screenshots at 360/390/441 widths in EN/AR and compare against canonical references.
 4. **Quality gate:** detekt/ktlint, dependency locking, CVE scan, R8 shrinking (BouncyCastle adds 3.18 MB), and a real CI workflow (the PR14 template remains uninstalled).
+
+## TASK 23 fingerprint verify + TASK 28 public-key QR — 2026-11-01
+
+- Public-key fingerprints use the SSH-style `SHA256:<base64url>` form over the key's SPKI bytes,
+  with known-answer vectors and case/whitespace-tolerant comparison. A fingerprint identifies a
+  public key only; no secret is ever fingerprinted.
+- The fingerprint screen compares this device's signing key against a pasted fingerprint or public
+  key and keeps imported public keys as encrypted vault records; the QR screen renders the public
+  key as a scannable `knouxkey:v1:` URI with the fingerprint and the plain text next to it. Both
+  reuse the TASK 19 signing engine.
+- Verification: **212 JVM tests, 0 failures** (security 102, data 93, app 17); `:core:data`
+  **13/13 PASS** on the itel S686LN; the new app-module QR test decodes the generated code back
+  to the exact URI; lint 0 errors; clean APK 19,712,121 bytes, SHA-256 `e03a0baf…94f0`, installed
+  and cold-started without crash entries.
+- Both screens are DEVICE_UNVERIFIED (unlocked session needed). The app-module entry-flow UI test
+  passes when the phone is free — it passed in the earlier device runs — and currently fails while
+  another app holds the foreground; that is an environment condition, not an app crash.
+
+## TASK 19 digital signature — 2026-11-01
+
+- Detached signatures over the SHA-256 digest of the content: SHA-256/ECDSA P-256 or
+  SHA-256/RSA-2048, chosen by what the device supports. Verdicts separate "content changed"
+  from "invalid signature" from "malformed", and any other algorithm is refused.
+- **Device finding that changed the design**: the itel S686LN's AndroidKeyStore provider implements
+  only AES — it answers "no such algorithm: EC for provider AndroidKeyStore" and the same for RSA.
+  The signing service therefore has two honest origins: a Keystore key when the platform can
+  create one, or a software EC key pair stored as an encrypted vault record (protected by the
+  Keystore-rooted data-key hierarchy, explicitly not hardware-backed). The UI states which one is
+  in use.
+- Stored records keep the signature, digest, public key and algorithm — never the signed document.
+  Verification proves possession of the matching private key and never claims an identity.
+- Verification: **207 JVM tests, 0 failures** (security 97, data 93, app 17); instrumented
+  **13/13 PASS** on the itel S686LN including `SigningDeviceTest`, which signs on the device,
+  verifies with the exported public key, refuses altered content and asserts the stored row holds
+  no private key material; lint 0 errors; clean APK 19,712,121 bytes, SHA-256 `4f48d6d0…fa2057`,
+  installed and cold-started without crash entries.
+- Screen layout, RTL and the copy interactions remain DEVICE_UNVERIFIED (unlocked session needed).
+
+## TASK 13 key details — 2026-11-01
+
+- `KeystoreManager.masterKeyDetails()` reports the platform's own view of the vault key: alias,
+  algorithm and size from `KeyInfo`, the returned purpose flags, the protection class
+  (StrongBox / trusted environment / software) and the user-authentication flag. The unlocked-device
+  row is labelled "requested at creation" because `KeyInfo` does not report it back, and no
+  creation date is shown because Keystore entries do not expose one.
+- A symmetric, non-exportable key has no public key, so the screen keeps "View public key" and
+  "Verify a signature" disabled with the reason on screen instead of inventing an identity. The
+  keyring fingerprint is a SHA-256 over the alias and the wrapped data keys as stored: an integrity
+  signal, not a shareable identity, never transmitted.
+- Rotation reuses the existing authorized wizard; no second engine. Key Forge gained the entry
+  point so the approved Key Forge page can reach the details.
+- Verification: **200 JVM tests, 0 failures** (+4); `:core:data:connectedDebugAndroidTest`
+  **12/12 PASS** on the itel S686LN including `KeyDetailsDeviceTest`, which asserts the platform
+  really answers with alias/AES/256-bit/encrypt+decrypt and a concrete protection class; lint
+  0 errors; APK installed and cold-started without crash-buffer entries.
+- Screen layout, RTL and the rotation hand-off stay **DEVICE_UNVERIFIED** (they need an unlocked
+  session). This batch is still isolated on the branch; no merge into `main` was performed.
+
+## Living stag, cinematic audio, adaptive icon, TASK 11 import — 2026-11-01
+
+- **Living stag**: additive eye halos/slits at measured asset coordinates with two independent
+  random cycles, antler travelling light, ≤10 motes and one restrained spark; runs only while the
+  screen is started, frozen under reduced motion, artwork untouched. Details in
+  `NATIVE_EXPERIENCE_EVIDENCE_2026-11-01.md`.
+- **Audio**: original synthesised 19.5 s ambient bed + five interface one-shots, looping
+  MediaPlayer with fades and audio-focus handling, SoundPool taps, persisted opt-in settings
+  (master default **off**), Privacy Center controls and an honest preview. Success sounds play only
+  after the domain call succeeds.
+- **Launcher**: adaptive icon with the approved stag inset over obsidian, monochrome layer included.
+- **TASK 11 import**: strict `otpauth://totp` parser and bounded Google Authenticator migration
+  decoder, QR via ZXing (image) and CameraX (live, permission-gated), preview with per-item
+  Skip/Replace for duplicates, multi-page batches committed only when complete, and an atomic
+  Room `@Upsert` batch behind one authorization boundary. Typed refusals for HOTP/MD5/unknown
+  digits/malformed payloads; no secrets logged, no network permission.
+- Verification: **196 JVM tests, 0 failures** (security 90 / data 89 / app 17; +25 this batch);
+  lint 0 errors; `:core:data:connectedDebugAndroidTest` **11/11 PASS** on the itel S686LN including
+  the import batch; clean APK **19,683,839 bytes, SHA-256 `0509758a…c7fd4f0`**, installed and
+  cold-started with an empty crash buffer.
+- Known gaps: stag visuals, audio character/focus behaviour, launcher rendering, camera preview,
+  picker flow and RTL for the import screen are **IMPLEMENTED_UNVERIFIED** — the owner was not
+  available for the unlocked screen or an on-device listen. No merge into `main` was performed for
+  this batch; it is isolated on the branch for owner review.
 
 ## Bilingual failures, quieter Keystore, and TASK 09 password detail — 2026-11-01 (`f20937b` + this commit)
 
@@ -314,3 +396,112 @@ Catalog accounting: 34 destinations total = **17 IMPLEMENTED**, **0 BLOCKED**, *
 - 21 new JVM tests cover guest reset/re-enrollment, stale and locked capabilities, in-flight revocation, invalidation, corrupt/substituted tokens, rotation atomicity and format compatibility. Biometric/Keystore behavior remains DEVICE_UNVERIFIED.
 
 The owner-requested consolidation merge to `main` was performed at `4bdb561` (normal merge, no force, no history rewrite). No release, signing, Play upload, production or device-verified security claim was made.
+
+## Secure Share — 2026-11-01 (TASK 16)
+
+- Recipient encryption uses X25519 key agreement + HKDF-SHA-256 from the Bouncy Castle build already
+  shipped for Argon2id; an EC/RSA **signing** key is refused by name, and `knouxkey:v1` QRs cannot be
+  imported as recipients. KSR1 is a versioned, authenticated, multi-recipient container with an
+  encrypted metadata block and per-chunk AAD binding the full header.
+- The identity key is a software X25519 pair stored as an encrypted vault record and labelled
+  `vault-software`, because the tested handset's Keystore offers no asymmetric algorithm.
+- Sealing is impossible until the recipient's full fingerprint has been typed back and matched; the
+  sender is added as an ordinary extra recipient so their own copy reopens.
+- Only KSR1 ciphertext can leave: the Sharesheet path re-reads the file header and refuses anything
+  that is not `KSR1`, through a FileProvider scoped to `cache/shares/` alone. Cancel, lock, failure
+  and screen destruction delete the temporary package/plaintext files.
+- 35 new JVM tests (247 total, 0 failures) including RFC 7748 and RFC 5869 known answers; lint 0
+  errors; APK 19,930,079 bytes `c3d05d88…a84d`, reproduced byte-for-byte by a second clean build.
+- `ShareDeviceTest` is written but **NOT RUN** (no handset attached in this pass). Cross-device
+  end-to-end sharing, the screen layout, RTL, camera import and the Sharesheet handoff remain
+  DEVICE_UNVERIFIED, and KSR1 is AUDIT_PENDING. See `16_SECURE_SHARE/EVIDENCE.md`.
+
+## Signature Studio — 2026-11-01 (TASK 38)
+
+- Built on the TASK 19 engine rather than a second one: `SigningService` still chooses Keystore vs
+  the encrypted software key and reports which, `DigitalSignatureService` still does the crypto.
+- KSG1 (detached) and KSA1 (attached) are versioned packages with strict, allocation-safe parsing.
+  A JVM test caught the first draft signing only the content, which left the metadata block — file
+  name, recorded size, recorded digest — rewritable under a still-valid signature; digest mode 2 now
+  binds `SHA-256(content) ‖ SHA-256(metadata)`, and mode 1 stays readable instead of reinterpreted.
+- Reports keep two answers separate: the signature is valid for these bytes, and the signer key is or
+  is not one this vault stores. Valid-but-unknown is shown as exactly that.
+- TASK 19's "verify an external signature" panel was renamed and annotated: KNOUX signs the SHA-256
+  digest of the content, so standard third-party signatures over raw text do not verify there.
+- 18 new JVM tests (265 total, 0 failures); lint 0 errors; APK 19,995,615 bytes
+  `687ed540…fca9`, reproduced byte-for-byte. `SignatureStudioDeviceTest` is written but NOT RUN —
+  no handset was attached, so the studio stays DEVICE_UNVERIFIED and AUDIT_PENDING.
+
+## Certificate Inspector — 2026-11-01 (TASK 20)
+
+- X.509 PEM/DER import and inspection on the platform's own APIs (`CertificateFactory`, `X509Certificate`,
+  `CertPathValidator("PKIX")`) — no new parser, no new verifier.
+- Five answers stay separate and are shown separately: parsed · issuer signature · validity window at an
+  injected clock · chain to a *named* anchor · host-name identity. Self-signed, parsed and CA are never
+  reported as trusted; trust only exists against `None` / `StoredAnchors` / `PlatformStore`, and
+  revocation is explicitly reported as not checked because this build holds no network permission.
+- Two findings changed the design: a 32-anchor cap made the honest platform-store answer impossible
+  (a real store ships ~140 roots, so the cap moved to 256), and PKIX signals "no trust anchor" through
+  the generic UNSPECIFIED reason, so reason-only mapping mislabelled an unknown CA as a length problem.
+- Certificates are stored as encrypted vault records holding the original DER, with `isAnchor` false
+  until the user marks it; duplicates match on fingerprint. Import is bounded to 256 KiB and refuses a
+  PEM bundle rather than taking the first block.
+- 20 new JVM tests (285 total, 0 failures) over six real keytool-generated certificates; lint 0 errors;
+  APK 20,093,919 bytes `b88253f3…dc83`. `CertificateInspectorDeviceTest` is written but NOT RUN —
+  Android's PKIX provider is not the desktop JDK's, so this is the highest-value unverified item.
+
+## Encrypted Archive — 2026-11-01 (TASK 21)
+
+- Reuses the KNF2 file envelope (per-file DEK wrapped by the Keystore root, or a PBKDF2 passphrase
+  key) with a standard `java.util.zip` payload and a JSON manifest in front of it. The AEAD context is
+  `knoux.archive.v1`, so a plain encrypted file cannot be opened as an archive or the reverse.
+- The manifest is built from the bytes as they stream (name, length, SHA-256), and listing
+  cross-checks it against the ZIP directory: a mismatch is reported as tampering.
+- Path traversal is refused, not cleaned — an earlier version stripped `../escape.txt` to a legal
+  name and a test caught it. Quotas: 256 entries, 256 MiB per entry, 1 GiB total, re-checked while
+  streaming; extraction refuses an entry that expands past its declared size plus slack, and a
+  hand-built understated manifest is refused with nothing written.
+- Symlink escape is structurally impossible: entries are created as new documents in a user-picked
+  SAF tree, never at a filesystem path, and originals are only ever read. Staging files are removed
+  on cancel, failure and lock.
+- Deviations from the mock, recorded: encryption and the manifest are mandatory (shown as disabled
+  switches with reasons), and the archive destination is `CreateDocument` while the tree contract is
+  used for extraction.
+- 11 new JVM tests (296 total, 0 failures); lint 0 errors; APK 20,175,839 bytes `2776a8fd…e82d`.
+  `ArchiveDeviceTest` is written but NOT RUN — no handset was attached in this pass.
+
+## Local Transfer — 2026-11-01 (TASK 22, transport BLOCKED)
+
+- KTX1 is implemented and JVM-tested: two-byte framing that cannot be coerced into over-allocating,
+  an ephemeral X25519 handshake whose direction keys are mirrored and independent of argument order,
+  a 64-bit sequence in both the GCM nonce and the AAD (so replay, gaps, re-anchored offsets and
+  reinterpreted frame types all fail closed), an in-channel long-term identity that must match the
+  fingerprint the user confirmed, and an END frame carrying byte count plus SHA-256 so truncation is
+  detected. Resume is a parsed, authenticated offset — no implementation consumes it yet.
+- **The transport is BLOCKED and no transfer has ever completed.** The screen probes the real adapter
+  and Wi-Fi Direct feature, refuses any file that does not begin with a KNOUX container magic, and
+  reports exactly what would unblock it. An unfinished service layer that ran the protocol over an
+  injected channel was deleted rather than committed, because its buffering was unproven.
+- Lint caught a genuine defect in the first probe: it used `getBondedDevices()`/`getName()`, which need
+  `BLUETOOTH_CONNECT` the app does not declare — a guaranteed runtime SecurityException. The fix was to
+  stop touching those APIs, not to request a permission that currently buys nothing.
+- 9 new JVM tests (305 total, 0 failures); lint 0 errors; APK 20,208,607 bytes `1bd895dd…8af8`.
+  See `22_LOCAL_TRANSFER/EVIDENCE.md` for the owner action required.
+
+## Metadata Cleaner — 2026-11-01 (TASK 24)
+
+- Reading and rewriting go through `android.media.ExifInterface`; there is no private JPEG/TIFF parser.
+  Because that API cannot enumerate tags, the build declares `KNOWN_TAGS` and says out loud that
+  anything outside the list is neither read nor removed — no file is ever called clean.
+- Classification (`groupOf`, `isStructural`) is a pure function with 6 JVM tests: GPS, camera model,
+  author, timestamps, comments and technical stay separate, and orientation/pixel dimensions/EXIF
+  version are never removal candidates. Only `image/jpeg` and `image/tiff` are offered for cleaning.
+- The source is only read; the clean copy is written into staging, rewritten there, and streamed into
+  a **new** `CreateDocument` the user chose, with staging deleted on every path.
+- A real API assumption was corrected during the build: `TAG_AUTHOR`, `TAG_OWNER_NAME`, `TAG_GPS_INFO`,
+  `TAG_LENS_*`, `TAG_DATETIME_CREATED/MODIFIED` and `getAttributes()` do not exist on
+  `android.media.ExifInterface` — they were verified against `android-36/android.jar` and dropped
+  rather than guessed at.
+- 6 new JVM tests (311 total, 0 failures); lint 0 errors; APK 20,257,759 bytes `93d715fb…0515`.
+  **No EXIF tag has ever been read or removed by this build** — the platform call is DEVICE_UNVERIFIED,
+  and XMP, ICC profiles, thumbnails, video GPS and PDF/Office metadata are explicitly not claimed.
