@@ -128,14 +128,17 @@ class Argon2Studio {
 
   /**
    * Cancel an in-flight derivation. Returns whether a job was actually running.
-   * The worker is terminated, which aborts the WASM computation immediately and
-   * rejects the pending `derive()` promise with CANCELLED.
+   * The pending `derive()` promise is rejected deterministically with CANCELLED
+   * and the worker is terminated, which aborts the WASM computation. We reject
+   * here rather than waiting on the worker's `exit` event, because an early
+   * terminate can otherwise race and leave the promise unsettled.
    */
   cancel(operationId) {
-    const worker = this.active.get(operationId);
-    if (!worker) return { operationId, cancelled: false };
+    const entry = this.active.get(operationId);
+    if (!entry) return { operationId, cancelled: false };
     this.active.delete(operationId);
-    worker.terminate().catch(() => {});
+    entry.settle(new VaultError(CODES.CANCELLED, "The derivation was cancelled"));
+    entry.worker.terminate().catch(() => {});
     return { operationId, cancelled: true };
   }
 
@@ -158,6 +161,15 @@ class Argon2Studio {
     }
     const params = resolveParams(request.params || request);
 
+    // hash-wasm's Argon2id does not expose the RFC 9106 optional secret key or
+    // associated-data inputs. Rather than silently ignoring them (which would
+    // produce a tag that looks valid but is not the one the caller asked for), we
+    // refuse explicitly. This is why an associated-data vector is reported as
+    // unsupported instead of being compared against a wrong tag.
+    if (request.associatedData !== undefined || request.secretKey !== undefined) {
+      throw badInput("Argon2 associated data and secret key inputs are not supported by this implementation");
+    }
+
     let salt;
     let saltGenerated = false;
     if (request.saltHex !== undefined && request.saltHex !== null) {
@@ -173,7 +185,6 @@ class Argon2Studio {
     const worker = this.spawn(this.workerPath);
     const startedAt = this.now();
     const operationId = request.operationId || crypto.randomBytes(8).toString("hex");
-    this.active.set(operationId, worker);
 
     const outcome = await new Promise((resolve, reject) => {
       let settled = false;
@@ -189,6 +200,9 @@ class Argon2Studio {
         finish(reject, new VaultError(CODES.IO_FAILED, "The derivation timed out"));
       }, this.timeoutMs);
       if (timer.unref) timer.unref();
+
+      // Registered before the worker starts so a very early cancel() finds it.
+      this.active.set(operationId, { worker, settle: (err) => finish(reject, err) });
 
       worker.once("message", (msg) => finish(resolve, msg));
       worker.once("error", (err) => finish(reject, new VaultError(CODES.IO_FAILED, `The derivation worker failed: ${err.code || err.message}`)));

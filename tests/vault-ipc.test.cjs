@@ -656,3 +656,204 @@ test("password audit channel returns a real estimate and refuses over-long input
   assert.equal(empty.ok, false);
   assert.equal(empty.error.code, CODES.BAD_INPUT);
 });
+
+// ---- batch 10-11 (tasks 37-44) IPC contract --------------------------------
+
+test("argon2 channels expose real bounds and validate the derivation payload", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "knoux-ipc-argon2-"));
+  await unlockedIpc(dir);
+
+  const params = await call(CHANNELS.ARGON2_PARAMS, {});
+  assert.equal(params.ok, true);
+  assert.ok(Array.isArray(params.data.profiles));
+  assert.ok(params.data.limits.maxMemoryKiB > 0);
+
+  const noPass = await call(CHANNELS.ARGON2_DERIVE, {});
+  assert.equal(noPass.ok, false);
+  assert.equal(noPass.error.code, CODES.BAD_INPUT);
+
+  const badProfile = await call(CHANNELS.ARGON2_DERIVE, { passphrase: "x", profile: "TURBO" });
+  assert.equal(badProfile.ok, false);
+  assert.equal(badProfile.error.code, CODES.BAD_INPUT);
+
+  const cancelUnknown = await call(CHANNELS.ARGON2_CANCEL, { operationId: "nope" });
+  assert.equal(cancelUnknown.ok, true);
+  assert.equal(cancelUnknown.data.cancelled, false);
+
+  const cancelMissing = await call(CHANNELS.ARGON2_CANCEL, {});
+  assert.equal(cancelMissing.ok, false);
+  assert.equal(cancelMissing.error.code, CODES.BAD_INPUT);
+});
+
+test("journal channels validate payloads and enforce consent", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "knoux-ipc-journal-"));
+  await unlockedIpc(dir);
+
+  const cats = await call(CHANNELS.JOURNAL_CATEGORIES, {});
+  assert.equal(cats.ok, true);
+  assert.ok(cats.data.categories.length > 0);
+
+  const integrity = await call(CHANNELS.JOURNAL_INTEGRITY, {});
+  assert.equal(integrity.ok, true);
+  assert.equal(integrity.data.status, "intact");
+  assert.equal(integrity.data.externalTrustAnchor, false);
+
+  const recorded = await call(CHANNELS.JOURNAL_RECORD, { category: "Files", action: "Encrypted", outcome: "success" });
+  assert.equal(recorded.ok, true);
+  assert.equal(recorded.data.category, "Files");
+
+  const badCategory = await call(CHANNELS.JOURNAL_RECORD, { category: "Nope", action: "x" });
+  assert.equal(badCategory.ok, false);
+  assert.equal(badCategory.error.code, CODES.BAD_INPUT);
+
+  const noConfirm = await call(CHANNELS.JOURNAL_CLEAR, { confirm: false });
+  assert.equal(noConfirm.ok, false);
+  assert.equal(noConfirm.error.code, CODES.CONSENT_REQUIRED);
+
+  const list = await call(CHANNELS.JOURNAL_LIST, { limit: 10 });
+  assert.equal(list.ok, true);
+  assert.ok(Array.isArray(list.data.entries));
+
+  const badExport = await call(CHANNELS.JOURNAL_EXPORT, { confirm: true, outputPath: "" });
+  assert.equal(badExport.ok, false);
+  assert.equal(badExport.error.code, CODES.BAD_INPUT);
+});
+
+test("wizard channels validate the review, consent and unknown-id paths", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "knoux-ipc-wizard-"));
+  await unlockedIpc(dir);
+  const src = path.join(dir, "payload.bin");
+  fs.writeFileSync(src, crypto.randomBytes(2048));
+
+  const badPort = await call(CHANNELS.WIZARD_BEGIN, { files: [src], recipientPort: 0 });
+  assert.equal(badPort.ok, false);
+  assert.equal(badPort.error.code, CODES.BAD_INPUT);
+
+  const begun = await call(CHANNELS.WIZARD_BEGIN, { files: [src], recipientPort: 9000 });
+  assert.equal(begun.ok, true);
+  assert.equal(begun.data.stage, "review");
+
+  const runNoConsent = await call(CHANNELS.WIZARD_RUN, { wizardId: begun.data.wizardId });
+  assert.equal(runNoConsent.ok, false);
+  assert.equal(runNoConsent.error.code, CODES.CONSENT_REQUIRED);
+
+  const noConfirm = await call(CHANNELS.WIZARD_CONSENT, { wizardId: begun.data.wizardId, confirm: false });
+  assert.equal(noConfirm.ok, false);
+  assert.equal(noConfirm.error.code, CODES.CONSENT_REQUIRED);
+
+  const unknown = await call(CHANNELS.WIZARD_STATUS, { wizardId: "missing" });
+  assert.equal(unknown.ok, false);
+  assert.equal(unknown.error.code, CODES.NOT_FOUND);
+
+  const missingId = await call(CHANNELS.WIZARD_STATUS, {});
+  assert.equal(missingId.ok, false);
+  assert.equal(missingId.error.code, CODES.BAD_INPUT);
+});
+
+test("capsule channels seal, inspect and refuse a wrong passphrase", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "knoux-ipc-capsule-"));
+  await unlockedIpc(dir);
+
+  const choices = await call(CHANNELS.CAPSULE_CHOICES, {});
+  assert.equal(choices.ok, true);
+  assert.ok(choices.data.expiry.length > 0);
+
+  const created = await call(CHANNELS.CAPSULE_CREATE, { secret: "s3cret", passphrase: "cap-pass", expiry: "1h", maxAccess: 1 });
+  assert.equal(created.ok, true);
+  assert.equal(created.data.remoteRevocable, false);
+
+  const badSecret = await call(CHANNELS.CAPSULE_CREATE, { secret: "", passphrase: "x" });
+  assert.equal(badSecret.ok, false);
+  assert.equal(badSecret.error.code, CODES.BAD_INPUT);
+
+  const inspected = await call(CHANNELS.CAPSULE_INSPECT, { envelopeText: created.data.envelopeText });
+  assert.equal(inspected.ok, true);
+  assert.equal(inspected.data.expired, false);
+
+  const notACapsule = await call(CHANNELS.CAPSULE_INSPECT, { envelopeText: "{}" });
+  assert.equal(notACapsule.ok, false);
+  assert.equal(notACapsule.error.code, CODES.NOT_A_VAULT);
+
+  const wrong = await call(CHANNELS.CAPSULE_OPEN, { envelopeText: created.data.envelopeText, passphrase: "wrong" });
+  assert.equal(wrong.ok, false);
+  assert.equal(wrong.error.code, CODES.AUTH_FAILED);
+
+  const opened = await call(CHANNELS.CAPSULE_OPEN, { envelopeText: created.data.envelopeText, passphrase: "cap-pass" });
+  assert.equal(opened.ok, true);
+  assert.equal(opened.data.secret, "s3cret");
+
+  const missingText = await call(CHANNELS.CAPSULE_OPEN, { passphrase: "cap-pass" });
+  assert.equal(missingText.ok, false);
+  assert.equal(missingText.error.code, CODES.BAD_INPUT);
+});
+
+test("session privacy channels return the policy and validate updates", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "knoux-ipc-privacy-"));
+  await unlockedIpc(dir);
+
+  const policy = await call(CHANNELS.SESSION_PRIVACY_POLICY, {});
+  assert.equal(policy.ok, true);
+  assert.equal(policy.data.osScope, false);
+  assert.ok(Array.isArray(policy.data.controls));
+
+  const badField = await call(CHANNELS.SESSION_PRIVACY_UPDATE, { nope: 1 });
+  assert.equal(badField.ok, true, "an unknown key is ignored, not applied");
+
+  const badValue = await call(CHANNELS.SESSION_PRIVACY_UPDATE, { idleLockSeconds: 1 });
+  assert.equal(badValue.ok, false);
+  assert.equal(badValue.error.code, CODES.BAD_INPUT);
+
+  const updated = await call(CHANNELS.SESSION_PRIVACY_UPDATE, { lockOnSuspend: true });
+  assert.equal(updated.ok, true);
+  assert.equal(updated.data.values.lockOnSuspend, true);
+
+  const redacted = await call(CHANNELS.SESSION_PRIVACY_REDACTED, {});
+  assert.equal(redacted.ok, true);
+  assert.equal("sessionId" in redacted.data, false);
+});
+
+test("integrity channels baseline, compare and validate a malformed manifest", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "knoux-ipc-integrity-"));
+  await unlockedIpc(dir);
+  const file = path.join(dir, "data.bin");
+  fs.writeFileSync(file, crypto.randomBytes(1024));
+
+  const algos = await call(CHANNELS.INTEGRITY_ALGORITHMS, {});
+  assert.equal(algos.ok, true);
+  assert.ok(algos.data.algorithms.includes("SHA-256"));
+
+  const noFiles = await call(CHANNELS.INTEGRITY_CREATE, { files: [] });
+  assert.equal(noFiles.ok, false);
+  assert.equal(noFiles.error.code, CODES.BAD_INPUT);
+
+  const created = await call(CHANNELS.INTEGRITY_CREATE, { files: [file], label: "Baseline" });
+  assert.equal(created.ok, true);
+  assert.equal(created.data.count, 1);
+
+  const compared = await call(CHANNELS.INTEGRITY_COMPARE, { manifest: created.data });
+  assert.equal(compared.ok, true);
+  assert.equal(compared.data.verified, true);
+
+  const manifestPath = path.join(dir, "manifest.json");
+  fs.writeFileSync(manifestPath, "{ not json");
+  const badLoad = await call(CHANNELS.INTEGRITY_LOAD, { manifestPath });
+  assert.equal(badLoad.ok, false);
+  assert.equal(badLoad.error.code, CODES.BAD_INPUT);
+
+  const missingLoad = await call(CHANNELS.INTEGRITY_LOAD, {});
+  assert.equal(missingLoad.ok, false);
+  assert.equal(missingLoad.error.code, CODES.BAD_INPUT);
+});
+
+test("secure clipboard and report export channels are registered and validate payloads", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "knoux-ipc-final-"));
+  await unlockedIpc(dir);
+
+  const clipboard = await call(CHANNELS.SECURE_CLIPBOARD_STATUS, {});
+  assert.equal(clipboard.ok, true);
+  assert.equal(clipboard.data.guaranteedOsErase, false);
+
+  const noReport = await call(CHANNELS.REPORT_EXPORT, { sessionId: "", report: null, outputPath: "" });
+  assert.equal(noReport.ok, false);
+  assert.equal(noReport.error.code, CODES.BAD_INPUT);
+});

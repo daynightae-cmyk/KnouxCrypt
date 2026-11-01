@@ -523,6 +523,7 @@ export function useVault() {
   );
   const argon2Params = useCallback(guarded("argon2Params"), [guarded]);
   const argon2Derive = useCallback(guarded("argon2Derive"), [guarded]);
+  const argon2Cancel = useCallback(guarded("argon2Cancel"), [guarded]);
   const journalCategories = useCallback(guarded("journalCategories"), [guarded]);
   const journalIntegrity = useCallback(guarded("journalIntegrity"), [guarded]);
   const journalList = useCallback(guarded("journalList"), [guarded]);
@@ -545,8 +546,13 @@ export function useVault() {
   const integrityAlgorithms = useCallback(guarded("integrityAlgorithms"), [guarded]);
   const integrityCreate = useCallback(guarded("integrityCreate"), [guarded]);
   const integritySave = useCallback(guarded("integritySave"), [guarded]);
+  const integrityLoad = useCallback(guarded("integrityLoad"), [guarded]);
   const integrityCompare = useCallback(guarded("integrityCompare"), [guarded]);
   const secureClipboardStatus = useCallback(guarded("secureClipboardStatus"), [guarded]);
+  const reportExport = useCallback(
+    (request) => run((a) => a.reportExport(session?.sessionId, request.report, request.outputPath, request.kind)),
+    [run, session],
+  );
 
   const state = !available
     ? VAULT_STATE.UNAVAILABLE
@@ -667,6 +673,7 @@ export function useVault() {
     passwordAudit,
     argon2Params,
     argon2Derive,
+    argon2Cancel,
     journalCategories,
     journalIntegrity,
     journalList,
@@ -689,8 +696,10 @@ export function useVault() {
     integrityAlgorithms,
     integrityCreate,
     integritySave,
+    integrityLoad,
     integrityCompare,
     secureClipboardStatus,
+    reportExport,
   };
 }
 

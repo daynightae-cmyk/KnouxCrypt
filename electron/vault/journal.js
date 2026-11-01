@@ -119,6 +119,8 @@ class SecurityJournal {
     this.chain = { status: "unverified", brokenAt: null, reason: null };
     this._key = null;
     this._loaded = false;
+    this._loadPromise = null;
+    this._queue = Promise.resolve();
   }
 
   // ---- storage ------------------------------------------------------------
@@ -163,36 +165,69 @@ class SecurityJournal {
 
   async load() {
     if (this._loaded) return this;
-    this._loaded = true;
-    let raw;
-    try {
-      raw = await fsp.readFile(this.file, "utf8");
-    } catch (err) {
-      if (err.code === "ENOENT") {
-        this.entries = [];
-        this.chain = { status: "intact", brokenAt: null, reason: null };
-        return this;
-      }
-      // A present-but-unreadable journal is "unavailable evidence", which is
-      // distinct from "no tampering detected".
-      this.chain = { status: "unavailable", brokenAt: null, reason: "io-error" };
-      this.entries = [];
-      return this;
-    }
-    try {
-      const parsed = JSON.parse(raw);
-      if (!parsed || parsed.version !== JOURNAL_VERSION || !Array.isArray(parsed.entries)) {
-        throw new Error("bad document");
-      }
-      this.entries = parsed.entries;
-      this.droppedCount = Number(parsed.droppedCount) || 0;
-    } catch {
-      this.chain = { status: "tampered", brokenAt: null, reason: "malformed-document" };
-      this.entries = [];
-      return this;
-    }
-    this._verifyChain();
+    // Concurrent callers must all wait for the same read. Setting a flag before
+    // the read resolves would let a second caller observe an empty journal, so
+    // the in-flight promise is shared instead.
+    if (!this._loadPromise) this._loadPromise = this._doLoad();
+    await this._loadPromise;
     return this;
+  }
+
+  async _doLoad() {
+    try {
+      let raw;
+      try {
+        raw = await fsp.readFile(this.file, "utf8");
+      } catch (err) {
+        if (err.code === "ENOENT") {
+          this.entries = [];
+          this.chain = { status: "intact", brokenAt: null, reason: null };
+          return;
+        }
+        // A present-but-unreadable journal is "unavailable evidence", which is
+        // distinct from "no tampering detected".
+        this.chain = { status: "unavailable", brokenAt: null, reason: "io-error" };
+        this.entries = [];
+        return;
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        if (!parsed || parsed.version !== JOURNAL_VERSION || !Array.isArray(parsed.entries)) {
+          throw new Error("bad document");
+        }
+        this.entries = parsed.entries;
+        this.droppedCount = Number(parsed.droppedCount) || 0;
+      } catch {
+        this.chain = { status: "tampered", brokenAt: null, reason: "malformed-document" };
+        this.entries = [];
+        return;
+      }
+      this._verifyChain();
+    } finally {
+      this._loaded = true;
+    }
+  }
+
+  /**
+   * Serialize a mutating operation so two concurrent writes can never interleave
+   * their read-modify-write and silently drop an entry.
+   */
+  _enqueue(task) {
+    const run = this._queue.then(task, task);
+    this._queue = run.then(
+      () => {},
+      () => {},
+    );
+    return run;
+  }
+
+  /**
+   * Wait for every queued write to finish. Callers that own the process
+   * lifecycle (quit, test teardown) await this so a fire-and-forget journal
+   * write cannot still be mid-flight when the storage directory is removed.
+   */
+  async drain() {
+    await this._queue.catch(() => {});
   }
 
   async _persist() {
@@ -215,7 +250,11 @@ class SecurityJournal {
    * Append an entry. `detail` is redacted before it is stored, and the entry is
    * chained to the previous one. Returns the stored, redacted entry.
    */
-  async record({ category, action, outcome = "info", subject = null, detail = null } = {}) {
+  async record(entry = {}) {
+    return this._enqueue(() => this._record(entry));
+  }
+
+  async _record({ category, action, outcome = "info", subject = null, detail = null } = {}) {
     await this.load();
     if (!CATEGORIES.includes(category)) throw badInput(`Unknown journal category "${category}"`);
     if (typeof action !== "string" || !action.trim()) throw badInput("A journal action is required");
@@ -299,7 +338,11 @@ class SecurityJournal {
   }
 
   /** Clear the journal. Requires explicit consent. */
-  async clear({ confirm } = {}) {
+  async clear(options = {}) {
+    return this._enqueue(() => this._clear(options));
+  }
+
+  async _clear({ confirm } = {}) {
     await this.load();
     if (confirm !== true) throw new VaultError(CODES.CONSENT_REQUIRED, "Clearing the journal requires explicit confirmation");
     this.entries = [];
@@ -310,7 +353,11 @@ class SecurityJournal {
   }
 
   /** Owner-authorized export of the (redacted) journal to a chosen path. */
-  async export({ confirm, outputPath } = {}) {
+  async export(options = {}) {
+    return this._enqueue(() => this._export(options));
+  }
+
+  async _export({ confirm, outputPath } = {}) {
     await this.load();
     if (confirm !== true) throw new VaultError(CODES.CONSENT_REQUIRED, "Exporting the journal requires explicit confirmation");
     if (typeof outputPath !== "string" || !outputPath.trim()) throw badInput("An export path is required");

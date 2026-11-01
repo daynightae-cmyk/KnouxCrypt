@@ -71,6 +71,7 @@ let mainWindow = null;
 let splashWindow = null;
 let tray = null;
 let isQuitting = false;
+let journalFlushed = false;
 let vaultService = null;
 let unregisterVaultIpc = null;
 
@@ -563,7 +564,19 @@ app.on("before-quit", () => {
   if (vaultService) vaultService.lockAll("quit");
 });
 
-app.on("will-quit", () => {
+app.on("will-quit", (event) => {
+  // The security journal persists asynchronously, so a write can still be in
+  // flight here. Give it one chance to flush before the process exits, but
+  // never let a stuck journal block quit for longer than a short deadline.
+  if (vaultService && typeof vaultService.close === "function" && !journalFlushed) {
+    event.preventDefault();
+    journalFlushed = true;
+    const deadline = new Promise((resolve) => setTimeout(resolve, 1500));
+    Promise.race([vaultService.close(), deadline])
+      .catch(() => {})
+      .then(() => app.quit());
+    return;
+  }
   if (unregisterVaultIpc) unregisterVaultIpc();
 });
 

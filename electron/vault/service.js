@@ -352,6 +352,16 @@ class VaultService {
   }
 
   /**
+   * Flush the real, background work this service owns. The security journal
+   * writes fire-and-forget so a journal failure can never break a user
+   * operation, which means a write can still be in flight when the process is
+   * shutting down. Awaiting this before quit keeps the journal consistent.
+   */
+  async close() {
+    if (this.journal && typeof this.journal.drain === "function") await this.journal.drain();
+  }
+
+  /**
    * Tell the renderer a session is gone. Without this a screen that holds a
    * session id would only discover revocation on its next failed call.
    */
@@ -1134,10 +1144,12 @@ class VaultService {
   /**
    * Save a parsed certificate or fingerprint record to a chosen path. This is
    * the "real action" the certificate and fingerprint screens perform, instead
-   * of only displaying values.
+   * of only displaying values. Requires an unlocked session.
    */
-  async reportExport({ report, outputPath, kind } = {}) {
+  async reportExport({ sessionId, report, outputPath, kind } = {}) {
+    this.manager.getDek(sessionId);
     const result = await inspect.exportReport({ report, outputPath, kind });
+    this.manager.touch(sessionId);
     this._journal("Export", `Saved a ${kind || "report"} record`, "success", { outputPath: result.outputPath });
     return result;
   }

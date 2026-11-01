@@ -93,7 +93,8 @@
   line-height: 1.9;
 }
 .ft-field input,
-.ft-field select {
+.ft-field select,
+.ft-field textarea {
   width: 100%;
   min-width: 0;
   padding: 12px;

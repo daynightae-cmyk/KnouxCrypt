@@ -123,6 +123,7 @@ const CHANNELS = Object.freeze({
   // Batch 10 (tasks 37-40): Argon2id studio, security journal, transfer wizard.
   ARGON2_PARAMS: "vault:argon2-params",
   ARGON2_DERIVE: "vault:argon2-derive",
+  ARGON2_CANCEL: "vault:argon2-cancel",
   JOURNAL_CATEGORIES: "vault:journal-categories",
   JOURNAL_INTEGRITY: "vault:journal-integrity",
   JOURNAL_LIST: "vault:journal-list",
@@ -1188,7 +1189,16 @@ function registerVaultIpc(service, getWindow) {
         params,
         saltHex: typeof p.saltHex === "string" ? p.saltHex.slice(0, 128) : undefined,
         reveal: p.reveal === true,
+        operationId: typeof p.operationId === "string" ? p.operationId.slice(0, 64) : undefined,
       });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.ARGON2_CANCEL,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.argon2Cancel(requireString(p.operationId, "operationId", 64));
     }),
   );
 
@@ -1196,7 +1206,6 @@ function registerVaultIpc(service, getWindow) {
     CHANNELS.JOURNAL_CATEGORIES,
     safe(async () => service.journalCategories()),
   );
-
   ipcMain.handle(
     CHANNELS.JOURNAL_INTEGRITY,
     safe(async () => service.journalIntegrity()),
@@ -1449,6 +1458,7 @@ function registerVaultIpc(service, getWindow) {
     safe(async (event, payload) => {
       const p = requireObject(payload);
       return service.reportExport({
+        sessionId: requireString(p.sessionId, "sessionId", 64),
         report: p.report && typeof p.report === "object" ? p.report : null,
         outputPath: requireString(p.outputPath, "outputPath", 4096),
         kind: typeof p.kind === "string" ? p.kind.slice(0, 32) : "report",
