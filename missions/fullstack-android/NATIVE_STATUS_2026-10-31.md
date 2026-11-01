@@ -469,3 +469,21 @@ The owner-requested consolidation merge to `main` was performed at `4bdb561` (no
   used for extraction.
 - 11 new JVM tests (296 total, 0 failures); lint 0 errors; APK 20,175,839 bytes `2776a8fd…e82d`.
   `ArchiveDeviceTest` is written but NOT RUN — no handset was attached in this pass.
+
+## Local Transfer — 2026-11-01 (TASK 22, transport BLOCKED)
+
+- KTX1 is implemented and JVM-tested: two-byte framing that cannot be coerced into over-allocating,
+  an ephemeral X25519 handshake whose direction keys are mirrored and independent of argument order,
+  a 64-bit sequence in both the GCM nonce and the AAD (so replay, gaps, re-anchored offsets and
+  reinterpreted frame types all fail closed), an in-channel long-term identity that must match the
+  fingerprint the user confirmed, and an END frame carrying byte count plus SHA-256 so truncation is
+  detected. Resume is a parsed, authenticated offset — no implementation consumes it yet.
+- **The transport is BLOCKED and no transfer has ever completed.** The screen probes the real adapter
+  and Wi-Fi Direct feature, refuses any file that does not begin with a KNOUX container magic, and
+  reports exactly what would unblock it. An unfinished service layer that ran the protocol over an
+  injected channel was deleted rather than committed, because its buffering was unproven.
+- Lint caught a genuine defect in the first probe: it used `getBondedDevices()`/`getName()`, which need
+  `BLUETOOTH_CONNECT` the app does not declare — a guaranteed runtime SecurityException. The fix was to
+  stop touching those APIs, not to request a permission that currently buys nothing.
+- 9 new JVM tests (305 total, 0 failures); lint 0 errors; APK 20,208,607 bytes `1bd895dd…8af8`.
+  See `22_LOCAL_TRANSFER/EVIDENCE.md` for the owner action required.

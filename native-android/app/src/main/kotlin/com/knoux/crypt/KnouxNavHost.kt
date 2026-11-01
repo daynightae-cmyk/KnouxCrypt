@@ -23,6 +23,7 @@ import com.knoux.crypt.ui.HomeScreen
 import com.knoux.crypt.ui.KeyDerivationScreen
 import com.knoux.crypt.ui.KeyDetailsScreen
 import com.knoux.crypt.ui.KeyForgeScreen
+import com.knoux.crypt.ui.LocalTransferScreen
 import com.knoux.crypt.ui.NotesScreen
 import com.knoux.crypt.ui.PackageInspectorScreen
 import com.knoux.crypt.ui.FingerprintVerifyScreen
@@ -198,6 +199,13 @@ fun KnouxNavHost(
         }
         composable("archive") {
             EncryptedArchiveScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
+        }
+        composable("local_transfer") {
+            LocalTransferScreen(
                 container = container,
                 onBack = { nav.popBackStack() },
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },

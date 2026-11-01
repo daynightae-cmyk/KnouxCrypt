@@ -47,7 +47,7 @@ object Catalog {
         ServiceDef("TEXT_CIPHER", "Text Cipher", "تشفير النصوص", "Seal text with a passphrase", "شفّر النص بعبارة مرور", ServiceArt.ENCRYPT, "text_cipher", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("CERTIFICATE_INSPECTOR", "Certificate Inspector", "فاحص الشهادات", "Inspect X.509 certificate fields", "افحص حقول شهادات X.509", ServiceArt.KEY, "certificate_inspector", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("ARCHIVE", "Archive", "الأرشيف", "Create authenticated encrypted archives", "أنشئ أرشيفات مشفرة موثقة", ServiceArt.ENCRYPT, "archive", ServiceStatus.IMPLEMENTED, true),
-        ServiceDef("LOCAL_TRANSFER", "Local Transfer", "نقل محلي", "Move sealed packages nearby", "انقل الحزم المختومة قريبًا", ServiceArt.KEY, null, ServiceStatus.DESIGN_ONLY, false),
+        ServiceDef("LOCAL_TRANSFER", "Local Transfer", "نقل محلي", "Move sealed packages nearby", "انقل الحزم المختومة قريبًا", ServiceArt.KEY, "local_transfer", ServiceStatus.BLOCKED, false),
         ServiceDef("FINGERPRINT_VERIFY", "Fingerprint Verify", "تحقق البصمة", "Compare key fingerprints", "قارن بصمات المفاتيح", ServiceArt.KEY, "fingerprint_verify", ServiceStatus.IMPLEMENTED, true),
         ServiceDef("METADATA_CLEANER", "Metadata Cleaner", "منظف البيانات الوصفية", "Strip metadata before sharing", "أزل البيانات الوصفية قبل المشاركة", ServiceArt.ENCRYPT, null, ServiceStatus.DESIGN_ONLY, false),
         ServiceDef("CLIPBOARD_GUARD", "Clipboard Guard", "حارس الحافظة", "Inspect and clear clipboard exposure", "افحص وامسح تعرض الحافظة", ServiceArt.PRIVACY, "clipboard_guard", ServiceStatus.IMPLEMENTED, false),
