@@ -1,7 +1,7 @@
 # TASK 000 — Forensic Baseline, Preservation & Integration Verification
 
 ## Status
-IN_PROGRESS (this audit).
+IMPLEMENTED_VERIFIED (baseline established, docs committed & pushed; program continues with TASK 001).
 
 ## Priority
 P0.
@@ -33,8 +33,9 @@ Repository identity, working-tree safety, HEAD/remote SHAs, active worktrees, un
 - [x] Unique work classified.
 - [x] Disk space recorded.
 - [x] Baseline test evidence recorded (449 pass in QA env).
-- [ ] Master execution prompt written (`08_MASTER_EXECUTION_PROMPT.md`).
-- [ ] Changes committed on safe branch.
+- [x] Master execution prompt written (`08_MASTER_EXECUTION_PROMPT.md`).
+- [x] Changes committed on safe branch (commit 5308bfa3da25f6d8de3289c4a5c1e19643f8e6f2).
+- [x] Pushed to `origin/traycer/nimble-dolphin`.
 
 ## Gates
 - CODE_GATE: docs created. PASS (this pass).
