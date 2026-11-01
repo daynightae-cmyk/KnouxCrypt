@@ -18,6 +18,7 @@ import com.knoux.crypt.ui.HashIntegrityScreen
 import com.knoux.crypt.ui.HmacLabScreen
 import com.knoux.crypt.ui.HomeScreen
 import com.knoux.crypt.ui.KeyDerivationScreen
+import com.knoux.crypt.ui.KeyDetailsScreen
 import com.knoux.crypt.ui.KeyForgeScreen
 import com.knoux.crypt.ui.NotesScreen
 import com.knoux.crypt.ui.PackageInspectorScreen
@@ -207,6 +208,16 @@ fun KnouxNavHost(
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
                 isUnlocked = container.session.isUnlocked,
                 onSensitiveCopy = { value -> scope.launch { container.clipboard.copySensitive(value) } },
+                onOpenDetails = { nav.navigate("key_details") },
+            )
+        }
+        composable("key_details") {
+            KeyDetailsScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+                onOpenForge = { nav.navigate("key_forge") },
+                onOpenRotation = { nav.navigate("key_rotation") },
             )
         }
         composable("key_derivation") {

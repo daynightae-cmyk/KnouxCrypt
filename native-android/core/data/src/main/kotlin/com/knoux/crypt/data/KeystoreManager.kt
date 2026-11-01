@@ -6,6 +6,7 @@ import android.security.keystore.KeyInfo
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
 import java.security.KeyStore
+import javax.crypto.SecretKeyFactory
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -38,6 +39,60 @@ class KeystoreManager {
 
     fun hasMasterKey(): Boolean =
         runCatching { store().containsAlias(MASTER_ALIAS) }.getOrDefault(false)
+
+    /**
+     * Platform-reported metadata for the master key (TASK 13). It never
+     * returns key material: only what [android.security.keystore.KeyInfo]
+     * exposes about a key that cannot be exported in the first place.
+     */
+    fun masterKeyDetails(): KeystoreKeyDetails? {
+        val keyStore = store()
+        val key = runCatching { keyStore.getKey(MASTER_ALIAS, null) as? SecretKey }.getOrNull() ?: return null
+        val factory = runCatching { SecretKeyFactory.getInstance(key.algorithm, ANDROID_KEYSTORE) }.getOrNull()
+        val info = runCatching { factory?.getKeySpec(key, KeyInfo::class.java) as? KeyInfo }.getOrNull()
+        val protection = when {
+            info == null -> KeyProtectionLevel.UNKNOWN
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> when (info.securityLevel) {
+                KeyProperties.SECURITY_LEVEL_STRONGBOX -> KeyProtectionLevel.STRONGBOX
+                KeyProperties.SECURITY_LEVEL_TRUSTED_ENVIRONMENT -> KeyProtectionLevel.TRUSTED_ENVIRONMENT
+                KeyProperties.SECURITY_LEVEL_SOFTWARE -> KeyProtectionLevel.SOFTWARE
+                else -> KeyProtectionLevel.UNKNOWN
+            }
+            info.isInsideSecureHardware -> KeyProtectionLevel.TRUSTED_ENVIRONMENT
+            else -> KeyProtectionLevel.SOFTWARE
+        }
+        // KeyInfo reports the protection class but not StrongBox or
+        // unlocked-device flags directly; StrongBox follows from the security
+        // level, and the unlocked-device requirement is what the key was
+        // created with, not something the platform confirms back.
+        val strongBox = protection == KeyProtectionLevel.STRONGBOX
+        val unlockedDeviceRequested = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+        return KeystoreKeyDetails(
+            alias = MASTER_ALIAS,
+            algorithm = key.algorithm,
+            keySizeBits = runCatching { info?.keySize }.getOrNull()?.takeIf { it > 0 },
+            purposes = purposesOf(info?.purposes),
+            protection = protection,
+            insideSecureHardware = runCatching { info?.isInsideSecureHardware == true }.getOrDefault(false),
+            strongBoxBacked = strongBox,
+            userAuthenticationRequired = runCatching { info?.isUserAuthenticationRequired == true }.getOrDefault(false),
+            userAuthenticationValiditySeconds = runCatching {
+                info?.userAuthenticationValidityDurationSeconds
+            }.getOrNull()?.takeIf { it >= 0 },
+            unlockedDeviceRequiredRequested = unlockedDeviceRequested,
+        )
+    }
+
+    /** Maps the platform purpose flags to stable labels. */
+    private fun purposesOf(flags: Int?): List<String> {
+        if (flags == null) return listOf(KeyPurposes.ENCRYPT, KeyPurposes.DECRYPT)
+        val purposes = ArrayList<String>(4)
+        if (flags and KeyProperties.PURPOSE_ENCRYPT != 0) purposes += KeyPurposes.ENCRYPT
+        if (flags and KeyProperties.PURPOSE_DECRYPT != 0) purposes += KeyPurposes.DECRYPT
+        if (flags and KeyProperties.PURPOSE_SIGN != 0) purposes += KeyPurposes.SIGN
+        if (flags and KeyProperties.PURPOSE_VERIFY != 0) purposes += KeyPurposes.VERIFY
+        return purposes.ifEmpty { listOf(KeyPurposes.ENCRYPT, KeyPurposes.DECRYPT) }
+    }
 
     @Synchronized
     internal fun masterKey(): SecretKey {

@@ -207,6 +207,30 @@ class VaultKeyManager(
         return registry.activeVersion()
     }
 
+    /**
+     * Integrity fingerprint of the local keyring (TASK 13). It covers the
+     * wrapped record-data-key blobs as stored; the blobs never leave the
+     * device, so this detects local tampering and unexpected re-wraps, and it is
+     * explicitly not a shareable key identity.
+     */
+    suspend fun keyringFingerprint(access: VaultAccess): String? {
+        session.requireValid(access)
+        val versions = registry.versions()
+        if (versions.isEmpty()) return null
+        val blobs = LinkedHashMap<Int, ByteArray>()
+        versions.forEach { version ->
+            registry.wrappedKey(version)?.let { blobs[version] = it }
+        }
+        if (blobs.isEmpty()) return null
+        return KeyRingFingerprint.compute(VaultKeyAliases.MASTER, blobs)
+    }
+
+    /** The wrapped blob for one data-key version, or null when absent. */
+    suspend fun wrappedKeyBlob(access: VaultAccess, version: Int): ByteArray? {
+        session.requireValid(access)
+        return registry.wrappedKey(version)
+    }
+
     internal suspend fun keyFor(access: VaultAccess, version: Int): SecretKey {
         session.requireValid(access)
         if (version == LEGACY_KEY_VERSION) return session.key(access)

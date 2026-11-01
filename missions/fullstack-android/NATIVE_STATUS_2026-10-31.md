@@ -60,7 +60,7 @@ Test distribution (current): security 58 (FileEnvelope 13 + KNF2 8 + Hashing 3 +
 | 10 | Authenticator | **BUILD_VERIFIED + TOTP TESTED (RFC 6238)**; device clock/UI open |
 | 11 | Auth import | **SOURCE_IMPLEMENTED + JVM_TESTED (13) + RULES DEVICE_VERIFIED (1 instrumented) — UI DEVICE_UNVERIFIED**: otpauth TOTP + bounded migration protobuf parser, ZXing image picker, CameraX scanner, per-account preview, duplicate Skip/Replace, atomic batch commit, typed refusals for HOTP/MD5/malformed |
 | 12 | Key Forge | **BUILD_VERIFIED** (ephemeral key only); persistent keyring open |
-| 13 | Key details | PLANNED |
+| 13 | Key details | **SOURCE_IMPLEMENTED + JVM_TESTED (4) + METADATA DEVICE_VERIFIED (1 instrumented) — SCREEN DEVICE_UNVERIFIED**: real Keystore alias/algorithm/purposes/protection class from KeyInfo, keyring integrity fingerprint, honest "no public key / signing unsupported" states, rotation delegated to the existing authorized wizard |
 | 14 | Privacy Center | **BUILD_VERIFIED** (UI); security review open |
 | 15 | Backup / Recovery | **PARTIAL / BUILD_VERIFIED + TESTED_LOCAL (10)**: KNP2/Argon2id data export & conflict-safe restore; rotation exists separately but the root is retained and gate recovery is absent; SAF **DEVICE_UNVERIFIED** |
 | 16 | Secure share | PLANNED |
@@ -92,7 +92,7 @@ Test distribution (current): security 58 (FileEnvelope 13 + KNF2 8 + Hashing 3 +
 | 42 | Session privacy controls | **BUILD_VERIFIED + JVM_TESTED policy (2) — DEVICE_UNVERIFIED**: configurable auto-lock, screen-off lock, clipboard timeout + lock clear, screenshot policy, app-switch cover, mutation/revocation serialization |
 | 43 | File integrity tool | **BUILD_VERIFIED + JVM_TESTED (hash vectors) — DEVICE_UNVERIFIED**: streaming SHA-256, checksum validation, match/mismatch evidence, cancel, in-memory reports, dedicated `file_integrity` route reusing Hash & Integrity |
 | 44 | Secure clipboard | **BUILD_VERIFIED + JVM_TESTED (policy) — DEVICE_UNVERIFIED**: managed copy action, hidden staged value, timeout/clear, guard linkage; no guaranteed erasure |
-| 45 | Final integration/verification | **SOURCE-LEVEL AUDIT DONE / DEVICE PARTIALLY VERIFIED / RELEASE_BLOCKED / AUDIT_PENDING**: 34 Tools destinations (17 implemented / 17 design-only) plus the non-catalog `password_detail` and `auth_import` routes; 196 JVM tests and 11 instrumented tests passing on one Android 15 handset; device/signing/audit/visual gates remain open |
+| 45 | Final integration/verification | **SOURCE-LEVEL AUDIT DONE / DEVICE PARTIALLY VERIFIED / RELEASE_BLOCKED / AUDIT_PENDING**: 34 Tools destinations (17 implemented / 17 design-only) plus the non-catalog `password_detail`, `auth_import` and `key_details` routes; 200 JVM tests and 12 instrumented tests passing on one Android 15 handset; device/signing/audit/visual gates remain open |
 
 Catalog accounting: 34 destinations total = **17 IMPLEMENTED**, **0 BLOCKED**, **17 DESIGN_ONLY** (Recovery is implemented for encrypted data export/restore; gate recovery remains out of scope. Key rotation is an internal Account wizard, not a new Tools destination. Password Audit is a Tools destination added by TASK 36). Eight Home cards preserved in the accepted order.
 
@@ -127,6 +127,26 @@ Catalog accounting: 34 destinations total = **17 IMPLEMENTED**, **0 BLOCKED**, *
 2. **Remaining vertical slices:** 05 Vault/Shadow Vault, 07 Notes editor, 11 Auth import (dependency-ready), 19 Signatures, 21 Archive, 28 QR, 30 Document viewer, 33 Autofill, remaining design-only services.
 3. **Device gate:** follow `DEVICE_VERIFICATION_CHECKLIST.md`; install `app-debug.apk`, run all instrumented classes (access, Keystore record/KDK1/KNF2, Room migration), test privacy timing/clipboard/screen capture, HMAC/file integrity/package inspector, then capture Compose screenshots at 360/390/441 widths in EN/AR and compare against canonical references.
 4. **Quality gate:** detekt/ktlint, dependency locking, CVE scan, R8 shrinking (BouncyCastle adds 3.18 MB), and a real CI workflow (the PR14 template remains uninstalled).
+
+## TASK 13 key details — 2026-11-01
+
+- `KeystoreManager.masterKeyDetails()` reports the platform's own view of the vault key: alias,
+  algorithm and size from `KeyInfo`, the returned purpose flags, the protection class
+  (StrongBox / trusted environment / software) and the user-authentication flag. The unlocked-device
+  row is labelled "requested at creation" because `KeyInfo` does not report it back, and no
+  creation date is shown because Keystore entries do not expose one.
+- A symmetric, non-exportable key has no public key, so the screen keeps "View public key" and
+  "Verify a signature" disabled with the reason on screen instead of inventing an identity. The
+  keyring fingerprint is a SHA-256 over the alias and the wrapped data keys as stored: an integrity
+  signal, not a shareable identity, never transmitted.
+- Rotation reuses the existing authorized wizard; no second engine. Key Forge gained the entry
+  point so the approved Key Forge page can reach the details.
+- Verification: **200 JVM tests, 0 failures** (+4); `:core:data:connectedDebugAndroidTest`
+  **12/12 PASS** on the itel S686LN including `KeyDetailsDeviceTest`, which asserts the platform
+  really answers with alias/AES/256-bit/encrypt+decrypt and a concrete protection class; lint
+  0 errors; APK installed and cold-started without crash-buffer entries.
+- Screen layout, RTL and the rotation hand-off stay **DEVICE_UNVERIFIED** (they need an unlocked
+  session). This batch is still isolated on the branch; no merge into `main` was performed.
 
 ## Living stag, cinematic audio, adaptive icon, TASK 11 import — 2026-11-01
 

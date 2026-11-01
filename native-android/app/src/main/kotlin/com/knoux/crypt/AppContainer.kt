@@ -24,7 +24,7 @@ class AppContainer(context: Context) {
     private val appContext = context.applicationContext
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val database = DatabaseProvider.create(appContext)
-    private val keystore = KeystoreManager()
+    val keystore = KeystoreManager()
 
     val session = SessionManager(keystore)
     /** Application-scoped so screens can preview sounds; MainActivity drives lifecycle. */
