@@ -49,15 +49,59 @@ const ACCEPTED = {
   },
 };
 
+/**
+ * Locate the npm CLI as a JavaScript file we can hand to `process.execPath`.
+ *
+ * A bare `npm` cannot be execFile'd on Windows (it is a .cmd shim), and the
+ * previous fallback here was wrong on POSIX: it looked in
+ * `<dirname(process.execPath)>/node_modules/npm/bin/npm-cli.js`, which is the
+ * right shape for a Windows install but resolves to `/usr/local/bin/node_modules`
+ * on Linux/macOS, where npm actually sits under `/usr/local/lib/node_modules`.
+ * So `node scripts/check-dependency-security.cjs`, run directly without
+ * npm_execpath in the environment, could not find npm at all there. Every
+ * candidate is existence-checked and the first real one wins; if none match,
+ * the function returns null and the caller execFile()s `npm` on PATH, which is
+ * valid on POSIX.
+ */
+function findNpmCli() {
+  const candidates = [];
+  if (process.env.npm_execpath) candidates.push(process.env.npm_execpath);
+  const bin = path.dirname(process.execPath);
+  const suffix = ["node_modules", "npm", "bin", "npm-cli.js"];
+  candidates.push(path.join(bin, ...suffix)); // Windows install layout
+  candidates.push(path.join(bin, "..", "lib", ...suffix)); // POSIX /usr/local/lib
+  candidates.push(path.join(bin, "..", ...suffix)); // nvm and other layouts
+  candidates.push(path.join(process.env.PREFIX || "", ...suffix));
+  return candidates.find((candidate) => candidate && fs.existsSync(candidate)) || null;
+}
+
 function readReport(argPath) {
   if (argPath && fs.existsSync(argPath)) return JSON.parse(fs.readFileSync(argPath, "utf8"));
   // `npm audit` exits non-zero when findings exist; the JSON on stdout is still
   // the report we want, so read it from the thrown error rather than failing.
+  const npmCli = findNpmCli();
+  const argv = npmCli
+    ? { file: process.execPath, args: [npmCli, "audit", "--json"] }
+    : { file: "npm", args: ["audit", "--json"] };
   try {
-    return JSON.parse(execFileSync("npm", ["audit", "--json"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }));
+    return JSON.parse(
+      execFileSync(argv.file, argv.args, {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      }),
+    );
   } catch (err) {
-    if (err.stdout) return JSON.parse(err.stdout);
-    throw err;
+    if (err.stdout) {
+      try {
+        return JSON.parse(err.stdout);
+      } catch {
+        /* npm printed something that is not a report; fall through */
+      }
+    }
+    throw new Error(
+      `Could not run npm audit. Tried ${npmCli || "npm on PATH"} (${argv.file}). ` +
+        `${err.shortMessage || err.message}`,
+    );
   }
 }
 

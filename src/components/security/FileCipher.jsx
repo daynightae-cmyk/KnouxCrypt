@@ -13,6 +13,7 @@ const ERROR_COPY = {
   PATH_CONFLICT: "The output file already exists. Choose another destination.",
   NOT_FOUND: "The selected file no longer exists.",
   IO_FAILED: "The operation could not be written to disk.",
+  PERMISSION_DENIED: "This user is not allowed to write there. Choose another destination or grant permission in the folder's Security tab.",
   SESSION_REQUIRED: "Unlock the vault before encrypting or decrypting.",
   SESSION_REVOKED: "Your session was revoked. Unlock again to continue.",
   CANCELLED: "Operation cancelled. No output file was written.",

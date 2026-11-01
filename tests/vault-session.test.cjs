@@ -14,6 +14,7 @@ const path = require("path");
 
 const { VaultSessionManager } = require("../electron/vault/session");
 const { CODES } = require("../electron/vault/errors");
+const acl = require("../electron/vault/acl");
 
 const FAST = { iterations: 100000 };
 const PASSWORD = "correct horse battery staple";
@@ -48,9 +49,26 @@ test("enrollment then unlock issues a real session with a key", async () => {
   assert.ok(enrolled.sessionId);
   assert.equal(await manager.isEnrolled(), true);
 
-  // Enrollment record is written with owner-only permissions.
-  const mode = (await fsp.stat(enrollmentPath)).mode & 0o777;
-  assert.equal(mode, 0o600, `expected 0600, got ${mode.toString(8)}`);
+  // The enrollment record must be confined to this user. Asserted against the
+  // mechanism the platform actually enforces: a NTFS DACL on Windows, the mode
+  // bits on POSIX. Checking `stat().mode` on Windows would compare a value libuv
+  // synthesises from the read-only attribute — 0o666 for a normal file even
+  // after chmod(0o600) — and so would report the wrong thing in both
+  // directions: a false failure here, and a false pass on a file whose DACL
+  // really does grant BUILTIN\Users read access.
+  const verdict = await acl.isProtected(enrollmentPath, { exhaustive: true });
+  assert.equal(
+    verdict.ok,
+    true,
+    `enrollment record must be confined to its owner (${verdict.mechanism}): ${verdict.detail}`,
+  );
+  // The directory holding it too, so a record written by a later release
+  // inherits the same confinement.
+  const dirVerdict = await acl.isProtected(dir, { exhaustive: true });
+  assert.equal(dirVerdict.ok, true, `enrollment directory must be owner-only: ${dirVerdict.detail}`);
+  if (process.platform !== "win32") {
+    assert.equal((await fsp.stat(enrollmentPath)).mode & 0o777, 0o600, "POSIX mode must be 0600");
+  }
 
   manager.lockAll();
   const unlocked = await manager.unlock(PASSWORD);

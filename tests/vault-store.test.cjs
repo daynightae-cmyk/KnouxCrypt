@@ -20,6 +20,7 @@ const { VaultSessionManager } = require("../electron/vault/session");
 const { EncryptedStore } = require("../electron/vault/store");
 const { KDF } = require("../electron/vault/kdf");
 const { CODES } = require("../electron/vault/errors");
+const acl = require("../electron/vault/acl");
 
 const PASSWORD = "correct horse battery staple";
 
@@ -252,12 +253,30 @@ test("an empty store file is treated as an empty collection", async () => {
   assert.deepEqual(records, []);
 });
 
-test("the store directory is not world-readable", async () => {
+test("the store is confined to its owner, not merely mode-restricted", async () => {
   const { dir, service, sessionId } = await unlocked();
   await service.storePut(sessionId, "notes", note("perm", "Perms"));
   const file = path.join(dir, "vault-store", "notes.knx");
-  const mode = fs.statSync(file).mode & 0o777;
-  assert.equal(mode & 0o077, 0, `store file must not be group/world accessible, got ${mode.toString(8)}`);
+
+  // "Not world-readable" is a POSIX way of asking a question that Windows
+  // answers with an ACL. On Windows the mode bits say 0o666 for essentially
+  // every file and are derived from the read-only attribute, so they carry no
+  // confidentiality information; the inherited DACL, which grants
+  // BUILTIN\Users:(RX) and Authenticated Users:(M) by default, is what decides
+  // who can read a sealed collection.
+  const fileVerdict = await acl.isProtected(file, { exhaustive: true });
+  assert.equal(fileVerdict.ok, true, `sealed collection must be owner-only (${fileVerdict.mechanism}): ${fileVerdict.detail}`);
+  const dirVerdict = await acl.isProtected(path.join(dir, "vault-store"), { exhaustive: true });
+  assert.equal(dirVerdict.ok, true, `store directory must be owner-only: ${dirVerdict.detail}`);
+
+  if (process.platform !== "win32") {
+    const mode = fs.statSync(file).mode & 0o777;
+    assert.equal(mode & 0o077, 0, `store file must not be group/world accessible, got ${mode.toString(8)}`);
+  }
+
+  // The point of the ACL is confidentiality, so prove the file is still
+  // ciphertext: an owner-only file that leaked plaintext would pass above.
+  assert.equal(fs.readFileSync(file).includes(Buffer.from("Perms")), false, "the title must not be on disk in plaintext");
 });
 
 test("a random byte string is not mistaken for a store", async () => {

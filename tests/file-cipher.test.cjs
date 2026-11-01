@@ -21,6 +21,7 @@ const { VaultSessionManager } = require("../electron/vault/session");
 const { VaultEngine } = require("../electron/vault/engine");
 const { CODES } = require("../electron/vault/errors");
 const { KDF } = require("../electron/vault/kdf");
+const acl = require("../electron/vault/acl");
 
 const PASSWORD = "correct horse battery staple";
 
@@ -278,25 +279,60 @@ test("a missing input file reports NOT_FOUND", async () => {
 });
 
 test("an unwritable destination fails cleanly and leaves no partial output", async (t) => {
-  if (process.getuid && process.getuid() === 0) {
-    t.skip("running as root: directory permissions are not enforced");
+  if (process.platform !== "win32" && process.getuid && process.getuid() === 0) {
+    t.skip("running as root: POSIX write bits are not enforced against root");
     return;
   }
   const { dir, service, sessionId } = await unlocked();
   const input = writeFixture(dir, "readonly-src.bin", crypto.randomBytes(200000));
   const locked = path.join(dir, "locked-dir");
-  fs.mkdirSync(locked, { mode: 0o500 });
+  fs.mkdirSync(locked, { recursive: true, mode: 0o500 });
   const target = path.join(locked, "out.knv");
 
   try {
+    // Use whatever the platform truly enforces. `chmod 0o500` on a directory is
+    // not a Windows denial at all — libuv maps the mode onto the read-only
+    // attribute, so writes keep succeeding and this test was failing for the
+    // right reason: the app had never been shown a real denial on Windows. Here
+    // it is an explicit NTFS DENY ACE for WriteData/AddFile, which Windows
+    // evaluates before the owner's Allow ACE.
+    const denial = await acl.denyChildCreation(locked);
+    if (process.platform === "win32") {
+      assert.equal(denial.mechanism, "ntfs-deny-ace", "Windows denial must come from an ACL, not a mode");
+    }
+
+    // Fail if the platform did not actually refuse, otherwise the assertions
+    // below would pass without exercising the error path at all.
+    let refused = false;
+    try {
+      fs.writeFileSync(path.join(locked, "sanity.tmp"), Buffer.from("x"));
+    } catch {
+      refused = true;
+    }
+    assert.ok(refused, "the harness must genuinely deny writes to this directory");
+
     const code = await codeOf(service.encryptFile({ sessionId, inputPath: input, outputPath: target, operationId: "ro1" }));
-    assert.ok(code !== null, "writing into an unwritable directory must fail");
+    assert.equal(code, CODES.PERMISSION_DENIED, "a platform denial must be reported as its own condition, not a generic failure");
     assert.equal(fs.existsSync(target), false, "no partial output may exist");
     const leftovers = fs.readdirSync(locked).filter((name) => name.endsWith(".tmp"));
     assert.deepEqual(leftovers, [], "no temp file may be left behind");
   } finally {
+    // Leave the tree deletable: on Windows a chmod cannot undo an ACE.
+    await acl.allowChildCreation(locked).catch(() => {});
     fs.chmodSync(locked, 0o700);
   }
+});
+
+test("an encrypted output is confined to its owner", async () => {
+  const { dir, service, sessionId } = await unlocked();
+  const input = writeFixture(dir, "ro-src.bin", crypto.randomBytes(10000));
+  const output = path.join(dir, "ro-out.knv");
+  await service.encryptFile({ sessionId, inputPath: input, outputPath: output, operationId: "ro2" });
+  assert.ok(fs.existsSync(output));
+  const verdict = await acl.isProtected(output, { exhaustive: true });
+  assert.equal(verdict.ok, true, `encrypted container must be owner-only: ${verdict.detail}`);
+  // The source, which the app did not create, is left exactly as it was.
+  assert.ok(fs.existsSync(input));
 });
 
 test("the destination directory must already exist", async () => {

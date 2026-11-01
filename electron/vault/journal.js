@@ -13,8 +13,10 @@
  *     entry, so a deleted, reordered or edited entry breaks the chain and is
  *     reported as detected tampering.
  *   - Keyed: each entry is also HMAC-SHA256 sealed with a device journal key
- *     kept in a separate 0600 file, so a naive edit of the journal alone is
- *     detected even though the chain alone would be forgeable.
+ *     kept in a separate file confined to this user — POSIX mode 0600, and on
+ *     Windows an owner-only NTFS DACL, because the mode bits do not control
+ *     access there. A naive edit of the journal alone is therefore detected
+ *     even though the hash chain by itself would be forgeable.
  *
  * What this is NOT (and the UI says so):
  *   - Not an immutable audit trail. An attacker who can rewrite BOTH the
@@ -33,6 +35,7 @@ const fsp = require("fs/promises");
 const path = require("path");
 
 const { VaultError, CODES, badInput } = require("./errors");
+const { protectFileSync, ensureProtectedSync } = require("./acl");
 
 const JOURNAL_VERSION = 1;
 const MAX_ENTRIES = 500;
@@ -134,7 +137,12 @@ class SecurityJournal {
     } catch {
       this._key = crypto.randomBytes(32);
       fs.mkdirSync(path.dirname(this.keyFile), { recursive: true });
+      // Confine the directory before the key exists, then the key itself:
+      // a new file inherits its DACL, so sealing the parent first leaves no
+      // window where another local user could read the chain key.
+      ensureProtectedSync(path.dirname(this.keyFile));
       fs.writeFileSync(this.keyFile, this._key, { mode: 0o600 });
+      protectFileSync(this.keyFile, false);
     }
     return this._key;
   }

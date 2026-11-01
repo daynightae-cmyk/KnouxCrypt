@@ -22,6 +22,7 @@ const path = require("path");
 
 const { VaultService } = require("../electron/vault/service");
 const { CODES } = require("../electron/vault/errors");
+const acl = require("../electron/vault/acl");
 const { SecretCapsule, CAPSULE_FORMAT } = require("../electron/vault/capsule");
 const { IntegrityBaseline } = require("../electron/vault/integrity");
 const { ClipboardGuard } = require("../electron/vault/clipboard");
@@ -124,8 +125,14 @@ test("capsule: saving writes an owner-only file atomically and refuses a missing
   const saved = await service.capsuleSave({ envelopeText: created.envelopeText, outputPath: target });
   assert.equal(saved.saved, true);
   assert.ok(fs.existsSync(target));
+  // Previously gated behind `process.platform !== "win32"`, which meant the
+  // capsule's "owner-only" claim was simply never tested on the platform where
+  // the claim was most likely to be false. Assert it on both, against each
+  // platform's real mechanism.
+  const verdict = await acl.isProtected(target, { exhaustive: true });
+  assert.equal(verdict.ok, true, `the capsule file must be confined to its owner (${verdict.mechanism}): ${verdict.detail}`);
   if (process.platform !== "win32") {
-    assert.equal(fs.statSync(target).mode & 0o777, 0o600, "the capsule file is owner-only");
+    assert.equal(fs.statSync(target).mode & 0o777, 0o600, "POSIX mode must be exactly 0600");
   }
   assert.equal(JSON.parse(fs.readFileSync(target, "utf8")).header.format, CAPSULE_FORMAT);
 

@@ -12,6 +12,7 @@ const path = require("path");
 const fsp = require("fs/promises");
 
 const { VaultError, CODES } = require("./errors");
+const { ensureProtected, protectFile, isPermissionDenial, protectionStatus, harden } = require("./acl");
 const { VaultEngine } = require("./engine");
 const { VaultSessionManager } = require("./session");
 const { EncryptedStore } = require("./store");
@@ -73,10 +74,22 @@ async function atomicWrite(targetPath, bytes) {
   const dir = path.dirname(targetPath);
   const tmp = path.join(dir, `.${path.basename(targetPath)}.knoux-${crypto.randomBytes(6).toString("hex")}.tmp`);
   try {
+    // Only the file being written is confined — never the directory it lands in.
+    // These calls write to user-chosen destinations (archive export, archive
+    // extract, metadata-cleaned copies), and relabelling that directory would
+    // revoke other users' access to everything else in it. Extracting an archive
+    // into a folder the user shares with a colleague is a normal thing to do and
+    // must not quietly turn that share private.
     await fsp.writeFile(tmp, bytes, { mode: 0o600 });
+    await protectFile(tmp);
     await fsp.rename(tmp, targetPath);
+    await protectFile(targetPath);
   } catch (err) {
     await fsp.rm(tmp, { force: true }).catch(() => {});
+    if (err instanceof VaultError) throw err;
+    if (isPermissionDenial(err)) {
+      throw new VaultError(CODES.PERMISSION_DENIED, "The output location does not allow this user to write");
+    }
     throw new VaultError(CODES.IO_FAILED, "The output file could not be written");
   }
 }
@@ -250,6 +263,77 @@ class VaultService {
       this.viewer.closeAll(event.sessionId).catch(() => {});
       this._journal("Session", `Session revoked (${event.reason})`, "info", { reason: event.reason });
     };
+
+    // Confidentiality on Windows is a DACL question, not a mode question, so the
+    // vault's own root is confined to this user as soon as the service exists.
+    // Children created afterwards inherit that DACL, and Windows propagates it
+    // to children that are already there — one call, not a tree walk.
+    this.fileProtection = this._sealVaultRoots();
+  }
+
+  /**
+   * Confine the vault's userData root (and therefore every sealed store,
+   * collection, document and journal beneath it) to the current user.
+   * Resolves to a status object; never rejects, because failing to harden is a
+   * condition to report through Security Activity, not a reason to lose the
+   * user's data.
+   */
+  async _sealVaultRoots() {
+    const root = this.userDataPath;
+    if (typeof root !== "string" || !path.isAbsolute(root)) {
+      return { sealed: false, reason: "no-absolute-user-data-path" };
+    }
+    // Refuse to relabel the working directory: tests and tooling sometimes build
+    // a service over a relative or repository path, and applying an owner-only
+    // DACL there would be an unrelated, destructive change.
+    if (path.resolve(root) === path.resolve(process.cwd())) {
+      return { sealed: false, reason: "refused-cwd" };
+    }
+    try {
+      const stat = await fsp.stat(root);
+      if (!stat.isDirectory()) return { sealed: false, reason: "not-a-directory" };
+    } catch {
+      return { sealed: false, reason: "missing" };
+    }
+
+    // A directory that already holds material is the case that needs the
+    // exhaustive pass: it may have been created by an earlier release, or by
+    // another tool, under a DACL that granted BUILTIN\Users read access.
+    // harden() enumerates every trustee and, if something foreign is found,
+    // replaces the DACL outright. An empty root only needs the cheap grant,
+    // because everything created afterwards inherits it.
+    let occupants = [];
+    try {
+      occupants = await fsp.readdir(root);
+    } catch {
+      occupants = [];
+    }
+    const exhaustive = occupants.length > 0;
+    const result = exhaustive ? await harden(root, { isDirectory: true }) : await ensureProtected(root);
+
+    const enrollment = path.join(root, "vault-enrollment.json");
+    let enrollmentResult = { skipped: true };
+    if (occupants.includes("vault-enrollment.json")) {
+      // A record left by an earlier release: remediate it the same way.
+      enrollmentResult = await harden(enrollment, { isDirectory: false });
+    }
+    // A record that does not exist yet needs nothing here: session.enroll
+    // confines its own directory before writing and then the file itself.
+
+    return {
+      sealed: Boolean(result.applied),
+      cached: Boolean(result.cached),
+      exhaustive,
+      verified: Boolean(result.verified),
+      repaired: Boolean(result.repaired),
+      enrollmentSealed: enrollmentResult.skipped ? "not-yet" : Boolean(enrollmentResult.applied),
+      reason: result.reason,
+    };
+  }
+
+  /** What the ACL layer actually did, for the security posture screen. */
+  fileSecurity() {
+    return protectionStatus();
   }
 
   _emitTransfer(event) {
