@@ -35,7 +35,7 @@ Classification: **SOURCE_IMPLEMENTED + JVM_TESTED + CRYPTO DEVICE_VERIFIED — S
 | JVM | **207 tests, 0 failures** (security 97, data 93, app 17 — includes the new `DigitalSignatureServiceTest` 7) |
 | Instrumented (itel S686LN, Android 15) | **13/13 PASS**, including `SigningDeviceTest.signingWorksOnThisDeviceAndThePrivateKeyStaysEncrypted` — the device signs, the exported public key verifies, altered content does not verify, and the stored row carries no private key material |
 | Lint | 0 errors (18 warnings + 1 hint app, 10 warnings core:data) |
-| APK | clean build **19,712,121 bytes**, SHA-256 `4f48d6d0a44e0440d55c850a56dea265ab77e7fe2729d0778dacbc8907fa2057`; installed, cold start alive, crash buffer empty |
+| APK | clean build, SHA-256 `4f48d6d0a44e0440d55c850a56dea265ab77e7fe2729d0778dacbc8907fa2057`; installed, cold start alive, crash buffer empty. The "19,712,121 bytes" that used to sit in this row was a stale figure copied from another build and the output has since been overwritten, so no size is claimed for it — see `../APK_ARTIFACT_RECONCILIATION_2026-11-01.md` |
 
 ## Not verified / limits
 

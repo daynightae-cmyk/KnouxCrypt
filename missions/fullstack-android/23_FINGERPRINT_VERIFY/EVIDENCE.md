@@ -26,7 +26,7 @@ Classification: **SOURCE_IMPLEMENTED + JVM_TESTED + QR CODE DEVICE_VERIFIED — 
 | JVM | **212 tests, 0 failures** (security 102, data 93, app 17); new `KeyFingerprintTest` 5 |
 | Instrumented (itel S686LN) | `:core:data` **13/13 PASS**; `:app` QR round-trip test **PASS** — the generated code decodes back to exactly the encoded `knouxkey:v1:` URI |
 | Lint | 0 errors |
-| APK | clean build **19,712,121 bytes**, SHA-256 `e03a0baf4de7144b5dc3da09a4e2721b64616e31b4e8e53bb0f1065ca69437ef`; installed, cold start alive, crash buffer empty |
+| APK | clean build **19,782,143 bytes** (re-measured from the installed artifact), SHA-256 `e03a0baf4de7144b5dc3da09a4e2721b64616e31b4e8e53bb0f1065ca69437ef`; installed, cold start alive, crash buffer empty. An earlier size figure in this row was stale — see `../APK_ARTIFACT_RECONCILIATION_2026-11-01.md` |
 
 ## Not verified / limits
 

@@ -36,7 +36,7 @@ Classification: **SOURCE_IMPLEMENTED + JVM_TESTED + METADATA DEVICE_VERIFIED —
 | JVM | **200 tests, 0 failures** (data 93, security 90, app 17); new `KeyDetailsTest` 4 |
 | Instrumented (itel S686LN, Android 15) | **12/12 PASS**, including `KeyDetailsDeviceTest.masterKeyMetadataComesFromTheRealKeystore` — the platform answers with the alias, AES, 256 bits, encrypt+decrypt purposes, a concrete protection class and no public key |
 | Lint / build | lint 0 errors; APK built and installed, cold start alive, crash buffer empty |
-| APK | clean build **19,712,121 bytes**, SHA-256 `99fd9daa219d2f1bd4ab7c52dc84a8f9c7b118f1538db6674f9e769f03bfb6de`; lint 0 errors |
+| APK | clean build, SHA-256 `99fd9daa219d2f1bd4ab7c52dc84a8f9c7b118f1538db6674f9e769f03bfb6de`; lint 0 errors. The "19,712,121 bytes" that used to sit in this row was a stale figure copied from another build and the output has since been overwritten, so no size is claimed for it — see `../APK_ARTIFACT_RECONCILIATION_2026-11-01.md` |
 
 ## Not verified / limits
 
