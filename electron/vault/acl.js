@@ -218,7 +218,27 @@ async function protectFile(filePath) {
   }
 }
 
+/**
+ * Refuse to relabel a directory that the application does not own.
+ *
+ * Everything here that touches a *directory* is meant for the vault's own roots.
+ * But several components derive their path from `userDataPath || "."`, so a
+ * service built without an explicit userDataPath would otherwise resolve to the
+ * process working directory and strip its inherited ACEs — on POSIX chmod 0700,
+ * on Windows a propagated DACL change — revoking access to a checkout, a shared
+ * project folder, or anything else the user keeps there. That is a far larger
+ * change than confining one vault file, and it is not what any caller asked for.
+ */
+function isProcessWorkingDirectory(target) {
+  const resolved = path.resolve(target);
+  const cwd = path.resolve(process.cwd());
+  return resolved === cwd;
+}
+
 async function protectDirectoryOnce(dirPath) {
+  if (isProcessWorkingDirectory(dirPath)) {
+    return note({ target: dirPath, kind: "directory", applied: false, refused: true, reason: "refused-cwd" });
+  }
   if (IS_WINDOWS) {
     const sid = await currentUserSid();
     if (!sid) {
@@ -269,7 +289,7 @@ async function protectDirectoryOnce(dirPath) {
  */
 async function protectDirectory(dirPath, { recursive = false } = {}) {
   if (!(await exists(dirPath))) {
-    return note({ target: dirPath, kind: "directory", applied: false, reason: "missing" });
+    return note({ target: dirPath, kind: "directory", applied: false, refused: true, reason: "missing" });
   }
   // Parents first: an intact parent grant is what makes a bad child ACL
   // recoverable with `icacls /reset`.
@@ -648,12 +668,19 @@ async function isProtected(target, { exhaustive = false } = {}) {
 }
 
 function protectionStatus() {
-  const failed = protectionLog.filter((e) => !e.applied);
+  // A refusal is not a failure. Declining to relabel the working directory, or
+  // finding the path already gone, is the intended outcome; counting it as a
+  // failure would make the security report say something had gone wrong when
+  // exactly what it should do had happened — and would let a real failure hide
+  // in the noise.
+  const refused = protectionLog.filter((e) => !e.applied && e.refused);
+  const failed = protectionLog.filter((e) => !e.applied && !e.refused);
   return {
     platform: process.platform,
     mechanism: IS_WINDOWS ? "ntfs-dacls" : "posix-mode",
     attempts: protectionLog.length,
     failures: failed.length,
+    refused: refused.length,
     lastFailures: failed.slice(-5),
   };
 }
@@ -740,6 +767,7 @@ function protectFileSync(filePath, isDirectory = false) {
 function ensureProtectedSync(dirPath) {
   const key = path.resolve(dirPath);
   if (protectedRoots.has(key)) return true;
+  if (isProcessWorkingDirectory(key)) return false;
   const applied = protectFileSync(key, true);
   if (applied) protectedRoots.add(key);
   return applied;

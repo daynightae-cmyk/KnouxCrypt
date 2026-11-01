@@ -686,12 +686,23 @@ class VaultEngine {
   }
 
   /**
-   * Open a temp output file, translating a platform write refusal into a typed
-   * error. Windows reports an NTFS DENY ACE on the parent as EPERM.
+   * Open a temp output file, translate a platform write refusal into a typed
+   * error, and confine it before any byte is written.
+   *
+   * The order matters more than it looks. On Windows `fsp.open(..., 0o600)` does
+   * not restrict anything, so the temp file inherits the destination directory's
+   * DACL — and for decryptFile that temp file is *plaintext*, open for the whole
+   * duration of a possibly multi-gigabyte operation. Protecting only the
+   * committed output, as the first version here did, leaves the recovered
+   * contents readable by every local user for the entire decryption. Confining
+   * the temp file right after the handle exists shrinks that to the interval
+   * between CreateFile and this call, which is the smallest window this API
+   * allows.
    */
   async _openTemp(tmp) {
+    let handle;
     try {
-      return await fsp.open(tmp, "wx", 0o600);
+      handle = await fsp.open(tmp, "wx", 0o600);
     } catch (err) {
       if (isPermissionDenial(err)) {
         throw new VaultError(CODES.PERMISSION_DENIED, "The output location does not allow this user to write", {
@@ -701,6 +712,8 @@ class VaultEngine {
       }
       throw err;
     }
+    await protectFile(tmp);
+    return handle;
   }
 
   async _atomicCommit(tmp, outputPath) {

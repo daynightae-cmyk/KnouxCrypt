@@ -144,7 +144,7 @@ checks:
   genuinely refuses, so it cannot pass by accident.
 - `tests/batch11-finaltools.test.cjs` — the `win32` guard removed.
 
-New `tests/file-protection.test.cjs` (13 tests) covers the mechanism, both
+New `tests/file-protection.test.cjs` (16 tests) covers the mechanism, both
 verification tiers, inheritance, pre-existing-child remediation, the empty-DACL
 regression, enrollment/store/output confinement through the real service, genuine
 denials for encryption and for the store, fail-closed behaviour, and the refusal
@@ -291,9 +291,52 @@ removed everything it created afterwards.
 | 3 | Insecure renderer CSP | fixed in `a4f9789`; **verified and extended here** (splash) |
 | 4 | electron-builder schema failure | fixed in `a4f9789`, builds |
 
-## 7. Status
+## 7. Review round on the pushed branch
 
-`WINDOWS_FILESYSTEM_SECURITY_VERIFIED_OWNER_ONLY_DACS`; 446 tests pass with none
+The agent review on PR #31 raised three findings after the first commit. Two were
+real defects **in this change** and are fixed; the third was the POSIX test issue
+already corrected independently.
+
+1. **`atomicWrite` relabelled the user's chosen output directory.** It called
+   `ensureProtected(dir)` before writing, and its three callers are archive
+   export, archive *extract*, and the metadata-cleaned copy — all destinations the
+   user picks. On POSIX that is `chmod 0700` on someone's shared folder; on
+   Windows the stripped, propagated DACL change reaches every other file in it.
+   Extracting an archive into a folder shared with a colleague must not silently
+   make that whole folder private. It now confines **only the file it writes**.
+   A regression test writes an archive into a deliberately world-readable folder
+   that already contains somebody else's file, and asserts the archive is
+   owner-only while the folder and the unrelated file are untouched.
+2. **`decryptFile` left recovered plaintext exposed for the whole operation.**
+   `_openTemp` created the sibling temp file with `{mode: 0o600}`, which on
+   Windows restricts nothing, so the temp inherited the destination directory's
+   broad DACL; confinement happened only after the atomic commit. For a large
+   decrypt that is every local user reading the plaintext for the entire
+   duration. `_openTemp` now confines the temp immediately after the handle
+   exists — the smallest window this API allows — before a single byte is
+   written. A test opens a temp through the real engine and inspects its ACL
+   before writing to it.
+3. **A relative `userDataPath` would have relabelled the working directory.**
+   Several components build paths from `userDataPath || "."`. `_sealVaultRoots`
+   already refused the cwd, but `preferences`, `autofill`, `journal` and `store`
+   did not, so a service constructed without an absolute path would strip the ACL
+   of a real checkout. The refusal now lives in `acl.protectDirectoryOnce` and its
+   synchronous equivalent, so it applies to every caller.
+
+Fixing 3 surfaced a reporting error of the same family: a deliberate refusal was
+being counted as a protection **failure**, so the security report would claim
+something had gone wrong when exactly the right thing had happened — and a real
+failure could hide among the false ones. `protectionStatus()` now separates
+`failures` from `refused`.
+
+Both findings 1 and 2 are the shape of bug that a passing suite does not reveal:
+the tests asserted the file ended up confined, which stayed true while the
+*directory* was collateral damage and while the temp file leaked. They are covered
+now.
+
+## 8. Status
+
+`WINDOWS_FILESYSTEM_SECURITY_VERIFIED_OWNER_ONLY_DACS`; 449 tests pass with none
 skipped (427 before this work); full `npm run check` gate exit 0; CSP enforced
 with no `unsafe-eval` in development, production browser and packaged Electron;
 unsigned portable x64 EXE and x64 NSIS installer built, installed, run and

@@ -13,7 +13,7 @@ Environment: DESKTOP-VQKU9P8, Windows 10 build 19045, Node v24.21.0, npm
 
 ## 1. Gate results
 
-Final run on the exact source merged below, from `final-gate.txt`:
+Final run on the exact source merged below (`chain3.txt`), after the review round:
 
 | Step | Command | Result |
 |---|---|---|
@@ -21,7 +21,7 @@ Final run on the exact source merged below, from `final-gate.txt`:
 | Audio | `npm run check:audio` | pass — silent default, 12 distinct signatures (not an audible mix test) |
 | Capability claims | `npm run check:capabilities` | pass — 39 evidence-backed cards |
 | Dependency triage | `npm run check:security` | pass — no runtime-reachable finding at high or above |
-| Test suite | `npm run test` | **446 passed, 0 failed, 0 skipped**, 71s |
+| Test suite | `npm run test` | **449 passed, 0 failed, 0 skipped** |
 | Production build | `npm run build` | pass (Vite 8) |
 | Electron lifecycle | `npm run check:electron:lifecycle` | pass — splash → main, built renderer, sandboxed preload |
 | Electron runtime/IPC | `npm run check:electron:runtime` | pass — file:// renderer, IPC round-trip |
@@ -32,18 +32,19 @@ Final run on the exact source merged below, from `final-gate.txt`:
 `check:csp` is a new gate step; before it, nothing proved any policy was
 enforced rather than merely present in a source file.
 
-Test count went from 427 (3 failing on Windows) to 446, with **no test skipped**:
-13 new in `tests/file-protection.test.cjs`, 1 new in `tests/file-cipher.test.cjs`,
+Test count went from 427 (3 failing on Windows) to 449, with **no test skipped**:
+16 new in `tests/file-protection.test.cjs`, 1 new in `tests/file-cipher.test.cjs`,
 5 new in `tests/electron-hardening.test.cjs`.
 
 ## 2. Artifacts
 
-Final build, from the source this document ships with:
+Final build, from the source this document ships with, and the exact binaries the
+§4 runs below exercised:
 
 | Artifact | Bytes | SHA-256 | Authenticode |
 |---|---|---|---|
-| `KnouxCrypt-2025-2025.1.0-portable-x64.exe` | 113,529,725 | `C2A8DFAD1CE1AE89803EB6403A63D938A9C5B28D51052DC194C129B18908C889` | **NotSigned** |
-| `KnouxCrypt-2025-Setup-2025.1.0.exe` (NSIS x64) | 125,147,601 | `44221D6585A0665DFB499D463981157C7BEE7A126DAB3E855F75C4B683BC51CD` | **NotSigned** |
+| `KnouxCrypt-2025-2025.1.0-portable-x64.exe` | 113,535,915 | `5D7BE441A1EFC77B2C16C5BFDCD0D6104969622418044A237A92813BB6D76461` | **NotSigned** |
+| `KnouxCrypt-2025-Setup-2025.1.0.exe` (NSIS x64) | 125,148,635 | `4F0AE70A9E01798AA8AA2A82143484F17B878525447F8D3E67AC33F5E81282F4` | **NotSigned** |
 
 Both report status `NotSigned` with no signer and no thumbprint, and
 electron-builder logged `no code signing certificate configured, signing is

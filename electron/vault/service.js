@@ -74,7 +74,12 @@ async function atomicWrite(targetPath, bytes) {
   const dir = path.dirname(targetPath);
   const tmp = path.join(dir, `.${path.basename(targetPath)}.knoux-${crypto.randomBytes(6).toString("hex")}.tmp`);
   try {
-    await ensureProtected(dir);
+    // Only the file being written is confined — never the directory it lands in.
+    // These calls write to user-chosen destinations (archive export, archive
+    // extract, metadata-cleaned copies), and relabelling that directory would
+    // revoke other users' access to everything else in it. Extracting an archive
+    // into a folder the user shares with a colleague is a normal thing to do and
+    // must not quietly turn that share private.
     await fsp.writeFile(tmp, bytes, { mode: 0o600 });
     await protectFile(tmp);
     await fsp.rename(tmp, targetPath);

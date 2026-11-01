@@ -52,15 +52,16 @@ function icacls(target, ...args) {
 }
 
 /**
- * Loosen a path the way an unprotected Windows default does: hand read access
- * to Everyone. POSIX equivalent clears the owner-only mode.
+ * Loosen a path the way an unprotected default does: hand read access to
+ * Everyone. On POSIX a directory also needs the execute bit, otherwise it would
+ * be unreadable-because-unreachable rather than genuinely world-readable.
  */
-function makeWorldReadable(target) {
+function makeWorldReadable(target, { directory = false } = {}) {
   if (IS_WINDOWS) {
     icacls(target, "/grant", `*${EVERYONE}:R`);
     return;
   }
-  fs.chmodSync(target, 0o644);
+  fs.chmodSync(target, directory ? 0o755 : 0o644);
 }
 
 async function isWorldReadable(target) {
@@ -385,6 +386,102 @@ test("a denied store root is surfaced, not silently swallowed", async () => {
     }
   } finally {
     await acl.allowChildCreation(root).catch(() => {});
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// ---- blast radius ----------------------------------------------------------
+
+test("an export confines the file it writes and never relabels the chosen folder", async () => {
+  // The app writes exports, archives and metadata-cleaned copies into directories
+  // the *user* picked. Confining those directories would revoke other people's
+  // access to everything else in them — extracting an archive into a folder you
+  // share with a colleague must not quietly make that share private.
+  const dir = mkroot("acl-export");
+  const shared = mkroot("acl-shared-folder");
+  try {
+    const svc = service(dir);
+    const { sessionId } = await svc.enroll(PASSWORD);
+
+    const inputA = path.join(dir, "a.txt");
+    const inputB = path.join(dir, "b.txt");
+    await fsp.writeFile(inputA, "first file");
+    await fsp.writeFile(inputB, "second file");
+
+    // Somebody else's pre-existing content in the shared folder.
+    const colleagueFile = path.join(shared, "already-there.txt");
+    await fsp.writeFile(colleagueFile, "not ours");
+    makeWorldReadable(shared, { directory: true });
+    makeWorldReadable(colleagueFile);
+    assert.equal(await isWorldReadable(shared), true, "the shared folder starts world-readable");
+
+    const out = path.join(shared, "archive.knz");
+    await svc.archiveCreate({ sessionId, inputPaths: [inputA, inputB], outputPath: out, operationId: "blast-1" });
+
+    assert.ok(fs.existsSync(out), "the archive must be written");
+    assert.equal((await acl.isProtected(out, { exhaustive: true })).ok, true, "the file the app created is owner-only");
+    assert.equal(await isWorldReadable(shared), true, "the user's chosen directory must not have been relabelled");
+    assert.equal(await isWorldReadable(colleagueFile), true, "nor may unrelated content lose access");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(shared, { recursive: true, force: true });
+  }
+});
+
+test("a service without an absolute userDataPath never touches the working directory", async () => {
+  // Several components build their paths from `userDataPath || "."`, so without
+  // this guard a relative construction would relabel the process cwd — a real
+  // checkout. Compare the directory's own state before and after rather than
+  // asserting a particular verdict, so a host that already keeps its projects
+  // owner-only cannot make this fail by being more secure than expected.
+  const cwd = process.cwd();
+  const before = IS_WINDOWS
+    ? (await acl.describeAccess(cwd, { exhaustive: true })).rawAcl
+    : (await fsp.stat(cwd)).mode & 0o777;
+
+  const result = await acl.protectDirectory(cwd);
+  assert.equal(result.applied, false, "the working directory must be refused");
+  assert.equal(result.reason, "refused-cwd");
+
+  const after = IS_WINDOWS
+    ? (await acl.describeAccess(cwd, { exhaustive: true })).rawAcl
+    : (await fsp.stat(cwd)).mode & 0o777;
+  assert.equal(after, before, "and the refusal must leave it exactly as it was");
+
+  // Same for the synchronous path the journal uses.
+  assert.equal(acl.ensureProtectedSync(cwd), false, "the sync seal must refuse the cwd too");
+});
+
+test("the plaintext temp file is confined before any content is written", async () => {
+  // Decrypting writes plaintext into a sibling temp file and renames it at the
+  // end. If confinement only happens after the commit, the recovered contents
+  // sit under the destination directory's inherited DACL for the whole operation
+  // — which on Windows is every local user, for the entire duration.
+  const dir = mkroot("acl-tmpwindow");
+  try {
+    const svc = service(dir);
+    const { sessionId } = await svc.enroll(PASSWORD);
+    const dek = svc.manager.getDek(sessionId);
+
+    const src = path.join(dir, "plain.bin");
+    await fsp.writeFile(src, crypto.randomBytes(300000));
+    const enc = path.join(dir, "cipher.knv");
+    await svc.engine.encryptFile({ inputPath: src, outputPath: enc, rawKey: dek });
+
+    // Open a temp exactly as the engine would, then inspect it before writing.
+    const tmpProbe = path.join(dir, "probe-window.dat");
+    const handle = await svc.engine._openTemp(tmpProbe);
+    const during = await acl.isProtected(tmpProbe, { exhaustive: true });
+    await handle.close();
+    assert.equal(during.ok, true, `the temp must be confined at creation, not after commit: ${during.detail}`);
+    await fsp.rm(tmpProbe, { force: true });
+
+    // And prove the invariant holds for a real decrypt too: no loose temp is
+    // left behind after it completes.
+    await svc.engine.decryptFile({ inputPath: enc, outputPath: path.join(dir, "out.bin"), rawKey: dek });
+    const leftovers = (await fsp.readdir(dir)).filter((n) => n.includes(".tmp"));
+    assert.deepEqual(leftovers, [], "no temp file may survive a successful decrypt");
+  } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
