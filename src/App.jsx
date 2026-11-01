@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, HashRouter, Route, Routes } from "react-router-dom";
 import { LanguageProvider, useLanguage } from "./i18n/Language";
 import { NotesProvider } from "./components/notes/NotesContext";
 import { PasswordProvider } from "./components/passwords/PasswordContext";
@@ -20,8 +20,13 @@ function LoadingScreen() {
   const { t } = useLanguage();
   return <div className="app-route-loading" role="status">{t("Loading screen…")}</div>;
 }
+// The packaged Electron renderer loads over file://, where history.pushState
+// rewrites the URL to file:///home and any reload lands on a browser error page.
+// A hash router keeps every route inside the document URL, so deep links and
+// reloads resolve against the single index.html in both Electron and the web.
+const Router = typeof window !== "undefined" && window.knouxcrypt?.isElectron ? HashRouter : BrowserRouter;
 function App() {
-  return <LanguageProvider><NotesProvider><PasswordProvider><BrowserRouter><AppShell>
+  return <LanguageProvider><NotesProvider><PasswordProvider><Router><AppShell>
     <ScreenLoadBoundary>
     <Suspense fallback={<LoadingScreen/>}>
       <Routes>
@@ -31,6 +36,6 @@ function App() {
       </Routes>
     </Suspense>
     </ScreenLoadBoundary>
-  </AppShell></BrowserRouter></PasswordProvider></NotesProvider></LanguageProvider>;
+  </AppShell></Router></PasswordProvider></NotesProvider></LanguageProvider>;
 }
 export default App;
