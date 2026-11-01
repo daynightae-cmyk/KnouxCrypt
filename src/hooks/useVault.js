@@ -515,6 +515,45 @@ export function useVault() {
     [api],
   );
 
+  // ---- tasks 37-44: argon2, journal, wizard, capsule, privacy, integrity ---
+
+  const guarded = useCallback(
+    (fn) => (api && api[fn] ? (...args) => api[fn](...args) : () => ({ ok: false, error: { code: "UNAVAILABLE" } })),
+    [api],
+  );
+  const argon2Params = useCallback(guarded("argon2Params"), [guarded]);
+  const argon2Derive = useCallback(guarded("argon2Derive"), [guarded]);
+  const argon2Cancel = useCallback(guarded("argon2Cancel"), [guarded]);
+  const journalCategories = useCallback(guarded("journalCategories"), [guarded]);
+  const journalIntegrity = useCallback(guarded("journalIntegrity"), [guarded]);
+  const journalList = useCallback(guarded("journalList"), [guarded]);
+  const journalClear = useCallback(guarded("journalClear"), [guarded]);
+  const journalExport = useCallback(guarded("journalExport"), [guarded]);
+  const wizardBegin = useCallback(guarded("wizardBegin"), [guarded]);
+  const wizardStatus = useCallback(guarded("wizardStatus"), [guarded]);
+  const wizardConsent = useCallback(guarded("wizardConsent"), [guarded]);
+  const wizardRun = useCallback(guarded("wizardRun"), [guarded]);
+  const wizardCancel = useCallback(guarded("wizardCancel"), [guarded]);
+  const wizardSelfTest = useCallback(guarded("wizardSelfTest"), [guarded]);
+  const capsuleChoices = useCallback(guarded("capsuleChoices"), [guarded]);
+  const capsuleCreate = useCallback(guarded("capsuleCreate"), [guarded]);
+  const capsuleInspect = useCallback(guarded("capsuleInspect"), [guarded]);
+  const capsuleOpen = useCallback(guarded("capsuleOpen"), [guarded]);
+  const capsuleSave = useCallback(guarded("capsuleSave"), [guarded]);
+  const sessionPrivacyPolicy = useCallback(guarded("sessionPrivacyPolicy"), [guarded]);
+  const sessionPrivacyUpdate = useCallback(guarded("sessionPrivacyUpdate"), [guarded]);
+  const sessionPrivacyRedacted = useCallback(guarded("sessionPrivacyRedacted"), [guarded]);
+  const integrityAlgorithms = useCallback(guarded("integrityAlgorithms"), [guarded]);
+  const integrityCreate = useCallback(guarded("integrityCreate"), [guarded]);
+  const integritySave = useCallback(guarded("integritySave"), [guarded]);
+  const integrityLoad = useCallback(guarded("integrityLoad"), [guarded]);
+  const integrityCompare = useCallback(guarded("integrityCompare"), [guarded]);
+  const secureClipboardStatus = useCallback(guarded("secureClipboardStatus"), [guarded]);
+  const reportExport = useCallback(
+    (request) => run((a) => a.reportExport(session?.sessionId, request.report, request.outputPath, request.kind)),
+    [run, session],
+  );
+
   const state = !available
     ? VAULT_STATE.UNAVAILABLE
     : session?.guest
@@ -632,6 +671,35 @@ export function useVault() {
     pairingConfirm,
     pairingCancel,
     passwordAudit,
+    argon2Params,
+    argon2Derive,
+    argon2Cancel,
+    journalCategories,
+    journalIntegrity,
+    journalList,
+    journalClear,
+    journalExport,
+    wizardBegin,
+    wizardStatus,
+    wizardConsent,
+    wizardRun,
+    wizardCancel,
+    wizardSelfTest,
+    capsuleChoices,
+    capsuleCreate,
+    capsuleInspect,
+    capsuleOpen,
+    capsuleSave,
+    sessionPrivacyPolicy,
+    sessionPrivacyUpdate,
+    sessionPrivacyRedacted,
+    integrityAlgorithms,
+    integrityCreate,
+    integritySave,
+    integrityLoad,
+    integrityCompare,
+    secureClipboardStatus,
+    reportExport,
   };
 }
 

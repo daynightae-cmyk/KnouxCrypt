@@ -598,6 +598,134 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
     displayStatusReason:
       "The estimate is a real local computation and is deterministic, which is what makes it testable. It does not consult a breach database and does not assess a stored credential, and the result carries those limits as explicit fields rather than leaving the reader to assume.",
   },
+  {
+    id: "KEY_DERIVATION",
+    title: "Argon2id Key Derivation Studio",
+    platformCapability:
+      "Real Argon2id (RFC 9106, Argon2 v1.3) derivation via the maintained pure-WASM hash-wasm implementation, executed on a worker thread with RFC 9106 parameter bounds, random salt generation and real cancellation by worker termination.",
+    permissionNeeds: ["None — runs locally", "No network access"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch10-advanced.test.cjs (canonical Argon2id known-answer vector matches, RFC 9106 associated-data vectors are reported as unsupported rather than silently mismatched, out-of-range memory/time/parallelism/length are refused, random salt is generated, reveal=false returns only a fingerprint, cancellation terminates the worker, and the result never contains the passphrase)",
+      "tests/vault-ipc.test.cjs (the argon2 channels are registered and validate their payloads)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "The derivation is a real Argon2id computation that reproduces the canonical reference vector. It is offered as an additional studio; the vault container keeps its existing PBKDF2/scrypt format, and hash-wasm's lack of associated-data support is stated explicitly instead of being papered over.",
+  },
+  {
+    id: "SIGNATURE_STUDIO",
+    title: "Signature Studio",
+    platformCapability:
+      "Real detached signatures over real stored keys (Ed25519, P-256, P-384, RSA) with independent verification, public-key fingerprints and a session-gated export of the signature record.",
+    permissionNeeds: ["An unlocked vault session for signing and export"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch10-advanced.test.cjs (a real sign/verify round-trip succeeds, a corrupted message or signature fails verification, a mismatched key fails, signing without an unlocked session is refused, and the export refuses a locked or guest session)",
+      "tests/vault-ipc.test.cjs (signature channels are registered and validate their payloads)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Signing and verification use Node/OpenSSL through the existing key service and report the real verdict. A cryptographically valid signature is not presented as a verified real-world identity.",
+  },
+  {
+    id: "SECURITY_ACTIVITY",
+    title: "Security Activity Journal",
+    platformCapability:
+      "Append-only, HMAC-sealed and hash-chained local journal of real application events with field- and value-level secret redaction, filtering, retention and an owner-authorized export.",
+    permissionNeeds: ["Explicit confirmation to clear or export", "No network access"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch10-advanced.test.cjs (editing an entry, deleting an entry, reordering entries or corrupting the document is detected as tampering; secrets such as passwords, PEM private keys and 64-hex values are redacted; filtering by category/outcome/query works; clear and export require confirmation; the integrity report states externalTrustAnchor=false)",
+      "tests/vault-ipc.test.cjs (journal channels are registered and validate their payloads)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "The journal is a real chained, keyed log with real tamper detection and real redaction. It is explicitly not claimed to be externally immutable: an attacker who rewrites both the journal and its key file can forge a consistent chain, and the report says so.",
+  },
+  {
+    id: "TRANSFER_WIZARD",
+    title: "Secure Transfer Wizard",
+    platformCapability:
+      "Staged workflow over the existing authenticated transfer engine (task 22): real file review with SHA-256, explicit recipient consent, real socket handshake and streaming, and a receipt only after the receiver acknowledges every digest.",
+    permissionNeeds: ["An unlocked vault session", "A KnouxCrypt peer listening on the chosen port"],
+    requiresNetwork: true,
+    providerReady: false,
+    realTestEvidence: [
+      "tests/batch10-advanced.test.cjs (a genuine loopback self-test transfers files over a real socket and re-hashes what landed on disk; sending without consent is refused; a connection to a closed port fails with a typed error rather than a fabricated success; an unknown wizard id is refused)",
+      "tests/vault-ipc.test.cjs (wizard channels are registered and validate their payloads)",
+    ],
+    displayStatus: DISPLAY_STATUS.PARTIAL,
+    displayStatusReason:
+      "The workflow, hashing, consent gate, socket transfer and receipt are all real, and a loopback self-test proves the wiring end to end. No second physical device is invented and Android is not claimed as a peer, so the card is PARTIAL rather than ACTIVE.",
+  },
+  {
+    id: "SECRET_CAPSULE",
+    title: "Expiring Secret Capsule",
+    platformCapability:
+      "Local, self-contained expiring secret container: AES-256-GCM with PBKDF2-HMAC-SHA256 (600k iterations) key derivation, an authenticated header, real expiry and access-limit enforcement, and atomic owner-only save.",
+    permissionNeeds: ["No network access", "The capsule passphrase to open"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch11-finaltools.test.cjs (create/open round-trip returns the secret, a wrong passphrase or altered ciphertext is refused, an expired capsule is refused, the access limit is enforced, a malformed or non-capsule envelope is refused, and the result states remoteRevocable=false)",
+      "tests/vault-ipc.test.cjs (capsule channels are registered and validate their payloads)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "The encryption, key derivation, expiry and access-limit enforcement are real. The capsule is local only and carries remoteRevocable=false, so it is never presented as a revocable remote link.",
+  },
+  {
+    id: "SESSION_PRIVACY",
+    title: "Session Privacy Controls",
+    platformCapability:
+      "Real policy layer over the session manager, privacy preferences and clipboard guard: live idle auto-lock, lock on OS suspend/screen-lock, clipboard clearing and journal retention, with a redacted session view.",
+    permissionNeeds: ["An unlocked vault session to change policy"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch11-finaltools.test.cjs (an idle-lock change is applied live to the session manager, out-of-range values are refused, the policy report marks each control enforced/not enforced with its mechanism, and the redacted view contains no session id, key or secret)",
+      "tests/vault-ipc.test.cjs (session-privacy channels are registered and validate their payloads)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Each control maps to a real enforcement point that the app actually has, and the report marks osScope=false. Screenshot or notification privacy is not offered because the app cannot enforce it.",
+  },
+  {
+    id: "FILE_INTEGRITY",
+    title: "File Integrity Baselines",
+    platformCapability:
+      "Streamed SHA-256/SHA-512 baseline manifests with a real comparison that reports unchanged, changed, missing and added files, plus atomic owner-only save and load.",
+    permissionNeeds: ["An unlocked vault session is not required for hashing", "Read access to the baselined files"],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/batch11-finaltools.test.cjs (a baseline detects an unchanged file, a modified file, a missing file and an added file; SHA-512 is supported; a malformed manifest is refused; a file not found during baseline creation is refused; comparison is read-only)",
+      "tests/vault-ipc.test.cjs (integrity channels are registered and validate their payloads)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Hashing and comparison are real and streamed. The manifest is a local, unsigned record: it detects divergence from the baseline but proves neither who changed a file nor that the manifest itself is authentic, and the UI says so.",
+  },
+  {
+    id: "SECURE_CLIPBOARD",
+    title: "Secure Clipboard",
+    platformCapability:
+      "Time-limited clipboard leases managed by the existing clipboard guard (task 25): the guard only clears a value this app wrote, and only if it is still present, reporting a skipped result otherwise.",
+    permissionNeeds: ["Explicit confirmation to arm a lease", "A platform clipboard adapter"],
+    requiresNetwork: false,
+    providerReady: false,
+    realTestEvidence: [
+      "tests/batch11-finaltools.test.cjs (the secure-clipboard status reports the real adapter support, the guard refuses to arm without consent, a clear is skipped when the clipboard content changed, and the status states guaranteedOsErase=false)",
+      "tests/vault-ipc.test.cjs (the secure-clipboard channel is registered)",
+    ],
+    displayStatus: DISPLAY_STATUS.PARTIAL,
+    displayStatusReason:
+      "The lease, timer and ownership-checked clear are real. It cannot guarantee OS-wide clipboard erasure, and in a headless environment there is no clipboard adapter, so the card is PARTIAL and states guaranteedOsErase=false rather than overclaiming.",
+  },
 ]);
 
 export function capabilityById(id) {

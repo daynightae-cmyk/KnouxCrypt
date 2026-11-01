@@ -235,3 +235,28 @@
     transition: none !important;
   }
 }
+
+/* Batch 10 (tasks 37-40) real-service summary table. */
+.advanced-summary {
+  display: grid;
+  grid-template-columns: minmax(120px, auto) 1fr;
+  gap: 8px 16px;
+  margin-top: 18px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.advanced-summary dt {
+  color: #ad86be;
+}
+.advanced-summary dd {
+  margin: 0;
+  color: #d7b8e8;
+  overflow-wrap: anywhere;
+}
+.advanced-summary dd[data-status="tampered"] {
+  color: #ff9a9a;
+}
+.advanced-summary dd[data-status="verified"],
+.advanced-summary[data-status="verified"] dd {
+  color: #a7e8b8;
+}

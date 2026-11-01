@@ -23,7 +23,8 @@
     "check:electron:runtime": "electron --no-sandbox --ozone-platform=headless scripts/electron-runtime-check.cjs",
     "check:electron:lifecycle": "electron --no-sandbox --ozone-platform=headless scripts/electron-lifecycle-check.cjs",
     "check:electron": "npm run check:electron:lifecycle && npm run check:electron:runtime",
-    "check:desktop": "npm run check:electron && npm run icons"
+    "check:desktop": "npm run check:electron && npm run icons",
+    "check:browser": "node scripts/check-browser-qa.cjs"
   },
   "keywords": [
     "encryption",
@@ -36,6 +37,7 @@
   "dependencies": {
     "electron-updater": "^6.6.2",
     "framer-motion": "^10.18.0",
+    "hash-wasm": "^4.12.0",
     "qrcode": "^1.5.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

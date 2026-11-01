@@ -50,6 +50,7 @@ test("status is truthful before enrollment", async () => {
   assert.equal(status.enrolled, false);
   assert.equal(status.locked, true);
   assert.equal(status.engine.algorithm, "AES-256-GCM");
+  await service.close();
   await fsp.rm(dir, { recursive: true, force: true });
 });
 
@@ -68,6 +69,7 @@ test("enroll, lock, unlock and encrypt/decrypt text round trip", async () => {
   const activity = (await service.status()).activity;
   assert.ok(activity.some((a) => a.type === "encrypt-text"));
   assert.ok(activity.some((a) => a.type === "unlock"));
+  await service.close();
   await fsp.rm(dir, { recursive: true, force: true });
 });
 
@@ -88,6 +90,7 @@ test("encrypt/decrypt a file end to end", async () => {
   const dec = await service.decryptFile({ sessionId, inputPath: encrypted, outputPath: restored, operationId: "op2" });
   assert.equal(dec.meta.origSize, payload.length);
   assert.deepEqual(await fsp.readFile(restored), payload);
+  await service.close();
   await fsp.rm(dir, { recursive: true, force: true });
 });
 
@@ -96,6 +99,7 @@ test("guest session cannot encrypt or decrypt", async () => {
   await service.enroll(PASSWORD, { iterations: 100000 });
   const guest = service.createGuestSession();
   assert.equal(await codeOf(service.encryptText(guest.sessionId, "nope")), CODES.SESSION_REQUIRED);
+  await service.close();
   await fsp.rm(dir, { recursive: true, force: true });
 });
 
@@ -106,6 +110,7 @@ test("revoked session cannot encrypt", async () => {
   const { sessionId } = await service.unlock(PASSWORD);
   service.lock(sessionId, "test");
   assert.equal(await codeOf(service.encryptText(sessionId, "nope")), CODES.SESSION_REQUIRED);
+  await service.close();
   await fsp.rm(dir, { recursive: true, force: true });
 });
 
@@ -134,5 +139,6 @@ test("cancelling an operation aborts it", async () => {
   );
   assert.equal(code, CODES.CANCELLED);
   assert.equal(fs.existsSync(encrypted), false);
+  await service.close();
   await fsp.rm(dir, { recursive: true, force: true });
 });

@@ -59,19 +59,37 @@ return <button type="button" className="security-icon-button" aria-label={t(labe
  * Honest capability card. Every field comes from the central capability
  * registry, so a screen cannot claim a capability the service does not have.
  */
-export function CapabilityCard({ id, className = "security-capability" }) {
+export function CapabilityCard({ id, capability, fallback, className = "security-capability" }) {
   const { t } = useLanguage();
-  const card = capabilityById(id);
+  // Prefer an explicit card, then the central registry, then the caller's
+  // inline fallback. Registry entries win over a local fallback so a screen
+  // cannot overstate a capability the service does not actually have.
+  const card = capability || capabilityById(id) || (fallback ? { displayStatus: "PARTIAL", requiresNetwork: false, providerReady: false, permissionNeeds: [], realTestEvidence: [], ...fallback } : null);
   if (!card) return null;
+  const permissions = Array.isArray(card.permissionNeeds) ? card.permissionNeeds : card.permissionNeeds ? [card.permissionNeeds] : [];
+  const evidence = Array.isArray(card.realTestEvidence) ? card.realTestEvidence : [];
   return (
     <section className={className} data-status={card.displayStatus} aria-label={t("Capability")}>
-      <strong>{t(card.title)}</strong>
-      <p>{t(card.platformCapability)}</p>
+      <strong>{t(card.title || "")}</strong>
+      <p>{t(card.platformCapability || "")}</p>
       <dl>
-        <div><dt>{t("Status")}</dt><dd>{t(card.displayStatus)}</dd></div>
+        <div><dt>{t("Status")}</dt><dd>{t(card.displayStatus || "PARTIAL")}</dd></div>
         <div><dt>{t("Network")}</dt><dd>{t(card.requiresNetwork ? "Required" : "Not required")}</dd></div>
         <div><dt>{t("Provider ready")}</dt><dd>{t(card.providerReady ? "Yes" : "No")}</dd></div>
       </dl>
+      <div className="security-capability-permissions">
+        <span>{t("Permissions")}</span>
+        {permissions.length > 0
+          ? <ul>{permissions.map((need) => <li key={need}>{t(need)}</li>)}</ul>
+          : <p>{t("None required")}</p>}
+      </div>
+      <details className="security-capability-evidence">
+        <summary>{t("Test evidence")}</summary>
+        {evidence.length > 0
+          ? <ul>{evidence.map((line) => <li key={line}>{t(line)}</li>)}</ul>
+          : <p>{t("No automated test recorded")}</p>}
+      </details>
+      <p className="security-capability-reason">{t(card.displayStatusReason || "No status rationale recorded")}</p>
     </section>
   );
 }
