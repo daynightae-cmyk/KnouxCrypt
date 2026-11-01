@@ -1,6 +1,7 @@
 package com.knoux.crypt
 
 import android.content.Context
+import com.knoux.crypt.data.CertificateVaultService
 import com.knoux.crypt.data.DataStoreVaultKeyRegistry
 import com.knoux.crypt.data.DatabaseProvider
 import com.knoux.crypt.data.KeystoreManager
@@ -43,6 +44,7 @@ class AppContainer(context: Context) {
     val signing = SigningService(keystore, secrets, session)
     val signatureStudio = SignatureStudio(signing, secrets, session)
     val share = ShareService(session, secrets)
+    val certificates = CertificateVaultService(session, secrets)
     val vaultFiles = VaultFileCipher(session)
     val passwordAudit = PasswordAuditService(session, database.secrets(), secrets)
     val backups = VaultBackupManager(database.secrets(), session, vaultKeys)

@@ -17,6 +17,7 @@ object SecretKinds {
     const val SHARE_IDENTITY = "share_identity"
     const val SHARE_RECIPIENT = "share_recipient"
     const val SHARE_RECEIPT = "share_receipt"
+    const val CERTIFICATE = "certificate"
 }
 
 @Serializable
@@ -148,6 +149,25 @@ data class ShareReceiptRecipient(
     val verified: Boolean,
 )
 
+/**
+ * An imported X.509 certificate (TASK 20). The DER bytes are kept so a later
+ * inspection sees the original encoding, and [isAnchor] records only that this
+ * person chose to trust it — never that the certificate earned trust itself.
+ */
+@Serializable
+data class CertificatePayload(
+    val label: String,
+    val derBase64: String,
+    val subject: String,
+    val issuer: String,
+    val fingerprint: String,
+    val notBeforeMillis: Long,
+    val notAfterMillis: Long,
+    val isCa: Boolean,
+    val isAnchor: Boolean,
+    val addedAt: Long,
+)
+
 @Serializable
 data class TotpPayload(
     val issuer: String,
@@ -264,6 +284,12 @@ object SecretsJson {
 
     fun decodeShareReceipt(value: String): ShareReceiptPayload? =
         runCatching { json.decodeFromString(ShareReceiptPayload.serializer(), value) }.getOrNull()
+
+    fun encodeCertificate(payload: CertificatePayload): String =
+        json.encodeToString(CertificatePayload.serializer(), payload)
+
+    fun decodeCertificate(value: String): CertificatePayload? =
+        runCatching { json.decodeFromString(CertificatePayload.serializer(), value) }.getOrNull()
 
     fun encodeSigningKey(payload: SigningKeyPayload): String =
         json.encodeToString(SigningKeyPayload.serializer(), payload)

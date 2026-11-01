@@ -431,3 +431,21 @@ The owner-requested consolidation merge to `main` was performed at `4bdb561` (no
 - 18 new JVM tests (265 total, 0 failures); lint 0 errors; APK 19,995,615 bytes
   `687ed540…fca9`, reproduced byte-for-byte. `SignatureStudioDeviceTest` is written but NOT RUN —
   no handset was attached, so the studio stays DEVICE_UNVERIFIED and AUDIT_PENDING.
+
+## Certificate Inspector — 2026-11-01 (TASK 20)
+
+- X.509 PEM/DER import and inspection on the platform's own APIs (`CertificateFactory`, `X509Certificate`,
+  `CertPathValidator("PKIX")`) — no new parser, no new verifier.
+- Five answers stay separate and are shown separately: parsed · issuer signature · validity window at an
+  injected clock · chain to a *named* anchor · host-name identity. Self-signed, parsed and CA are never
+  reported as trusted; trust only exists against `None` / `StoredAnchors` / `PlatformStore`, and
+  revocation is explicitly reported as not checked because this build holds no network permission.
+- Two findings changed the design: a 32-anchor cap made the honest platform-store answer impossible
+  (a real store ships ~140 roots, so the cap moved to 256), and PKIX signals "no trust anchor" through
+  the generic UNSPECIFIED reason, so reason-only mapping mislabelled an unknown CA as a length problem.
+- Certificates are stored as encrypted vault records holding the original DER, with `isAnchor` false
+  until the user marks it; duplicates match on fingerprint. Import is bounded to 256 KiB and refuses a
+  PEM bundle rather than taking the first block.
+- 20 new JVM tests (285 total, 0 failures) over six real keytool-generated certificates; lint 0 errors;
+  APK 20,093,919 bytes `b88253f3…dc83`. `CertificateInspectorDeviceTest` is written but NOT RUN —
+  Android's PKIX provider is not the desktop JDK's, so this is the highest-value unverified item.
