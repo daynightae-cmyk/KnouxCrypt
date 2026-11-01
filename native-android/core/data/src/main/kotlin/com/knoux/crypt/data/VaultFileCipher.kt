@@ -42,6 +42,7 @@ class VaultFileCipher(
         input: InputStream,
         output: OutputStream,
         plaintextLength: Long,
+        context: ByteArray = CONTEXT,
         onProgress: (FileEnvelope.Progress) -> Unit = {},
     ) {
         session.requireValid(access)
@@ -55,7 +56,7 @@ class VaultFileCipher(
             output = output,
             fileKey = fileKey,
             wrappedFileKey = wrapped,
-            context = CONTEXT,
+            context = context,
             plaintextLength = plaintextLength,
             onProgress = checkpoint(access, onProgress),
         )
@@ -66,13 +67,14 @@ class VaultFileCipher(
         access: VaultAccess,
         input: InputStream,
         output: OutputStream,
+        context: ByteArray = CONTEXT,
         onProgress: (FileEnvelope.Progress) -> Unit = {},
     ): Long {
         session.requireValid(access)
         val length = envelope.decryptDevice(
             input = input,
             output = output,
-            context = CONTEXT,
+            context = context,
             keyProvider = { header ->
                 session.requireValid(access)
                 when (header.keySource) {

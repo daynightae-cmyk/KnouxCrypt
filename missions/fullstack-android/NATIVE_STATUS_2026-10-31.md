@@ -449,3 +449,23 @@ The owner-requested consolidation merge to `main` was performed at `4bdb561` (no
 - 20 new JVM tests (285 total, 0 failures) over six real keytool-generated certificates; lint 0 errors;
   APK 20,093,919 bytes `b88253f3…dc83`. `CertificateInspectorDeviceTest` is written but NOT RUN —
   Android's PKIX provider is not the desktop JDK's, so this is the highest-value unverified item.
+
+## Encrypted Archive — 2026-11-01 (TASK 21)
+
+- Reuses the KNF2 file envelope (per-file DEK wrapped by the Keystore root, or a PBKDF2 passphrase
+  key) with a standard `java.util.zip` payload and a JSON manifest in front of it. The AEAD context is
+  `knoux.archive.v1`, so a plain encrypted file cannot be opened as an archive or the reverse.
+- The manifest is built from the bytes as they stream (name, length, SHA-256), and listing
+  cross-checks it against the ZIP directory: a mismatch is reported as tampering.
+- Path traversal is refused, not cleaned — an earlier version stripped `../escape.txt` to a legal
+  name and a test caught it. Quotas: 256 entries, 256 MiB per entry, 1 GiB total, re-checked while
+  streaming; extraction refuses an entry that expands past its declared size plus slack, and a
+  hand-built understated manifest is refused with nothing written.
+- Symlink escape is structurally impossible: entries are created as new documents in a user-picked
+  SAF tree, never at a filesystem path, and originals are only ever read. Staging files are removed
+  on cancel, failure and lock.
+- Deviations from the mock, recorded: encryption and the manifest are mandatory (shown as disabled
+  switches with reasons), and the archive destination is `CreateDocument` while the tree contract is
+  used for extraction.
+- 11 new JVM tests (296 total, 0 failures); lint 0 errors; APK 20,175,839 bytes `2776a8fd…e82d`.
+  `ArchiveDeviceTest` is written but NOT RUN — no handset was attached in this pass.

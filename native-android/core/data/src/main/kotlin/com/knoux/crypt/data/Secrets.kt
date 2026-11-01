@@ -18,6 +18,7 @@ object SecretKinds {
     const val SHARE_RECIPIENT = "share_recipient"
     const val SHARE_RECEIPT = "share_receipt"
     const val CERTIFICATE = "certificate"
+    const val ARCHIVE = "archive"
 }
 
 @Serializable
@@ -168,6 +169,23 @@ data class CertificatePayload(
     val addedAt: Long,
 )
 
+/**
+ * An archive this device created (TASK 21). Entry names live inside the encrypted
+ * container, so the record keeps only counts, sizes, the container digest and how
+ * the key is protected.
+ */
+@Serializable
+data class ArchiveRecordPayload(
+    val label: String,
+    val entryCount: Int,
+    val plaintextBytes: Long,
+    val containerBytes: Long,
+    val digestHex: String,
+    val compressed: Boolean,
+    val keySource: String,
+    val createdAt: Long,
+)
+
 @Serializable
 data class TotpPayload(
     val issuer: String,
@@ -290,6 +308,12 @@ object SecretsJson {
 
     fun decodeCertificate(value: String): CertificatePayload? =
         runCatching { json.decodeFromString(CertificatePayload.serializer(), value) }.getOrNull()
+
+    fun encodeArchive(payload: ArchiveRecordPayload): String =
+        json.encodeToString(ArchiveRecordPayload.serializer(), payload)
+
+    fun decodeArchive(value: String): ArchiveRecordPayload? =
+        runCatching { json.decodeFromString(ArchiveRecordPayload.serializer(), value) }.getOrNull()
 
     fun encodeSigningKey(payload: SigningKeyPayload): String =
         json.encodeToString(SigningKeyPayload.serializer(), payload)

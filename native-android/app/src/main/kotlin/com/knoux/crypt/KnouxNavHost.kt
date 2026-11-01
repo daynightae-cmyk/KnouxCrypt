@@ -15,6 +15,7 @@ import com.knoux.crypt.ui.AuthenticatorScreen
 import com.knoux.crypt.ui.CertificateInspectorScreen
 import com.knoux.crypt.ui.ClipboardGuardScreen
 import com.knoux.crypt.ui.DigitalSignatureScreen
+import com.knoux.crypt.ui.EncryptedArchiveScreen
 import com.knoux.crypt.ui.FileCipherScreen
 import com.knoux.crypt.ui.HashIntegrityScreen
 import com.knoux.crypt.ui.HmacLabScreen
@@ -190,6 +191,13 @@ fun KnouxNavHost(
         }
         composable("certificate_inspector") {
             CertificateInspectorScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
+        }
+        composable("archive") {
+            EncryptedArchiveScreen(
                 container = container,
                 onBack = { nav.popBackStack() },
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
