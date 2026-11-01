@@ -31,6 +31,12 @@ const { SecurityAdvisor } = require("./posture");
 const { PairingService } = require("./pairing");
 const { AutofillPreview } = require("./autofill");
 const passwordaudit = require("./passwordaudit");
+const { Argon2Studio } = require("./argon2");
+const { SecurityJournal } = require("./journal");
+const { TransferWizard } = require("./wizard");
+const { IntegrityBaseline } = require("./integrity");
+const { SecretCapsule } = require("./capsule");
+const { SessionPrivacy } = require("./privacy");
 const labs = require("./labs");
 
 // Explicitly supported key algorithms. Anything absent is refused rather than
@@ -202,6 +208,36 @@ class VaultService {
     this._backupCount = 0;
     this._backupsScanned = false;
 
+    // Batch 10 (tasks 37-40): Argon2id studio, security journal, transfer
+    // wizard. The journal is the real, chained event log the Security Activity
+    // screen reads; every service call below records into it.
+    this.argon2 = options.argon2 || new Argon2Studio({ workerPath: options.argon2WorkerPath });
+    this.journal =
+      options.journal ||
+      new SecurityJournal({ file: path.join(options.userDataPath || ".", "security-journal.json") });
+    this.wizard =
+      options.wizard ||
+      new TransferWizard({
+        transfer: this.transfer,
+        pairing: this.pairing,
+        tmpRoot: options.userDataPath || ".",
+      });
+
+    // Batch 11 (tasks 41-44): secret capsule, session privacy, integrity
+    // baselines. Session privacy is a real policy layer over the preferences,
+    // the session manager and the clipboard guard.
+    this.capsule = options.capsule || new SecretCapsule();
+    this.integrity = options.integrity || new IntegrityBaseline();
+    this.sessionPrivacy =
+      options.sessionPrivacy ||
+      new SessionPrivacy({
+        preferences: this.preferences,
+        manager: this.manager,
+        clipboard: this.clipboard,
+        journal: this.journal,
+        onPolicyChange: (values) => this._journal("Policy", "Session privacy policy changed", "success", { values }),
+      });
+
     // The session manager is the single choke point for every revocation path
     // (user lock, lock-all, idle sweep, quit), so forward its notification,
     // stop any open transfer listener and disarm any clipboard timer at the
@@ -212,6 +248,7 @@ class VaultService {
       this.clipboard.onSessionRevoked(event.sessionId);
       // A revoked session must not leave decrypted documents on disk.
       this.viewer.closeAll(event.sessionId).catch(() => {});
+      this._journal("Session", `Session revoked (${event.reason})`, "info", { reason: event.reason });
     };
   }
 
@@ -248,6 +285,16 @@ class VaultService {
   }
 
   /**
+   * Append to the real security journal (task 39). Fire-and-forget: a journal
+   * write failure must never break the operation that produced the event, and
+   * the caller never passes secrets here (the journal redacts anyway).
+   */
+  _journal(category, action, outcome = "info", detail = null, subject = null) {
+    if (!this.journal) return;
+    this.journal.record({ category, action, outcome, detail, subject }).catch(() => {});
+  }
+
+  /**
    * Resolve the raw key for a session, then build a raw-key engine so no
    * password is ever needed after unlock.
    */
@@ -268,18 +315,27 @@ class VaultService {
   async enroll(password, options = {}) {
     const result = await this.manager.enroll(password, options);
     this._record("enroll", "Vault enrolled on this device");
+    this._journal("Vault", "Vault enrolled on this device", "success");
     return result;
   }
 
   async unlock(password) {
-    const result = await this.manager.unlock(password);
-    this._record("unlock", "Vault unlocked");
-    return result;
+    try {
+      const result = await this.manager.unlock(password);
+      this._record("unlock", "Vault unlocked");
+      this._journal("Session", "Vault unlocked", "success");
+      return result;
+    } catch (err) {
+      // A rejected unlock is a meaningful security event too.
+      this._journal("Session", "Unlock rejected", "rejected", { code: err && err.code });
+      throw err;
+    }
   }
 
   createGuestSession() {
     const result = this.manager.createGuestSession();
     this._record("guest", "Guest preview session started (no key)");
+    this._journal("Session", "Guest preview session started", "info");
     return result;
   }
 
@@ -1075,6 +1131,17 @@ class VaultService {
     return result;
   }
 
+  /**
+   * Save a parsed certificate or fingerprint record to a chosen path. This is
+   * the "real action" the certificate and fingerprint screens perform, instead
+   * of only displaying values.
+   */
+  async reportExport({ report, outputPath, kind } = {}) {
+    const result = await inspect.exportReport({ report, outputPath, kind });
+    this._journal("Export", `Saved a ${kind || "report"} record`, "success", { outputPath: result.outputPath });
+    return result;
+  }
+
   // ---- task 22: local transfer --------------------------------------------
 
   /**
@@ -1513,6 +1580,228 @@ class VaultService {
     // The input itself is never recorded; only its length and score.
     this._record("password-audit", `Audited a ${result.length}-character string (score ${result.score}/4)`);
     return result;
+  }
+
+  // ---- task 37: Argon2id key derivation studio ----------------------------
+
+  /** Real parameter bounds and named profiles. */
+  argon2Params() {
+    return this.argon2.params();
+  }
+
+  /**
+   * Run a real Argon2id derivation on a worker thread. The passphrase is used
+   * only inside the worker and is never recorded; only non-secret parameters
+   * are journaled.
+   */
+  async argon2Derive(request = {}) {
+    const result = await this.argon2.derive(request);
+    this._journal("Keys", "Argon2id derivation completed", "success", {
+      profile: result.profile,
+      memoryKiB: result.memoryKiB,
+      iterations: result.iterations,
+      parallelism: result.parallelism,
+      hashLength: result.hashLength,
+      durationMs: result.durationMs,
+    });
+    this._record("argon2", `Argon2id derivation (${result.profile}, ${result.memoryKiB} KiB)`);
+    return result;
+  }
+
+  /** Abort an in-flight derivation by terminating its worker. */
+  argon2Cancel(operationId) {
+    const result = this.argon2.cancel(operationId);
+    if (result.cancelled) this._record("argon2", "Argon2id derivation cancelled");
+    return result;
+  }
+
+  // ---- task 39: local security activity journal ---------------------------
+
+  journalCategories() {
+    return this.journal.categories();
+  }
+
+  async journalIntegrity() {
+    return this.journal.integrity();
+  }
+
+  async journalList(filter = {}) {
+    return this.journal.list(filter);
+  }
+
+  async journalRecord(entry = {}) {
+    return this.journal.record(entry);
+  }
+
+  async journalClear(request = {}) {
+    const result = await this.journal.clear(request);
+    await this.journal.record({ category: "Journal", action: "Journal cleared by owner", outcome: "info" });
+    return result;
+  }
+
+  async journalExport(request = {}) {
+    const result = await this.journal.export(request);
+    await this.journal.record({ category: "Export", action: "Security journal exported", outcome: "success", detail: { entries: result.entries } });
+    return result;
+  }
+
+  // ---- task 40: secure transfer wizard ------------------------------------
+
+  async wizardBegin(request = {}) {
+    const view = await this.wizard.begin(request);
+    this._journal("Transfer", "Transfer wizard prepared a package", "info", {
+      files: view.files.length,
+      totalBytes: view.totalBytes,
+      recipient: view.recipient.label,
+    });
+    return view;
+  }
+
+  wizardStatus(wizardId) {
+    return this.wizard.status(wizardId);
+  }
+
+  async wizardConsent(wizardId, request = {}) {
+    const view = this.wizard.consent(wizardId, request);
+    this._journal("Transfer", "Recipient consent confirmed", "info", { wizardId });
+    return view;
+  }
+
+  async wizardRun(wizardId) {
+    try {
+      const view = await this.wizard.run(wizardId);
+      this._journal("Transfer", "Authenticated transfer completed", "success", {
+        files: view.receipt?.files,
+        bytes: view.receipt?.bytes,
+      });
+      return view;
+    } catch (err) {
+      this._journal("Transfer", "Transfer failed", "failed", { code: err && err.code });
+      throw err;
+    }
+  }
+
+  wizardCancel(wizardId) {
+    const result = this.wizard.cancel(wizardId);
+    this._journal("Transfer", "Transfer cancelled", "info", { wizardId });
+    return result;
+  }
+
+  /** A genuine loopback self-test of the wizard wiring. No second device. */
+  async wizardSelfTest({ files, sessionId } = {}) {
+    this.manager.getDek(sessionId);
+    const result = await this.wizard.selfTest({ files, sessionId });
+    this.manager.touch(sessionId);
+    this._journal("Transfer", "Transfer wizard loopback self-test", result.allMatched ? "success" : "failed", {
+      files: result.files.length,
+      allMatched: result.allMatched,
+    });
+    return result;
+  }
+
+  // ---- task 41: expiring secret capsule -----------------------------------
+
+  capsuleChoices() {
+    return this.capsule.choices();
+  }
+
+  async capsuleCreate(request = {}) {
+    const result = this.capsule.create(request);
+    // Only non-secret metadata is journaled; the secret never is.
+    this._journal("Export", "Secret capsule created", "success", {
+      label: result.label,
+      expiresAt: result.expiresAt,
+      maxAccess: result.maxAccess,
+      secretBytes: result.secretBytes,
+    });
+    return result;
+  }
+
+  capsuleInspect(envelopeText) {
+    return this.capsule.inspect(envelopeText);
+  }
+
+  capsuleOpen(envelopeText, passphrase) {
+    try {
+      const result = this.capsule.open(envelopeText, passphrase);
+      this._journal("Export", "Secret capsule opened", "success", { remainingAccess: result.remainingAccess });
+      return result;
+    } catch (err) {
+      this._journal("Export", "Secret capsule open rejected", "rejected", { code: err && err.code });
+      throw err;
+    }
+  }
+
+  async capsuleSave(request = {}) {
+    const result = await this.capsule.save(request);
+    this._journal("Export", "Secret capsule saved", "success", { outputPath: result.outputPath });
+    return result;
+  }
+
+  // ---- task 42: session privacy controls ----------------------------------
+
+  async sessionPrivacyPolicy() {
+    return this.sessionPrivacy.policy();
+  }
+
+  async sessionPrivacyUpdate(patch = {}) {
+    const result = await this.sessionPrivacy.update(patch);
+    this._record("privacy", "Session privacy policy updated");
+    return result;
+  }
+
+  async sessionPrivacyRedacted() {
+    return this.sessionPrivacy.redactedSession();
+  }
+
+  // ---- task 43: file integrity baselines ----------------------------------
+
+  integrityAlgorithms() {
+    return this.integrity.algorithms();
+  }
+
+  async integrityCreate(request = {}) {
+    const manifest = await this.integrity.create(request);
+    this._journal("Files", "Integrity baseline created", "success", { algorithm: manifest.algorithm, count: manifest.count });
+    return manifest;
+  }
+
+  async integritySave(request = {}) {
+    const result = await this.integrity.save(request);
+    this._journal("Files", "Integrity manifest saved", "success", { count: result.count });
+    return result;
+  }
+
+  async integrityLoad(manifestPath) {
+    return this.integrity.load(manifestPath);
+  }
+
+  async integrityCompare(request = {}) {
+    const result = await this.integrity.compare(request);
+    this._journal("Files", "Integrity comparison completed", result.verified ? "success" : "failed", {
+      unchanged: result.summary.unchanged,
+      changed: result.summary.changed,
+      missing: result.summary.missing,
+      added: result.summary.added,
+    });
+    return result;
+  }
+
+  // ---- task 44: secure clipboard (advanced panel) -------------------------
+
+  /**
+   * The clipboard guard already owns the real, time-limited lease. This exposes
+   * its honest status and the exact limits for the Secure Clipboard screen; it
+   * does not add a second clipboard service.
+   */
+  secureClipboardStatus() {
+    const status = this.clipboard.status();
+    return {
+      ...status,
+      guaranteedOsErase: false,
+      clearsOnlyOwnLease: true,
+      note: "The guard only clears a value this app wrote, and only if it is still there. It cannot guarantee OS-wide clipboard erasure.",
+    };
   }
 }
 

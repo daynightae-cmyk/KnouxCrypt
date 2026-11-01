@@ -182,6 +182,32 @@ function inspectCertificate(pem) {
 }
 
 /**
+ * Write a report document atomically with owner-only permissions. Used by the
+ * certificate and fingerprint screens to save a real, self-describing record
+ * instead of leaving the parsed values only on screen.
+ */
+async function exportReport({ report, outputPath, kind }) {
+  if (!report || typeof report !== "object") throw badInput("A report object is required");
+  if (typeof outputPath !== "string" || !outputPath.trim()) throw badInput("An output path is required");
+  const target = require("path").resolve(outputPath);
+  const doc = JSON.stringify(
+    { kind, format: "KNXREPORT01", version: 1, exportedAt: new Date().toISOString(), report },
+    null,
+    2,
+  );
+  const tmp = `${target}.${crypto.randomBytes(6).toString("hex")}.tmp`;
+  try {
+    await fsp.writeFile(tmp, doc, { mode: 0o600 });
+    await fsp.rename(tmp, target);
+  } catch (err) {
+    await fsp.rm(tmp, { force: true }).catch(() => {});
+    if (err.code === "ENOENT") throw new VaultError(CODES.NOT_FOUND, "The output folder does not exist");
+    throw new VaultError(CODES.IO_FAILED, "The report could not be written");
+  }
+  return { exported: true, outputPath: target, kind };
+}
+
+/**
  * Fingerprint of a public key or certificate, in the same shape a user reads
  * aloud: SHA-256 over the DER encoding, grouped in fours.
  */
@@ -265,4 +291,5 @@ module.exports = {
   inspectCertificate,
   fingerprintOf,
   compareFingerprints,
+  exportReport,
 };

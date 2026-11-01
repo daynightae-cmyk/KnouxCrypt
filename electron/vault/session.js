@@ -56,12 +56,14 @@ class VaultSessionManager {
 
   async status() {
     const enrolled = await this.isEnrolled();
+    const active = this.activeSessions();
     return {
       enrolled,
-      locked: this.activeSessions().length === 0,
+      locked: active.length === 0,
       failedAttempts: this.failedAttempts,
       lockoutUntil: this.lockoutUntil > this.now() ? this.lockoutUntil : 0,
-      activeSessions: this.activeSessions().length,
+      activeSessions: active.length,
+      guestActive: active.some((s) => s.guest),
     };
   }
 

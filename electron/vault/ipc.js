@@ -119,6 +119,39 @@ const CHANNELS = Object.freeze({
   PAIRING_CANCEL: "vault:pairing-cancel",
   PAIRING_LIST: "vault:pairing-list",
   PASSWORD_AUDIT: "vault:password-audit",
+
+  // Batch 10 (tasks 37-40): Argon2id studio, security journal, transfer wizard.
+  ARGON2_PARAMS: "vault:argon2-params",
+  ARGON2_DERIVE: "vault:argon2-derive",
+  JOURNAL_CATEGORIES: "vault:journal-categories",
+  JOURNAL_INTEGRITY: "vault:journal-integrity",
+  JOURNAL_LIST: "vault:journal-list",
+  JOURNAL_RECORD: "vault:journal-record",
+  JOURNAL_CLEAR: "vault:journal-clear",
+  JOURNAL_EXPORT: "vault:journal-export",
+  WIZARD_BEGIN: "vault:wizard-begin",
+  WIZARD_STATUS: "vault:wizard-status",
+  WIZARD_CONSENT: "vault:wizard-consent",
+  WIZARD_RUN: "vault:wizard-run",
+  WIZARD_CANCEL: "vault:wizard-cancel",
+  WIZARD_SELF_TEST: "vault:wizard-self-test",
+
+  // Batch 11 (tasks 41-44): capsule, session privacy, integrity, secure clipboard.
+  CAPSULE_CHOICES: "vault:capsule-choices",
+  CAPSULE_CREATE: "vault:capsule-create",
+  CAPSULE_INSPECT: "vault:capsule-inspect",
+  CAPSULE_OPEN: "vault:capsule-open",
+  CAPSULE_SAVE: "vault:capsule-save",
+  SESSION_PRIVACY_POLICY: "vault:session-privacy-policy",
+  SESSION_PRIVACY_UPDATE: "vault:session-privacy-update",
+  SESSION_PRIVACY_REDACTED: "vault:session-privacy-redacted",
+  INTEGRITY_ALGORITHMS: "vault:integrity-algorithms",
+  INTEGRITY_CREATE: "vault:integrity-create",
+  INTEGRITY_SAVE: "vault:integrity-save",
+  INTEGRITY_LOAD: "vault:integrity-load",
+  INTEGRITY_COMPARE: "vault:integrity-compare",
+  SECURE_CLIPBOARD_STATUS: "vault:secure-clipboard-status",
+  REPORT_EXPORT: "vault:report-export",
 });
 
 const STORE_COLLECTIONS = Object.freeze(["notes", "passwords", "authenticator", "keys"]);
@@ -1127,6 +1160,299 @@ function registerVaultIpc(service, getWindow) {
       const p = requireObject(payload);
       const input = typeof p.input === "string" ? p.input.slice(0, 256) : "";
       return service.passwordAudit(input);
+    }),
+  );
+
+  // ---- tasks 37-40: Argon2id studio, security journal, transfer wizard ----
+
+  ipcMain.handle(
+    CHANNELS.ARGON2_PARAMS,
+    safe(async () => service.argon2Params()),
+  );
+
+  ipcMain.handle(
+    CHANNELS.ARGON2_DERIVE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const passphrase = requireString(p.passphrase, "passphrase", 1024);
+      const params = {};
+      if (p.profile !== undefined) params.profile = requireString(p.profile, "profile", 32);
+      for (const key of ["memoryKiB", "iterations", "parallelism", "hashLength"]) {
+        if (p[key] !== undefined) {
+          if (!Number.isInteger(p[key])) throw new VaultError(CODES.BAD_INPUT, `${key} must be an integer`);
+          params[key] = p[key];
+        }
+      }
+      return service.argon2Derive({
+        passphrase,
+        params,
+        saltHex: typeof p.saltHex === "string" ? p.saltHex.slice(0, 128) : undefined,
+        reveal: p.reveal === true,
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.JOURNAL_CATEGORIES,
+    safe(async () => service.journalCategories()),
+  );
+
+  ipcMain.handle(
+    CHANNELS.JOURNAL_INTEGRITY,
+    safe(async () => service.journalIntegrity()),
+  );
+
+  ipcMain.handle(
+    CHANNELS.JOURNAL_LIST,
+    safe(async (event, payload) => {
+      const p = payload ? requireObject(payload) : {};
+      return service.journalList({
+        category: typeof p.category === "string" ? p.category.slice(0, 32) : "All",
+        outcome: typeof p.outcome === "string" ? p.outcome.slice(0, 32) : "All",
+        from: typeof p.from === "string" ? p.from.slice(0, 40) : null,
+        to: typeof p.to === "string" ? p.to.slice(0, 40) : null,
+        query: typeof p.query === "string" ? p.query.slice(0, 200) : "",
+        limit: Number.isInteger(p.limit) ? p.limit : 100,
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.JOURNAL_RECORD,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.journalRecord({
+        category: requireString(p.category, "category", 32),
+        action: requireString(p.action, "action", 200),
+        outcome: typeof p.outcome === "string" ? p.outcome.slice(0, 16) : "info",
+        subject: typeof p.subject === "string" ? p.subject.slice(0, 200) : null,
+        detail: p.detail && typeof p.detail === "object" ? p.detail : null,
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.JOURNAL_CLEAR,
+    safe(async (event, payload) => {
+      const p = payload ? requireObject(payload) : {};
+      return service.journalClear({ confirm: p.confirm === true });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.JOURNAL_EXPORT,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.journalExport({
+        confirm: p.confirm === true,
+        outputPath: requireString(p.outputPath, "outputPath", 4096),
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.WIZARD_BEGIN,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      if (!Array.isArray(p.files) || p.files.length === 0) throw new VaultError(CODES.BAD_INPUT, "files must be a non-empty array");
+      const files = p.files.filter((f) => typeof f === "string" && f.length <= 4096).slice(0, 64);
+      return service.wizardBegin({
+        files,
+        recipientHost: typeof p.recipientHost === "string" ? p.recipientHost.slice(0, 255) : "127.0.0.1",
+        recipientPort: Number.isInteger(p.recipientPort) ? p.recipientPort : 0,
+        label: typeof p.label === "string" ? p.label.slice(0, 64) : undefined,
+        pairingSessionId: typeof p.pairingSessionId === "string" ? p.pairingSessionId.slice(0, 64) : null,
+        code: typeof p.code === "string" ? p.code.slice(0, 6) : undefined,
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.WIZARD_STATUS,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.wizardStatus(requireString(p.wizardId, "wizardId", 64));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.WIZARD_CONSENT,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.wizardConsent(requireString(p.wizardId, "wizardId", 64), { confirm: p.confirm === true });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.WIZARD_RUN,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.wizardRun(requireString(p.wizardId, "wizardId", 64));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.WIZARD_CANCEL,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.wizardCancel(requireString(p.wizardId, "wizardId", 64));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.WIZARD_SELF_TEST,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      if (!Array.isArray(p.files) || p.files.length === 0) throw new VaultError(CODES.BAD_INPUT, "files must be a non-empty array");
+      const files = p.files.filter((f) => typeof f === "string" && f.length <= 4096).slice(0, 64);
+      return service.wizardSelfTest({ files, sessionId: requireString(p.sessionId, "sessionId", 64) });
+    }),
+  );
+
+  // ---- tasks 41-44: capsule, session privacy, integrity, secure clipboard --
+
+  ipcMain.handle(
+    CHANNELS.CAPSULE_CHOICES,
+    safe(async () => service.capsuleChoices()),
+  );
+
+  ipcMain.handle(
+    CHANNELS.CAPSULE_CREATE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.capsuleCreate({
+        secret: requireString(p.secret, "secret", 65536),
+        passphrase: requireString(p.passphrase, "passphrase", 1024),
+        expiry: typeof p.expiry === "string" ? p.expiry.slice(0, 8) : "1h",
+        maxAccess: Number.isInteger(p.maxAccess) ? p.maxAccess : 1,
+        label: typeof p.label === "string" ? p.label.slice(0, 64) : "Capsule",
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.CAPSULE_INSPECT,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.capsuleInspect(requireString(p.envelopeText, "envelopeText", 256 * 1024));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.CAPSULE_OPEN,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.capsuleOpen(
+        requireString(p.envelopeText, "envelopeText", 256 * 1024),
+        requireString(p.passphrase, "passphrase", 1024),
+      );
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.CAPSULE_SAVE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.capsuleSave({
+        envelopeText: requireString(p.envelopeText, "envelopeText", 256 * 1024),
+        outputPath: requireString(p.outputPath, "outputPath", 4096),
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.SESSION_PRIVACY_POLICY,
+    safe(async () => service.sessionPrivacyPolicy()),
+  );
+
+  ipcMain.handle(
+    CHANNELS.SESSION_PRIVACY_UPDATE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      const patch = {};
+      if (p.idleLockSeconds !== undefined) {
+        if (!Number.isInteger(p.idleLockSeconds)) throw new VaultError(CODES.BAD_INPUT, "idleLockSeconds must be an integer");
+        patch.idleLockSeconds = p.idleLockSeconds;
+      }
+      if (p.lockOnSuspend !== undefined) patch.lockOnSuspend = p.lockOnSuspend === true;
+      if (p.clearClipboard !== undefined) patch.clearClipboard = p.clearClipboard === true;
+      if (p.retentionDays !== undefined) {
+        if (!Number.isInteger(p.retentionDays)) throw new VaultError(CODES.BAD_INPUT, "retentionDays must be an integer");
+        patch.retentionDays = p.retentionDays;
+      }
+      return service.sessionPrivacyUpdate(patch);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.SESSION_PRIVACY_REDACTED,
+    safe(async () => service.sessionPrivacyRedacted()),
+  );
+
+  ipcMain.handle(
+    CHANNELS.INTEGRITY_ALGORITHMS,
+    safe(async () => service.integrityAlgorithms()),
+  );
+
+  ipcMain.handle(
+    CHANNELS.INTEGRITY_CREATE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      if (!Array.isArray(p.files) || p.files.length === 0) throw new VaultError(CODES.BAD_INPUT, "files must be a non-empty array");
+      const files = p.files.filter((f) => typeof f === "string" && f.length <= 4096).slice(0, 5000);
+      return service.integrityCreate({
+        files,
+        algorithm: typeof p.algorithm === "string" ? p.algorithm.slice(0, 16) : "SHA-256",
+        label: typeof p.label === "string" ? p.label.slice(0, 64) : "Baseline",
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.INTEGRITY_SAVE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.integritySave({
+        manifest: p.manifest && typeof p.manifest === "object" ? p.manifest : null,
+        outputPath: requireString(p.outputPath, "outputPath", 4096),
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.INTEGRITY_LOAD,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.integrityLoad(requireString(p.manifestPath, "manifestPath", 4096));
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.INTEGRITY_COMPARE,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.integrityCompare({
+        manifest: p.manifest && typeof p.manifest === "object" ? p.manifest : null,
+        manifestPath: typeof p.manifestPath === "string" ? p.manifestPath.slice(0, 4096) : undefined,
+        extraFiles: Array.isArray(p.extraFiles) ? p.extraFiles.filter((f) => typeof f === "string" && f.length <= 4096).slice(0, 5000) : [],
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.SECURE_CLIPBOARD_STATUS,
+    safe(async () => service.secureClipboardStatus()),
+  );
+
+  ipcMain.handle(
+    CHANNELS.REPORT_EXPORT,
+    safe(async (event, payload) => {
+      const p = requireObject(payload);
+      return service.reportExport({
+        report: p.report && typeof p.report === "object" ? p.report : null,
+        outputPath: requireString(p.outputPath, "outputPath", 4096),
+        kind: typeof p.kind === "string" ? p.kind.slice(0, 32) : "report",
+      });
     }),
   );
 
