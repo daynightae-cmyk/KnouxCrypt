@@ -1,0 +1,74 @@
+/*
+ * CipherGlyph presentation layer.
+ *
+ * Colour comes from the shell tokens in shell.css rather than new literals, so
+ * an icon follows the approved violet/white hierarchy automatically and there is
+ * only one place to change it. Direction-neutral by construction: nothing here
+ * uses left/right, so RTL needs no override.
+ */
+
+.knoux-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  color: var(--crypt-violet);
+  transition: color 180ms ease, filter 220ms ease, transform 220ms cubic-bezier(.2,.7,.3,1);
+}
+
+.knoux-icon svg {
+  display: block;
+  overflow: visible;
+}
+
+/* Duotone depth: the filled sub-shapes already carry their own opacity, so the
+   stroke layer stays crisp at 20px while the fill reads at 48px+. */
+.knoux-icon.size-sm,
+.knoux-icon.size-md { --glyph-stroke: 1.7; }
+.knoux-icon.size-lg { --glyph-stroke: 1.5; }
+.knoux-icon.size-card,
+.knoux-icon.size-hero { --glyph-stroke: 1.3; }
+
+.knoux-icon svg { stroke-width: var(--glyph-stroke, 1.5); }
+
+.knoux-icon.is-active {
+  color: var(--crypt-white, #fff);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--crypt-violet) 65%, transparent));
+}
+
+/* Selection ignition: a short, single-pass bloom. Deliberately not a loop —
+   a continuously pulsing icon in a working toolbar is decoration, not signal. */
+.knoux-icon.is-igniting {
+  animation: knoux-glyph-ignite 520ms cubic-bezier(.2,.75,.3,1) 1;
+}
+
+@keyframes knoux-glyph-ignite {
+  0%   { transform: scale(.86); opacity: .55; filter: drop-shadow(0 0 0 transparent); }
+  55%  { transform: scale(1.06); opacity: 1; filter: drop-shadow(0 0 14px color-mix(in srgb, var(--crypt-violet) 80%, transparent)); }
+  100% { transform: scale(1); opacity: 1; filter: drop-shadow(0 0 8px color-mix(in srgb, var(--crypt-violet) 45%, transparent)); }
+}
+
+/* A locked/disabled service must look unavailable, not merely dim. */
+.knoux-icon.is-locked {
+  color: var(--crypt-muted);
+  filter: none;
+  opacity: .5;
+}
+
+.knoux-icon-unmapped {
+  color: #f0b429;
+  border-radius: 6px;
+}
+
+/* Reduced motion: the product already exposes a motion preference, and the
+   shell sets data-motion-quality on the root. Ignition becomes an instant
+   state change instead of an animation. */
+[data-motion-quality="reduced"] .knoux-icon.is-igniting,
+[data-motion-running="false"] .knoux-icon.is-igniting {
+  animation: none;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .knoux-icon.is-igniting { animation: none; }
+  .knoux-icon { transition: none; }
+}
