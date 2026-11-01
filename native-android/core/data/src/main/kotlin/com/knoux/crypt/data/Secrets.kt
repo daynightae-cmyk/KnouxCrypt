@@ -11,6 +11,8 @@ object SecretKinds {
     const val NOTE = "note"
     const val PASSWORD = "password"
     const val TOTP = "totp"
+    const val SIGNATURE = "signature"
+    const val SIGNING_KEY = "signing_key"
 }
 
 @Serializable
@@ -40,6 +42,17 @@ data class PasswordPayload(
     val notes: String = "",
     /** Newest first, bounded by [PasswordRevisions.MAX_ENTRIES]. */
     val revisions: List<PasswordRevision> = emptyList(),
+)
+
+/** A detached signature record: no signed document is stored, only its digest. */
+@Serializable
+data class SignaturePayload(
+    val label: String,
+    val algorithm: String,
+    val publicKeySpkiBase64: String,
+    val signatureBase64: String,
+    val digestHex: String,
+    val createdAt: Long,
 )
 
 @Serializable
@@ -116,6 +129,18 @@ object SecretsJson {
 
     fun encodeTotp(payload: TotpPayload): String =
         json.encodeToString(TotpPayload.serializer(), payload)
+
+    fun encodeSignature(payload: SignaturePayload): String =
+        json.encodeToString(SignaturePayload.serializer(), payload)
+
+    fun decodeSignature(value: String): SignaturePayload? =
+        runCatching { json.decodeFromString(SignaturePayload.serializer(), value) }.getOrNull()
+
+    fun encodeSigningKey(payload: SigningKeyPayload): String =
+        json.encodeToString(SigningKeyPayload.serializer(), payload)
+
+    fun decodeSigningKey(value: String): SigningKeyPayload? =
+        runCatching { json.decodeFromString(SigningKeyPayload.serializer(), value) }.getOrNull()
 
     fun decodeTotp(value: String): TotpPayload? =
         runCatching { json.decodeFromString(TotpPayload.serializer(), value) }.getOrNull()

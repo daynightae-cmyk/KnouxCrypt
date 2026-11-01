@@ -6,6 +6,9 @@ import android.security.keystore.KeyInfo
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
 import java.security.KeyStore
+import java.security.PrivateKey
+import java.security.PublicKey
+import com.knoux.crypt.security.DigitalSignatureService
 import javax.crypto.SecretKeyFactory
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -32,6 +35,7 @@ class KeystoreManager {
         const val MASTER_ALIAS = VaultKeyAliases.MASTER
         const val UNLOCK_ALIAS = VaultKeyAliases.GATE_PRIMARY
         internal const val UNLOCK_ALTERNATE_ALIAS = VaultKeyAliases.GATE_ALTERNATE
+        internal const val SIGNING_ALIAS = VaultKeyAliases.SIGNING
         private const val ANDROID_KEYSTORE = "AndroidKeyStore"
     }
 
@@ -81,6 +85,82 @@ class KeystoreManager {
             }.getOrNull()?.takeIf { it >= 0 },
             unlockedDeviceRequiredRequested = unlockedDeviceRequested,
         )
+    }
+
+    /**
+     * Signing key for TASK 19. The private half never leaves the Keystore.
+     *
+     * EC P-256 is preferred, but the first device run showed that some
+     * AndroidKeyStore providers do not implement EC at all (the itel S686LN
+     * answers "no such algorithm: EC for provider AndroidKeyStore"). The
+     * factory therefore falls back to RSA-2048 with SHA-256, and the algorithm
+     * that was actually used travels with every signature.
+     */
+    /**
+     * The Keystore signing key, or null when this provider cannot create one.
+     * Some AndroidKeyStore implementations ship without EC or RSA support; the
+     * caller then falls back to a vault-protected software key and says so.
+     */
+    @Synchronized
+    internal fun keystoreSigningKey(): PrivateKey? = runCatching { signingPrivateKey() }.getOrNull()
+
+    @Synchronized
+    internal fun signingPrivateKey(): PrivateKey {
+        val keyStore = store()
+        (keyStore.getKey(SIGNING_ALIAS, null) as? PrivateKey)?.let { return it }
+        return try {
+            createSigningKey(
+                algorithm = KeyProperties.KEY_ALGORITHM_EC,
+                spec = KeyGenParameterSpec.Builder(
+                    SIGNING_ALIAS,
+                    KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY,
+                )
+                    .setAlgorithmParameterSpec(
+                        java.security.spec.ECGenParameterSpec(DigitalSignatureService.CURVE),
+                    )
+                    .setDigests(KeyProperties.DIGEST_SHA256)
+                    .build(),
+            )
+        } catch (failure: Exception) {
+            // This Keystore has no EC support; drop any partial alias and use RSA.
+            runCatching { store().deleteEntry(SIGNING_ALIAS) }
+            createSigningKey(
+                algorithm = KeyProperties.KEY_ALGORITHM_RSA,
+                spec = KeyGenParameterSpec.Builder(
+                    SIGNING_ALIAS,
+                    KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY,
+                )
+                    .setKeySize(DigitalSignatureService.RSA_KEY_SIZE)
+                    .setDigests(KeyProperties.DIGEST_SHA256)
+                    .build(),
+            )
+        }
+    }
+
+    private fun createSigningKey(algorithm: String, spec: KeyGenParameterSpec): PrivateKey {
+        val generator = KeyGenerator.getInstance(algorithm, ANDROID_KEYSTORE)
+        generator.init(spec)
+        return generator.generateKey() as PrivateKey
+    }
+
+    /** The signature algorithm that matches the key actually created. */
+    internal fun signingAlgorithm(): String {
+        val key = signingPrivateKey()
+        return if (key is java.security.interfaces.ECPrivateKey) {
+            DigitalSignatureService.ALGORITHM_ECDSA
+        } else {
+            DigitalSignatureService.ALGORITHM_RSA
+        }
+    }
+
+    /** The exportable public half of the signing key, in SPKI form. */
+    @Synchronized
+    internal fun signingPublicKey(): PublicKey {
+        signingPrivateKey()
+        val keyStore = store()
+        val certificate = keyStore.getCertificate(SIGNING_ALIAS)
+            ?: throw IllegalStateException("The signing key has no certificate")
+        return certificate.publicKey
     }
 
     /** Maps the platform purpose flags to stable labels. */

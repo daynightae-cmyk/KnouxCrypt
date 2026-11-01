@@ -13,6 +13,7 @@ import com.knoux.crypt.ui.AccountScreen
 import com.knoux.crypt.ui.AuthImportScreen
 import com.knoux.crypt.ui.AuthenticatorScreen
 import com.knoux.crypt.ui.ClipboardGuardScreen
+import com.knoux.crypt.ui.DigitalSignatureScreen
 import com.knoux.crypt.ui.FileCipherScreen
 import com.knoux.crypt.ui.HashIntegrityScreen
 import com.knoux.crypt.ui.HmacLabScreen
@@ -146,6 +147,13 @@ fun KnouxNavHost(
         }
         composable("package_inspector") {
             PackageInspectorScreen(onBack = { nav.popBackStack() })
+        }
+        composable("signature") {
+            DigitalSignatureScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
         }
         composable("clipboard_guard") {
             ClipboardGuardScreen(

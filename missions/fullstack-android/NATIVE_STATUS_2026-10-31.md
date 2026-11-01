@@ -66,7 +66,7 @@ Test distribution (current): security 58 (FileEnvelope 13 + KNF2 8 + Hashing 3 +
 | 16 | Secure share | PLANNED |
 | 17 | Hash & Integrity | **BUILD_VERIFIED + TESTED**; device SAF open |
 | 18 | Text cipher | **BUILD_VERIFIED + TESTED (8)**; KNP2/Argon2id writes, KNP1 readable; device UI open |
-| 19 | Digital signature | PLANNED |
+| 19 | Digital signature | **SOURCE_IMPLEMENTED + JVM_TESTED (7) + CRYPTO DEVICE_VERIFIED (1 instrumented) — SCREEN DEVICE_UNVERIFIED**: detached SHA-256 signatures (ECDSA P-256 or RSA-2048 per device), Keystore key with a vault-encrypted software fallback for providers without asymmetric support, content-changed vs invalid-signature verdicts, public key export, no identity claim |
 | 20 | Certificate inspector | PLANNED |
 | 21 | Encrypted archive | PLANNED (KNF1 core exists; archive UI does not) |
 | 22 | Local transfer | PLANNED |
@@ -92,9 +92,9 @@ Test distribution (current): security 58 (FileEnvelope 13 + KNF2 8 + Hashing 3 +
 | 42 | Session privacy controls | **BUILD_VERIFIED + JVM_TESTED policy (2) — DEVICE_UNVERIFIED**: configurable auto-lock, screen-off lock, clipboard timeout + lock clear, screenshot policy, app-switch cover, mutation/revocation serialization |
 | 43 | File integrity tool | **BUILD_VERIFIED + JVM_TESTED (hash vectors) — DEVICE_UNVERIFIED**: streaming SHA-256, checksum validation, match/mismatch evidence, cancel, in-memory reports, dedicated `file_integrity` route reusing Hash & Integrity |
 | 44 | Secure clipboard | **BUILD_VERIFIED + JVM_TESTED (policy) — DEVICE_UNVERIFIED**: managed copy action, hidden staged value, timeout/clear, guard linkage; no guaranteed erasure |
-| 45 | Final integration/verification | **SOURCE-LEVEL AUDIT DONE / DEVICE PARTIALLY VERIFIED / RELEASE_BLOCKED / AUDIT_PENDING**: 34 Tools destinations (17 implemented / 17 design-only) plus the non-catalog `password_detail`, `auth_import` and `key_details` routes; 200 JVM tests and 12 instrumented tests passing on one Android 15 handset; device/signing/audit/visual gates remain open |
+| 45 | Final integration/verification | **SOURCE-LEVEL AUDIT DONE / DEVICE PARTIALLY VERIFIED / RELEASE_BLOCKED / AUDIT_PENDING**: 34 Tools destinations (18 implemented / 16 design-only) plus the non-catalog `password_detail`, `auth_import` and `key_details` routes; 207 JVM tests and 13 instrumented tests passing on one Android 15 handset; device/signing/audit/visual gates remain open |
 
-Catalog accounting: 34 destinations total = **17 IMPLEMENTED**, **0 BLOCKED**, **17 DESIGN_ONLY** (Recovery is implemented for encrypted data export/restore; gate recovery remains out of scope. Key rotation is an internal Account wizard, not a new Tools destination. Password Audit is a Tools destination added by TASK 36). Eight Home cards preserved in the accepted order.
+Catalog accounting: 34 destinations total = **18 IMPLEMENTED**, **0 BLOCKED**, **16 DESIGN_ONLY** (Recovery is implemented for encrypted data export/restore; gate recovery remains out of scope. Key rotation is an internal Account wizard, not a new Tools destination. Password Audit is a Tools destination added by TASK 36). Eight Home cards preserved in the accepted order.
 
 ## Reality of the implementation
 
@@ -127,6 +127,26 @@ Catalog accounting: 34 destinations total = **17 IMPLEMENTED**, **0 BLOCKED**, *
 2. **Remaining vertical slices:** 05 Vault/Shadow Vault, 07 Notes editor, 11 Auth import (dependency-ready), 19 Signatures, 21 Archive, 28 QR, 30 Document viewer, 33 Autofill, remaining design-only services.
 3. **Device gate:** follow `DEVICE_VERIFICATION_CHECKLIST.md`; install `app-debug.apk`, run all instrumented classes (access, Keystore record/KDK1/KNF2, Room migration), test privacy timing/clipboard/screen capture, HMAC/file integrity/package inspector, then capture Compose screenshots at 360/390/441 widths in EN/AR and compare against canonical references.
 4. **Quality gate:** detekt/ktlint, dependency locking, CVE scan, R8 shrinking (BouncyCastle adds 3.18 MB), and a real CI workflow (the PR14 template remains uninstalled).
+
+## TASK 19 digital signature — 2026-11-01
+
+- Detached signatures over the SHA-256 digest of the content: SHA-256/ECDSA P-256 or
+  SHA-256/RSA-2048, chosen by what the device supports. Verdicts separate "content changed"
+  from "invalid signature" from "malformed", and any other algorithm is refused.
+- **Device finding that changed the design**: the itel S686LN's AndroidKeyStore provider implements
+  only AES — it answers "no such algorithm: EC for provider AndroidKeyStore" and the same for RSA.
+  The signing service therefore has two honest origins: a Keystore key when the platform can
+  create one, or a software EC key pair stored as an encrypted vault record (protected by the
+  Keystore-rooted data-key hierarchy, explicitly not hardware-backed). The UI states which one is
+  in use.
+- Stored records keep the signature, digest, public key and algorithm — never the signed document.
+  Verification proves possession of the matching private key and never claims an identity.
+- Verification: **207 JVM tests, 0 failures** (security 97, data 93, app 17); instrumented
+  **13/13 PASS** on the itel S686LN including `SigningDeviceTest`, which signs on the device,
+  verifies with the exported public key, refuses altered content and asserts the stored row holds
+  no private key material; lint 0 errors; clean APK 19,712,121 bytes, SHA-256 `4f48d6d0…fa2057`,
+  installed and cold-started without crash entries.
+- Screen layout, RTL and the copy interactions remain DEVICE_UNVERIFIED (unlocked session needed).
 
 ## TASK 13 key details — 2026-11-01
 

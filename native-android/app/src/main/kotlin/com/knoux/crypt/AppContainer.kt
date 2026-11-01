@@ -9,6 +9,7 @@ import com.knoux.crypt.data.RoomTransactionRunner
 import com.knoux.crypt.data.SecretRepository
 import com.knoux.crypt.data.SessionManager
 import com.knoux.crypt.data.SettingsRepository
+import com.knoux.crypt.data.SigningService
 import com.knoux.crypt.data.UnlockManager
 import com.knoux.crypt.data.UnlockManagers
 import com.knoux.crypt.data.VaultBackupManager
@@ -37,6 +38,7 @@ class AppContainer(context: Context) {
     val clipboard = ClipboardPrivacy(appContext, settings, appScope).also { privacy ->
         session.addOnLockListener { privacy.clearNow() }
     }
+    val signing = SigningService(keystore, secrets, session)
     val vaultFiles = VaultFileCipher(session)
     val passwordAudit = PasswordAuditService(session, database.secrets(), secrets)
     val backups = VaultBackupManager(database.secrets(), session, vaultKeys)
