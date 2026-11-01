@@ -18,6 +18,7 @@ const fsp = require("fs/promises");
 const path = require("path");
 
 const { VaultError, CODES, badInput } = require("./errors");
+const { ensureProtected, protectFile, isPermissionDenial } = require("./acl");
 
 const PREFERENCES_VERSION = 1;
 const IDLE_MIN_SECONDS = 30;
@@ -101,9 +102,15 @@ class Preferences {
     const tmp = `${this.file}.tmp`;
     try {
       await fsp.mkdir(path.dirname(this.file), { recursive: true });
+      await ensureProtected(path.dirname(this.file));
       await fsp.writeFile(tmp, body, { mode: 0o600 });
+      await protectFile(tmp);
       await fsp.rename(tmp, this.file);
-    } catch {
+      await protectFile(this.file);
+    } catch (err) {
+      if (isPermissionDenial(err)) {
+        throw new VaultError(CODES.PERMISSION_DENIED, "The preferences location does not allow this user to write");
+      }
       throw new VaultError(CODES.IO_FAILED, "Could not write the preferences file");
     }
   }

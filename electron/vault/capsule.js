@@ -27,6 +27,7 @@ const fsp = require("fs/promises");
 const path = require("path");
 
 const { VaultError, CODES, badInput } = require("./errors");
+const { protectFile, isPermissionDenial } = require("./acl");
 
 const CAPSULE_FORMAT = "KNXCAP01";
 const CAPSULE_VERSION = 1;
@@ -179,10 +180,20 @@ class SecretCapsule {
     const tmp = `${target}.${crypto.randomBytes(6).toString("hex")}.tmp`;
     try {
       await fsp.writeFile(tmp, envelopeText, { mode: 0o600 });
+      // "Owner-only" has to be enforced, not requested: on Windows the mode
+      // argument is ignored and the file inherits a DACL that grants
+      // BUILTIN\Users read access. Protect the temp file before the rename so
+      // the envelope never exists under the inherited ACL.
+      await protectFile(tmp);
       await fsp.rename(tmp, target);
+      await protectFile(target);
     } catch (err) {
       await fsp.rm(tmp, { force: true }).catch(() => {});
+      if (err instanceof VaultError) throw err;
       if (err.code === "ENOENT") throw new VaultError(CODES.NOT_FOUND, "The output folder does not exist");
+      if (isPermissionDenial(err)) {
+        throw new VaultError(CODES.PERMISSION_DENIED, "The output folder does not allow this user to write");
+      }
       throw new VaultError(CODES.IO_FAILED, "The capsule could not be written");
     }
     return { saved: true, outputPath: target };

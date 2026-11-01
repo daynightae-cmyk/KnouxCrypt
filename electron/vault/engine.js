@@ -11,6 +11,7 @@ const fsp = require("fs/promises");
 const path = require("path");
 
 const { VaultError, CODES, badInput } = require("./errors");
+const { protectFile, isPermissionDenial } = require("./acl");
 const {
   KDF,
   DEFAULT_PBKDF2_ITERATIONS,
@@ -290,7 +291,7 @@ class VaultEngine {
 
     const tmp = tempPathFor(outputPath);
     const inFh = await fsp.open(inputPath, "r");
-    const outFh = await fsp.open(tmp, "wx", 0o600);
+    const outFh = await this._openTemp(tmp);
     let committed = false;
     try {
       await outFh.write(container.sealHeader(headerPrefix, macKey));
@@ -326,6 +327,9 @@ class VaultEngine {
       await inFh.close();
       await this._atomicCommit(tmp, outputPath);
       committed = true;
+      // An encrypted file is written wherever the user chose, often outside any
+      // vault root, so its DACL has to be set explicitly rather than inherited.
+      await protectFile(outputPath);
       const outStat = await fsp.stat(outputPath);
       return {
         outputPath,
@@ -375,7 +379,7 @@ class VaultEngine {
       const { encKey, macKey, contentMacKey } = deriveSubkeys(cred, parsed.salt, parsed);
       container.verifyHeaderMac(parsed, macKey);
 
-      outFh = await fsp.open(tmp, "wx", 0o600);
+      outFh = await this._openTemp(tmp);
       const contentMac = crypto.createHmac("sha256", contentMacKey);
       const bodyEnd = stat.size - container.MAC_LEN;
       let offset = container.HEADER_LEN + container.MAC_LEN;
@@ -435,6 +439,8 @@ class VaultEngine {
       await inFh.close();
       await this._atomicCommit(tmp, outputPath);
       committed = true;
+      // Recovered plaintext is the most sensitive thing this app writes.
+      await protectFile(outputPath);
       return {
         outputPath,
         meta: {
@@ -648,6 +654,52 @@ class VaultEngine {
       .catch(() => false);
     if (exists && !this.overwrite) {
       throw new VaultError(CODES.PATH_CONFLICT, `Output file already exists: ${outputPath}`);
+    }
+    // Actually try to create a file in the directory. On Windows `stat()` on the
+    // directory succeeds even when the DACL denies WriteData, so a stat-only
+    // check would let the operation run to completion — hashing the whole input
+    // and then failing at the commit, after partial work. Probing catches a real
+    // NTFS (or POSIX write-bit) denial up front and reports it as its own
+    // condition instead of a generic IO failure.
+    const probe = path.join(dir, `.knoux-writable-probe.${crypto.randomBytes(6).toString("hex")}.tmp`);
+    let handle = null;
+    try {
+      handle = await fsp.open(probe, "wx");
+    } catch (err) {
+      if (isPermissionDenial(err)) {
+        throw new VaultError(
+          CODES.PERMISSION_DENIED,
+          `This user is not allowed to write in ${dir}`,
+          { syscall: err.syscall, errno: err.code },
+        );
+      }
+      if (err.code === "EEXIST") return; // stale probe name; the directory is writable
+      throw new VaultError(CODES.IO_FAILED, `Output directory is not writable: ${dir}`);
+    } finally {
+      if (handle) {
+        await handle.close().catch(() => {});
+        // Only remove what this probe created. If the name somehow collided
+        // (EEXIST), the file belongs to somebody else and must stay.
+        await fsp.rm(probe, { force: true }).catch(() => {});
+      }
+    }
+  }
+
+  /**
+   * Open a temp output file, translating a platform write refusal into a typed
+   * error. Windows reports an NTFS DENY ACE on the parent as EPERM.
+   */
+  async _openTemp(tmp) {
+    try {
+      return await fsp.open(tmp, "wx", 0o600);
+    } catch (err) {
+      if (isPermissionDenial(err)) {
+        throw new VaultError(CODES.PERMISSION_DENIED, "The output location does not allow this user to write", {
+          syscall: err.syscall,
+          errno: err.code,
+        });
+      }
+      throw err;
     }
   }
 

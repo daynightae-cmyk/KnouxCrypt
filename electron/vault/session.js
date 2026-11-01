@@ -17,6 +17,7 @@ const fsp = require("fs/promises");
 const path = require("path");
 
 const { VaultError, CODES, badInput } = require("./errors");
+const { ensureProtected, protectFile } = require("./acl");
 const { KDF, KEY_LEN, SALT_LEN, DEFAULT_PBKDF2_ITERATIONS, randomSalt, deriveMasterKey, hkdf, expandKeys } = require("./kdf");
 
 const ENROLLMENT_VERSION = 1;
@@ -98,13 +99,27 @@ class VaultSessionManager {
       createdAt: new Date(this.now()).toISOString(),
     };
 
-    await fsp.mkdir(path.dirname(this.enrollmentPath), { recursive: true });
-    // Write then restrict: avoids a window where the file is world-readable.
+    await this._sealEnrollmentDir();
+    // Restrict the directory before creating the record: on Windows the new
+    // file's DACL is inherited at creation, so protecting the parent first
+    // leaves no window in which another local user could open the record.
+    // The explicit file-level pass then covers a pre-existing file.
     await fsp.writeFile(this.enrollmentPath, JSON.stringify(record, null, 2), { mode: 0o600 });
-    await fsp.chmod(this.enrollmentPath, 0o600).catch(() => {});
+    await protectFile(this.enrollmentPath);
 
     const session = this._issueSession({ dek, guest: false, name: record.name });
     return { sessionId: session.id, name: record.name, createdAt: record.createdAt };
+  }
+
+  /**
+   * Create the enrollment directory if needed and confine it to this user.
+   * Cached per path, so repeated unlocks do not re-spawn icacls.
+   */
+  async _sealEnrollmentDir() {
+    const dir = path.dirname(this.enrollmentPath);
+    await fsp.mkdir(dir, { recursive: true });
+    await ensureProtected(dir);
+    return dir;
   }
 
   // ---- unlock -------------------------------------------------------------
@@ -330,10 +345,13 @@ class VaultSessionManager {
     };
 
     const tmp = `${this.enrollmentPath}.rotate.${crypto.randomBytes(4).toString("hex")}.tmp`;
-    await fsp.mkdir(path.dirname(this.enrollmentPath), { recursive: true });
+    await this._sealEnrollmentDir();
     await fsp.writeFile(tmp, JSON.stringify(record, null, 2), { mode: 0o600 });
-    await fsp.chmod(tmp, 0o600).catch(() => {});
+    // Protect the temp file, not just the destination: rename preserves the
+    // security descriptor, so the sealed record inherits the restricted DACL.
+    await protectFile(tmp);
     await fsp.rename(tmp, this.enrollmentPath);
+    await protectFile(this.enrollmentPath);
     return { record, previous, rotatedAt: record.rotatedAt, rotationCount: record.rotationCount };
   }
 
@@ -341,9 +359,11 @@ class VaultSessionManager {
   async restoreEnrollment(previous) {
     if (!previous || typeof previous !== "object") throw badInput("A previous enrollment record is required");
     const tmp = `${this.enrollmentPath}.restore.${crypto.randomBytes(4).toString("hex")}.tmp`;
+    await this._sealEnrollmentDir();
     await fsp.writeFile(tmp, JSON.stringify(previous, null, 2), { mode: 0o600 });
-    await fsp.chmod(tmp, 0o600).catch(() => {});
+    await protectFile(tmp);
     await fsp.rename(tmp, this.enrollmentPath);
+    await protectFile(this.enrollmentPath);
     return { restored: true };
   }
 

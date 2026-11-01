@@ -23,7 +23,8 @@
     "check:electron:runtime": "electron --no-sandbox --ozone-platform=headless scripts/electron-runtime-check.cjs",
     "check:electron:lifecycle": "electron --no-sandbox --ozone-platform=headless scripts/electron-lifecycle-check.cjs",
     "check:electron": "npm run check:electron:lifecycle && npm run check:electron:runtime",
-    "check:desktop": "npm run check:electron && npm run icons",
+    "check:csp": "electron --no-sandbox --ozone-platform=headless scripts/check-csp-runtime.cjs",
+    "check:desktop": "npm run check:electron && npm run check:csp && npm run icons",
     "check:browser": "node scripts/check-browser-qa.cjs"
   },
   "keywords": [
@@ -100,6 +101,9 @@
       "artifactName": "KnouxCrypt-2025-Setup-${version}-${arch}.${ext}",
       "signtoolOptions": { "publisherName": "Knoux Technologies" },
       "verifyUpdateCodeSignature": false
+    },
+    "portable": {
+      "artifactName": "KnouxCrypt-2025-${version}-portable-${arch}.${ext}"
     },
     "mac": {
       "target": [

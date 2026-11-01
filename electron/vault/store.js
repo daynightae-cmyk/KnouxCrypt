@@ -16,6 +16,7 @@ const fsp = require("fs/promises");
 const path = require("path");
 
 const { VaultError, CODES, badInput } = require("./errors");
+const { ensureProtected, protectFile, isPermissionDenial } = require("./acl");
 
 const COLLECTIONS = Object.freeze(["notes", "passwords", "authenticator", "keys", "collections"]);
 const STORE_VERSION = 1;
@@ -72,6 +73,10 @@ class EncryptedStore {
     const { bytes } = this.engine.encryptBuffer(payload, { rawKey });
     const file = this.pathFor(collection);
     await fsp.mkdir(this.root, { recursive: true });
+    // Confine the store directory to this user before anything is written into
+    // it, so a sealed collection is never created under a DACL that grants
+    // BUILTIN\Users read access. Cached: one icacls call per root, not per put.
+    await ensureProtected(this.root);
     const tmp = path.join(this.root, `.${path.basename(file)}.${crypto.randomBytes(6).toString("hex")}.tmp`);
     try {
       // Write, fsync, then rename so a crash cannot leave a half-written store.
@@ -82,10 +87,15 @@ class EncryptedStore {
       } finally {
         await fh.close();
       }
+      await protectFile(tmp);
       await fsp.rename(tmp, file);
+      await protectFile(file);
     } catch (err) {
       await fsp.rm(tmp, { force: true }).catch(() => {});
       if (err instanceof VaultError) throw err;
+      if (isPermissionDenial(err)) {
+        throw new VaultError(CODES.PERMISSION_DENIED, "The encrypted store directory does not allow this user to write");
+      }
       throw new VaultError(CODES.IO_FAILED, "Could not write the encrypted store");
     }
     return { bytes: bytes.length, records: document.records.length };
