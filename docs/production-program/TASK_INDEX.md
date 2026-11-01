@@ -7,7 +7,7 @@ Baseline: `main` @ `c2198496bdb89a7f829c18c8762fc0c31e2fc78a`.
 | ID | Title | Priority | Status | Depends on |
 |---|---|---|---|---|
 | TASK 000 | Forensic baseline, preservation & integration verification | P0 | IN_PROGRESS | — |
-| TASK 001 | Enable CI on all PRs (remove Dependabot-only gate) | P0 | NOT_STARTED | TASK 000 |
+| TASK 001 | Enable CI on all PRs (remove Dependabot-only gate) | P0 | IMPLEMENTED_UNVERIFIED | TASK 000 |
 | TASK 002 | Build ia32 artifacts + verify packaging matrix | P1 | NOT_STARTED | TASK 000 |
 | TASK 003 | Self-host Inter font (remove googleapis request) | P2 | NOT_STARTED (design decision) | TASK 000 |
 | TASK 004 | Linux POSIX verification of ACL branches (CI or WSL) | P1 | NOT_STARTED | TASK 001 |
