@@ -13,6 +13,7 @@ object SecretKinds {
     const val TOTP = "totp"
     const val SIGNATURE = "signature"
     const val SIGNING_KEY = "signing_key"
+    const val PUBLIC_KEY = "public_key"
 }
 
 @Serializable
@@ -52,6 +53,16 @@ data class SignaturePayload(
     val publicKeySpkiBase64: String,
     val signatureBase64: String,
     val digestHex: String,
+    val createdAt: Long,
+)
+
+/** A public key kept for fingerprint comparison and QR sharing. */
+@Serializable
+data class PublicKeyPayload(
+    val label: String,
+    val spkiBase64: String,
+    val fingerprint: String,
+    val origin: String,
     val createdAt: Long,
 )
 
@@ -135,6 +146,12 @@ object SecretsJson {
 
     fun decodeSignature(value: String): SignaturePayload? =
         runCatching { json.decodeFromString(SignaturePayload.serializer(), value) }.getOrNull()
+
+    fun encodePublicKey(payload: PublicKeyPayload): String =
+        json.encodeToString(PublicKeyPayload.serializer(), payload)
+
+    fun decodePublicKey(value: String): PublicKeyPayload? =
+        runCatching { json.decodeFromString(PublicKeyPayload.serializer(), value) }.getOrNull()
 
     fun encodeSigningKey(payload: SigningKeyPayload): String =
         json.encodeToString(SigningKeyPayload.serializer(), payload)

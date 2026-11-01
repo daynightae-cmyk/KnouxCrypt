@@ -1,7 +1,11 @@
 package com.knoux.crypt.design
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,6 +50,7 @@ import kotlinx.coroutines.launch
  * requested.
  */
 object LivingStagGeometry {
+
     /** Eye centres measured from the 480x480 approved asset. */
     val LEFT_EYE = Offset(0.386f, 0.553f)
     val RIGHT_EYE = Offset(0.648f, 0.553f)
@@ -69,6 +74,9 @@ object LivingStagGeometry {
 }
 
 private data class EyeFrame(val centre: Offset, val intensity: Float, val tilt: Float)
+
+/** Length of the shared animation clock, in milliseconds. */
+private const val CLOCK_CYCLE_MILLIS = 12_000
 
 /**
  * True while the host window is at least STARTED and actually drawn, so the
@@ -106,7 +114,17 @@ fun LivingStagOverlay(
 
     val left = remember { Animatable(0.35f) }
     val right = remember { Animatable(0.35f) }
-    var elapsed by remember { mutableFloatStateOf(0f) }
+    // One shared clock for the antler light, motes and sparks. It uses the
+    // standard infinite transition instead of a raw frame loop so the screen
+    // still reaches an idle state for UI tests.
+    val transition = rememberInfiniteTransition(label = "stag-living")
+    val clock by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(CLOCK_CYCLE_MILLIS, easing = LinearEasing)),
+        label = "stag-clock",
+    )
+    val elapsed = clock * (CLOCK_CYCLE_MILLIS / 1000f)
 
     // Independent eye cycles: ignite, flicker irregularly, dim, then surge back.
     LaunchedEffect(running) {
@@ -118,15 +136,6 @@ fun LivingStagOverlay(
         coroutineScope {
             launch { eyeCycle(left, seed = 11L) }
             launch { eyeCycle(right, seed = 29L) }
-        }
-    }
-
-    // One clock for the antler light, motes and sparks.
-    LaunchedEffect(running) {
-        if (!running) return@LaunchedEffect
-        val start = withFrameNanos { it }
-        while (true) {
-            withFrameNanos { now -> elapsed = (now - start) / 1_000_000_000f }
         }
     }
 

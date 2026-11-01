@@ -70,12 +70,12 @@ Test distribution (current): security 58 (FileEnvelope 13 + KNF2 8 + Hashing 3 +
 | 20 | Certificate inspector | PLANNED |
 | 21 | Encrypted archive | PLANNED (KNF1 core exists; archive UI does not) |
 | 22 | Local transfer | PLANNED |
-| 23 | Fingerprint verify | PLANNED |
+| 23 | Fingerprint verify | **SOURCE_IMPLEMENTED + JVM_TESTED (5) — SCREEN DEVICE_UNVERIFIED**: SSH-style `SHA256:` fingerprint of public-key SPKI, compare against a pasted fingerprint or public key, imported public keys stored encrypted |
 | 24 | Metadata cleaner | PLANNED |
 | 25 | Clipboard guard | **BUILD_VERIFIED + JVM_TESTED (policy) — DEVICE_UNVERIFIED**: metadata-only exposure, managed/foreign/expired states, explicit clear, no silent foreign clearing; reuses TASK 42 service |
 | 26 | Secure random | **BUILD_VERIFIED + TESTED**; device UI open |
 | 27 | HMAC authenticity | **BUILD_VERIFIED + JVM_TESTED (RFC 4231) — DEVICE_UNVERIFIED**: text/file streaming HMAC-SHA-256, constant-time verify, local key handling, HMAC Lab route |
-| 28 | Public-key QR | PLANNED |
+| 28 | Public-key QR | **SOURCE_IMPLEMENTED + QR DEVICE_VERIFIED (round-trip decode) — SCREEN DEVICE_UNVERIFIED**: ZXing-generated code carrying `knouxkey:v1:` public-key URI with fingerprint and plain text beside it |
 | 29 | Vault collections | PLANNED |
 | 30 | Document viewer | PLANNED |
 | 31 | Vault key rotation | **SOURCE_IMPLEMENTED + JVM_TESTED (15) — DEVICE_UNVERIFIED / AUDIT_PENDING**: root-wrapped DEK hierarchy, KNC2/room v2, reauth, journal, resumable batches, retirement guard, real wizard; KNF2 device files + legacy KNF1 readable, root retained |
@@ -92,9 +92,9 @@ Test distribution (current): security 58 (FileEnvelope 13 + KNF2 8 + Hashing 3 +
 | 42 | Session privacy controls | **BUILD_VERIFIED + JVM_TESTED policy (2) — DEVICE_UNVERIFIED**: configurable auto-lock, screen-off lock, clipboard timeout + lock clear, screenshot policy, app-switch cover, mutation/revocation serialization |
 | 43 | File integrity tool | **BUILD_VERIFIED + JVM_TESTED (hash vectors) — DEVICE_UNVERIFIED**: streaming SHA-256, checksum validation, match/mismatch evidence, cancel, in-memory reports, dedicated `file_integrity` route reusing Hash & Integrity |
 | 44 | Secure clipboard | **BUILD_VERIFIED + JVM_TESTED (policy) — DEVICE_UNVERIFIED**: managed copy action, hidden staged value, timeout/clear, guard linkage; no guaranteed erasure |
-| 45 | Final integration/verification | **SOURCE-LEVEL AUDIT DONE / DEVICE PARTIALLY VERIFIED / RELEASE_BLOCKED / AUDIT_PENDING**: 34 Tools destinations (18 implemented / 16 design-only) plus the non-catalog `password_detail`, `auth_import` and `key_details` routes; 207 JVM tests and 13 instrumented tests passing on one Android 15 handset; device/signing/audit/visual gates remain open |
+| 45 | Final integration/verification | **SOURCE-LEVEL AUDIT DONE / DEVICE PARTIALLY VERIFIED / RELEASE_BLOCKED / AUDIT_PENDING**: 34 Tools destinations (20 implemented / 14 design-only) plus the non-catalog `password_detail`, `auth_import` and `key_details` routes; 212 JVM tests and 13 instrumented tests passing on one Android 15 handset; device/signing/audit/visual gates remain open |
 
-Catalog accounting: 34 destinations total = **18 IMPLEMENTED**, **0 BLOCKED**, **16 DESIGN_ONLY** (Recovery is implemented for encrypted data export/restore; gate recovery remains out of scope. Key rotation is an internal Account wizard, not a new Tools destination. Password Audit is a Tools destination added by TASK 36). Eight Home cards preserved in the accepted order.
+Catalog accounting: 34 destinations total = **20 IMPLEMENTED**, **0 BLOCKED**, **14 DESIGN_ONLY** (Recovery is implemented for encrypted data export/restore; gate recovery remains out of scope. Key rotation is an internal Account wizard, not a new Tools destination. Password Audit is a Tools destination added by TASK 36). Eight Home cards preserved in the accepted order.
 
 ## Reality of the implementation
 
@@ -127,6 +127,23 @@ Catalog accounting: 34 destinations total = **18 IMPLEMENTED**, **0 BLOCKED**, *
 2. **Remaining vertical slices:** 05 Vault/Shadow Vault, 07 Notes editor, 11 Auth import (dependency-ready), 19 Signatures, 21 Archive, 28 QR, 30 Document viewer, 33 Autofill, remaining design-only services.
 3. **Device gate:** follow `DEVICE_VERIFICATION_CHECKLIST.md`; install `app-debug.apk`, run all instrumented classes (access, Keystore record/KDK1/KNF2, Room migration), test privacy timing/clipboard/screen capture, HMAC/file integrity/package inspector, then capture Compose screenshots at 360/390/441 widths in EN/AR and compare against canonical references.
 4. **Quality gate:** detekt/ktlint, dependency locking, CVE scan, R8 shrinking (BouncyCastle adds 3.18 MB), and a real CI workflow (the PR14 template remains uninstalled).
+
+## TASK 23 fingerprint verify + TASK 28 public-key QR — 2026-11-01
+
+- Public-key fingerprints use the SSH-style `SHA256:<base64url>` form over the key's SPKI bytes,
+  with known-answer vectors and case/whitespace-tolerant comparison. A fingerprint identifies a
+  public key only; no secret is ever fingerprinted.
+- The fingerprint screen compares this device's signing key against a pasted fingerprint or public
+  key and keeps imported public keys as encrypted vault records; the QR screen renders the public
+  key as a scannable `knouxkey:v1:` URI with the fingerprint and the plain text next to it. Both
+  reuse the TASK 19 signing engine.
+- Verification: **212 JVM tests, 0 failures** (security 102, data 93, app 17); `:core:data`
+  **13/13 PASS** on the itel S686LN; the new app-module QR test decodes the generated code back
+  to the exact URI; lint 0 errors; clean APK 19,712,121 bytes, SHA-256 `e03a0baf…94f0`, installed
+  and cold-started without crash entries.
+- Both screens are DEVICE_UNVERIFIED (unlocked session needed). The app-module entry-flow UI test
+  passes when the phone is free — it passed in the earlier device runs — and currently fails while
+  another app holds the foreground; that is an environment condition, not an app crash.
 
 ## TASK 19 digital signature — 2026-11-01
 

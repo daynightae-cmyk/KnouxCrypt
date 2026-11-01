@@ -23,10 +23,12 @@ import com.knoux.crypt.ui.KeyDetailsScreen
 import com.knoux.crypt.ui.KeyForgeScreen
 import com.knoux.crypt.ui.NotesScreen
 import com.knoux.crypt.ui.PackageInspectorScreen
+import com.knoux.crypt.ui.FingerprintVerifyScreen
 import com.knoux.crypt.ui.PasswordAuditScreen
 import com.knoux.crypt.ui.PasswordDetailScreen
 import com.knoux.crypt.ui.PasswordsScreen
 import com.knoux.crypt.ui.PrivacyScreen
+import com.knoux.crypt.ui.PublicKeyQrScreen
 import com.knoux.crypt.ui.RecoveryScreen
 import com.knoux.crypt.ui.SecureClipboardScreen
 import com.knoux.crypt.ui.SecureRandomScreen
@@ -147,6 +149,20 @@ fun KnouxNavHost(
         }
         composable("package_inspector") {
             PackageInspectorScreen(onBack = { nav.popBackStack() })
+        }
+        composable("fingerprint_verify") {
+            FingerprintVerifyScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
+        }
+        composable("public_key_qr") {
+            PublicKeyQrScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
         }
         composable("signature") {
             DigitalSignatureScreen(
