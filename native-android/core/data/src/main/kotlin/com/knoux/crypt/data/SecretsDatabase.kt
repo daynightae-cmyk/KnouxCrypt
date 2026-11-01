@@ -76,9 +76,10 @@ interface SecretDao {
 
 data class VersionCount(val keyVersion: Int, val count: Int)
 
-@Database(entities = [SecretEntity::class], version = 2, exportSchema = true)
+@Database(entities = [SecretEntity::class, SecurityEventEntity::class], version = 3, exportSchema = true)
 abstract class KnouxDatabase : RoomDatabase() {
     abstract fun secrets(): SecretDao
+    abstract fun securityEvents(): SecurityEventDao
 }
 
 /** Adds explicit key-version metadata without touching or re-encrypting existing rows. */
@@ -88,10 +89,27 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
     }
 }
 
+/** Adds the non-secret local audit timeline used by TASK 39. */
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            "CREATE TABLE IF NOT EXISTS security_events (" +
+                "id TEXT NOT NULL PRIMARY KEY," +
+                "category TEXT NOT NULL," +
+                "action TEXT NOT NULL," +
+                "detail TEXT NOT NULL," +
+                "severity TEXT NOT NULL," +
+                "createdAt INTEGER NOT NULL)"
+        )
+        database.execSQL("CREATE INDEX IF NOT EXISTS idx_security_events_createdAt ON security_events(createdAt)")
+        database.execSQL("CREATE INDEX IF NOT EXISTS idx_security_events_category ON security_events(category)")
+    }
+}
+
 object DatabaseProvider {
     fun create(context: Context): KnouxDatabase =
         Room.databaseBuilder(context.applicationContext, KnouxDatabase::class.java, "knoux.db")
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .build()
 }
 
