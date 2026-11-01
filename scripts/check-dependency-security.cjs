@@ -54,7 +54,14 @@ function readReport(argPath) {
   // `npm audit` exits non-zero when findings exist; the JSON on stdout is still
   // the report we want, so read it from the thrown error rather than failing.
   try {
-    return JSON.parse(execFileSync("npm", ["audit", "--json"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }));
+    // On Windows npm is a .cmd shim that execFileSync cannot invoke directly.
+    // Run the npm CLI through Node on all platforms, preserving audit JSON even
+    // when npm exits non-zero due to genuine dependency findings.
+    const npmCli = process.env.npm_execpath ||
+      path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js");
+    return JSON.parse(execFileSync(process.execPath, [npmCli, "audit", "--json"], {
+      encoding: "utf8", stdio: ["ignore", "pipe", "ignore"],
+    }));
   } catch (err) {
     if (err.stdout) return JSON.parse(err.stdout);
     throw err;

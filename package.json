@@ -98,7 +98,7 @@
       "icon": "electron/assets/icon.ico",
       "requestedExecutionLevel": "asInvoker",
       "artifactName": "KnouxCrypt-2025-Setup-${version}-${arch}.${ext}",
-      "publisherName": "Knoux Technologies",
+      "signtoolOptions": { "publisherName": "Knoux Technologies" },
       "verifyUpdateCodeSignature": false
     },
     "mac": {
@@ -151,11 +151,13 @@
       "category": "Security",
       "artifactName": "KnouxCrypt-2025-${version}-${arch}.${ext}",
       "desktop": {
-        "Name": "KnouxCrypt™ 2025",
-        "Comment": "نظام التشفير العسكري المتقدم",
-        "GenericName": "Encryption Software",
-        "Keywords": "encryption;security;crypto;knoux;",
-        "Categories": "Security;Utility;"
+        "entry": {
+          "Name": "KnouxCrypt™ 2025",
+          "Comment": "نظام التشفير العسكري المتقدم",
+          "GenericName": "Encryption Software",
+          "Keywords": "encryption;security;crypto;knoux;",
+          "Categories": "Security;Utility;"
+        }
       }
     },
     "nsis": {
