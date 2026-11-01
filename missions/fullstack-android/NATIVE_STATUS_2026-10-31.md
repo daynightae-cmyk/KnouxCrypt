@@ -487,3 +487,21 @@ The owner-requested consolidation merge to `main` was performed at `4bdb561` (no
   stop touching those APIs, not to request a permission that currently buys nothing.
 - 9 new JVM tests (305 total, 0 failures); lint 0 errors; APK 20,208,607 bytes `1bd895dd…8af8`.
   See `22_LOCAL_TRANSFER/EVIDENCE.md` for the owner action required.
+
+## Metadata Cleaner — 2026-11-01 (TASK 24)
+
+- Reading and rewriting go through `android.media.ExifInterface`; there is no private JPEG/TIFF parser.
+  Because that API cannot enumerate tags, the build declares `KNOWN_TAGS` and says out loud that
+  anything outside the list is neither read nor removed — no file is ever called clean.
+- Classification (`groupOf`, `isStructural`) is a pure function with 6 JVM tests: GPS, camera model,
+  author, timestamps, comments and technical stay separate, and orientation/pixel dimensions/EXIF
+  version are never removal candidates. Only `image/jpeg` and `image/tiff` are offered for cleaning.
+- The source is only read; the clean copy is written into staging, rewritten there, and streamed into
+  a **new** `CreateDocument` the user chose, with staging deleted on every path.
+- A real API assumption was corrected during the build: `TAG_AUTHOR`, `TAG_OWNER_NAME`, `TAG_GPS_INFO`,
+  `TAG_LENS_*`, `TAG_DATETIME_CREATED/MODIFIED` and `getAttributes()` do not exist on
+  `android.media.ExifInterface` — they were verified against `android-36/android.jar` and dropped
+  rather than guessed at.
+- 6 new JVM tests (311 total, 0 failures); lint 0 errors; APK 20,257,759 bytes `93d715fb…0515`.
+  **No EXIF tag has ever been read or removed by this build** — the platform call is DEVICE_UNVERIFIED,
+  and XMP, ICC profiles, thumbnails, video GPS and PDF/Office metadata are explicitly not claimed.

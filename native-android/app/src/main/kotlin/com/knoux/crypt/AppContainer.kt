@@ -6,6 +6,7 @@ import com.knoux.crypt.data.CertificateVaultService
 import com.knoux.crypt.data.DataStoreVaultKeyRegistry
 import com.knoux.crypt.data.DatabaseProvider
 import com.knoux.crypt.data.KeystoreManager
+import com.knoux.crypt.data.MetadataCleaner
 import com.knoux.crypt.data.PasswordAuditService
 import com.knoux.crypt.data.RoomTransactionRunner
 import com.knoux.crypt.data.SecretRepository
@@ -48,6 +49,7 @@ class AppContainer(context: Context) {
     val certificates = CertificateVaultService(session, secrets)
     val vaultFiles = VaultFileCipher(session)
     val archives = ArchiveService(session, vaultFiles, secrets) { appContext.cacheDir }
+    val metadataCleaner = MetadataCleaner()
     val passwordAudit = PasswordAuditService(session, database.secrets(), secrets)
     val backups = VaultBackupManager(database.secrets(), session, vaultKeys)
     val keyRotation = VaultKeyRotationManager(

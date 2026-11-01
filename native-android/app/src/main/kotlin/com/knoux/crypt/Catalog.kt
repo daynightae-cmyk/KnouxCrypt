@@ -49,7 +49,7 @@ object Catalog {
         ServiceDef("ARCHIVE", "Archive", "الأرشيف", "Create authenticated encrypted archives", "أنشئ أرشيفات مشفرة موثقة", ServiceArt.ENCRYPT, "archive", ServiceStatus.IMPLEMENTED, true),
         ServiceDef("LOCAL_TRANSFER", "Local Transfer", "نقل محلي", "Move sealed packages nearby", "انقل الحزم المختومة قريبًا", ServiceArt.KEY, "local_transfer", ServiceStatus.BLOCKED, false),
         ServiceDef("FINGERPRINT_VERIFY", "Fingerprint Verify", "تحقق البصمة", "Compare key fingerprints", "قارن بصمات المفاتيح", ServiceArt.KEY, "fingerprint_verify", ServiceStatus.IMPLEMENTED, true),
-        ServiceDef("METADATA_CLEANER", "Metadata Cleaner", "منظف البيانات الوصفية", "Strip metadata before sharing", "أزل البيانات الوصفية قبل المشاركة", ServiceArt.ENCRYPT, null, ServiceStatus.DESIGN_ONLY, false),
+        ServiceDef("METADATA_CLEANER", "Metadata Cleaner", "منظف البيانات الوصفية", "Strip metadata before sharing", "أزل البيانات الوصفية قبل المشاركة", ServiceArt.ENCRYPT, "metadata_cleaner", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("CLIPBOARD_GUARD", "Clipboard Guard", "حارس الحافظة", "Inspect and clear clipboard exposure", "افحص وامسح تعرض الحافظة", ServiceArt.PRIVACY, "clipboard_guard", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("SECURE_RANDOM", "Secure Random Studio", "مولّد العشوائية الآمن", "Generate audited-source random values", "أنشئ قيمًا عشوائية آمنة", ServiceArt.KEY, "random", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("HMAC_AUTHENTICITY", "HMAC Authenticity Lab", "مختبر HMAC", "Prove message authenticity with HMAC", "أثبت أصالة الرسالة باستخدام HMAC", ServiceArt.KEY, "hmac", ServiceStatus.IMPLEMENTED, false),

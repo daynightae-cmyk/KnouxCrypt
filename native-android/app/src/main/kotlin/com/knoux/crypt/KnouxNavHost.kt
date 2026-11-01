@@ -24,6 +24,7 @@ import com.knoux.crypt.ui.KeyDerivationScreen
 import com.knoux.crypt.ui.KeyDetailsScreen
 import com.knoux.crypt.ui.KeyForgeScreen
 import com.knoux.crypt.ui.LocalTransferScreen
+import com.knoux.crypt.ui.MetadataCleanerScreen
 import com.knoux.crypt.ui.NotesScreen
 import com.knoux.crypt.ui.PackageInspectorScreen
 import com.knoux.crypt.ui.FingerprintVerifyScreen
@@ -209,6 +210,12 @@ fun KnouxNavHost(
                 container = container,
                 onBack = { nav.popBackStack() },
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
+        }
+        composable("metadata_cleaner") {
+            MetadataCleanerScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
             )
         }
         composable("clipboard_guard") {
