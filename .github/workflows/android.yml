@@ -38,9 +38,9 @@ jobs:
       - name: Source boundary check
         run: python3 native-android/scripts/check-source.py
       - name: Compile Kotlin
-        run: gradle --no-daemon -p native-android :core:security:compileKotlin :core:data:compileKotlin :app:compileDebugKotlin --stacktrace
+        run: gradle --no-daemon -p native-android :core:security:compileKotlin :core:data:compileDebugKotlin :app:compileDebugKotlin :core:data:compileDebugAndroidTestKotlin --stacktrace
       - name: JVM tests
-        run: gradle --no-daemon -p native-android :core:security:test :core:data:test :app:testDebugUnitTest --stacktrace
+        run: gradle --no-daemon -p native-android :core:security:test :core:data:testDebugUnitTest :app:testDebugUnitTest --stacktrace
       - name: Android lint
         run: gradle --no-daemon -p native-android :app:lintDebug --stacktrace
       - name: Debug APK
