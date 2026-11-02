@@ -35,7 +35,7 @@ Status vocabulary: PLANNED, DESIGN_ONLY, BLOCKED, SOURCE_IMPLEMENTED, JVM_TESTED
 | 26 | Secure Random | random | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 27 | HMAC Authenticity | hmac | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 28 | Public Key QR | public_key_qr | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
-| 29 | Vault Collections | vault_collections | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED (8 service tests) | encrypted labels + membership on media record; no Room migration; BLOCKED_DEVICE (no emulator/system image) |
+| 29 | Vault Collections | vault_collections | IMPLEMENTED | SOURCE_IMPLEMENTED (MERGED `6b3ef20`, CI green on PR SHA `a92a15b` run 41454942483 and on main run 41456728652) | JVM_TESTED (8 service tests) | encrypted labels + membership on media record; no Room migration; BLOCKED_DEVICE (no emulator/system image) |
 | 30 | Document Viewer | (none) | DESIGN_ONLY | PLANNED | none | depends 04,05 |
 | 31 | Vault Key Rotation | key_rotation | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 32 | Package Inspector | package_inspector | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
@@ -55,6 +55,13 @@ Status vocabulary: PLANNED, DESIGN_ONLY, BLOCKED, SOURCE_IMPLEMENTED, JVM_TESTED
 | 46 | (reserved) | n/a | n/a | PLANNED | none | |
 
 Device evidence: none on current SHA (ADB empty, no emulator/system image installed). Visual evidence: not re-run this pass. Security review: not independently performed.
+
+TASK 29 integration note: merged to `main` as `6b3ef20` via PR #41, with Android CI green on the
+PR SHA (`a92a15b`, run 41454942483) and on the merged main SHA (run 41456728652). Post-merge
+cleanup was limited to this session's own regenerable Gradle build output — 193 MiB reclaimed on
+D: (3,824,013,312 → 4,026,585,088 bytes free). No worktree, branch, stash, archive, dependency
+cache or visual reference was deleted; the K: preservation snapshots, the two Traycer recovery
+archives and the untracked unique assets in `D:\KnouxCrypt` remain in place.
 
 Follow-up to TASK 39 (commits ab0424a, fd54f27): generic `DATA_*` audit writes are suppressed
 for the `media` and `note_draft` kinds so Shadow Vault imports and notes autosave cannot

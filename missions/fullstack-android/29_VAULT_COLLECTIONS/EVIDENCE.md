@@ -4,7 +4,9 @@ State: **SOURCE_IMPLEMENTED, JVM_TESTED, DEVICE_TESTED=NO (BLOCKED_DEVICE), VISU
 
 - Baseline commit: `619a1e3069d6fe1881e6a46ac3317e68e1dd8ae6` (`origin/main`, verified clean tree)
 - Implementation branch: `feature/android-task29-vault-collections-20261102`
-- Implementation commit: recorded in this file's final section once pushed
+- Implementation commits: `0997afd` (feature) + `a92a15b` (ledger)
+- Merged into `main` as `6b3ef20f902184f1b174190a2e72c2f2c1279d75` (PR #41); CI green on both
+  the PR SHA and the merged main SHA — see the integration table at the end of this file
 - Prerequisite: TASK 05 Shadow Vault (`ab0424a`, already on `main`) — reused, not re-implemented
 - No Room schema change: database version stays **3**, no new table, no migration, and no
   change to any KNC/KNF envelope format.
@@ -148,7 +150,26 @@ user data.
   is interrupted mid-way leaves the collection present with partially cleared membership,
   which is the safe state and is retried.
 
-## Integration state
+## Integration state — CLOSED as VERIFIED_INTEGRATED (source/CI only, device still blocked)
 
-`PUSHED_UNMERGED` at the time this file was written; the merge commit and the CI run on the
-exact target SHA are appended below once they exist.
+| Gate | Evidence |
+|---|---|
+| Feature commits | `0997afd` (implementation) + `a92a15b` (ledger) on `feature/android-task29-vault-collections-20261102` |
+| PR | https://github.com/daynightae-cmyk/KnouxCrypt/pull/41 — `mergeable=MERGEABLE`, base `619a1e3`, head `a92a15b` |
+| CI on the PR SHA | run `41454942483` **success** — source check, Kotlin compile, JVM tests, lint, debug APK, SHA-256, evidence upload |
+| Merged into main | merge commit `6b3ef20f902184f1b174190a2e72c2f2c1279d75` (normal merge, no force, no protection bypass; main was still `619a1e3` at merge time) |
+| CI on the exact merged main SHA | run `41456728652` **success** — same step set, all green |
+| Semantic inclusion proof | `git cat-file -e main:...VaultCollections.kt`, `...VaultCollectionsScreen.kt`, `...VaultCollectionsServiceTest.kt` all PRESENT; `vault_collections` route present in `main:Catalog.kt` |
+| Non-Android checks | `Vercel` = "Account is blocked" (pre-existing external desktop/deploy blocker, unrelated to these paths); `Gitar` pass; `Dependabot Validation` skipped. PR state reported `UNSTABLE` only because of that non-required Vercel check. |
+| Post-merge cleanup | Only this session's own regenerable build output removed: `native-android/{app,core/data,core/security,core/designsystem,}/build`, `native-android/.gradle`, three local build logs. **193 MiB reclaimed** (D: 3,824,013,312 → 4,026,585,088 bytes free). No worktree, branch, stash, archive, cache or reference was deleted; the K: snapshots, the two 3.6 GB Traycer recovery archives and `D:\KnouxCrypt`'s untracked unique assets remain untouched. |
+
+Status is **VERIFIED_INTEGRATED for source + CI only**. It is **not** `DEVICE_TESTED`,
+`VISUAL_VERIFIED`, `SECURITY_REVIEWED` or `RELEASE_READY`: the device gate above is still open,
+and the instrumented Room migration and collection tests remain compiled-but-unexecuted.
+
+## Next ready task
+
+TASK 30 DOCUMENT_VIEWER (dependencies 04 + 05 satisfied; protected PDF/text viewing without a
+plaintext dump), then TASK 33/34/35/40/41 which each need either a device, an external
+peer, or an owner-approved contract.
+
