@@ -102,10 +102,15 @@
         <h1>KNOUX <em>CRYPT</em></h1>
         <p class="boot-tagline">
           <span class="boot-tagline-en">Private Encryption Suite</span>
+          <span class="boot-sep" aria-hidden="true">·</span>
           <span class="boot-tagline-ar" lang="ar" dir="rtl">مجموعة التشفير الخاصة</span>
         </p>
+        <!-- Each language keeps its own direction and the separator is its own
+             element: a neutral character between an LTR and an RTL run is
+             reordered by the bidi algorithm and lands at the wrong end. -->
         <p class="boot-state" id="bootState" role="status" aria-live="polite">
           <span id="bootStateEn">Opening KNOUX CRYPT</span>
+          <span class="boot-sep" aria-hidden="true">·</span>
           <span id="bootStateAr" lang="ar" dir="rtl">جارٍ فتح KnouxCrypt</span>
         </p>
         <p class="boot-version" id="bootVersion" dir="ltr"></p>
@@ -116,19 +121,21 @@
       <div class="boot-recovery" id="bootRecovery" hidden>
         <h2>
           <span lang="en">The interface did not start</span>
+          <span class="boot-sep" aria-hidden="true">·</span>
           <span lang="ar" dir="rtl">لم يتم تشغيل الواجهة</span>
         </h2>
         <p class="boot-recovery-detail" id="bootRecoveryDetail" dir="ltr"></p>
         <div class="boot-recovery-actions">
           <button id="bootRetry" type="button">
-            <span lang="en">Retry</span><span lang="ar" dir="rtl">إعادة المحاولة</span>
+            <span lang="en">Retry</span><span class="boot-sep" aria-hidden="true">·</span><span lang="ar" dir="rtl">إعادة المحاولة</span>
           </button>
           <button id="bootQuit" type="button">
-            <span lang="en">Quit</span><span lang="ar" dir="rtl">إنهاء</span>
+            <span lang="en">Quit</span><span class="boot-sep" aria-hidden="true">·</span><span lang="ar" dir="rtl">إنهاء</span>
           </button>
         </div>
         <p class="boot-recovery-note">
           <span lang="en">Your vault and encrypted files are untouched.</span>
+          <span class="boot-sep" aria-hidden="true">·</span>
           <span lang="ar" dir="rtl">خزنتك وملفاتك المشفرة لم تتغير.</span>
         </p>
       </div>

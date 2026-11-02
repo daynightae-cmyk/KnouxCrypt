@@ -118,6 +118,10 @@ let bootState = { state: "opening", detail: "", version: APP_CONFIG.version };
 let bootViewLoaded = false;
 let bootHandoffDone = false;
 let bootDeadline = null;
+// Set when the app window's document fails to load. Chromium then renders its
+// own error page in that same webContents, which fires did-finish-load; without
+// this flag the handoff would reveal that error page as if it were the app.
+let mainLoadFailed = false;
 
 function assetPath(...parts) {
   // In development assets live in the source tree; in production they are
@@ -320,6 +324,9 @@ function registerBootIpc() {
       createMainWindow({ revealOnReady: false });
     } else {
       bootHandoffDone = false;
+      // A retry is a fresh attempt, so the previous failure must not keep
+      // blocking the handoff once the document finally loads.
+      mainLoadFailed = false;
       if (bootDeadline) clearTimeout(bootDeadline);
       bootDeadline = setTimeout(() => {
         failBoot("The interface still did not report that it was ready within 20 seconds.");
@@ -372,10 +379,17 @@ function createMainWindow(options) {
 
   hardenWindow(mainWindow);
   applySecurityHeaders(mainWindow.webContents.session);
+  mainLoadFailed = false;
 
   // Readiness plumbing for the boot handoff. Both signals are facts about this
   // window, reported by Electron, not a schedule the boot view invents.
-  mainWindow.webContents.once("did-finish-load", () => {
+  mainWindow.webContents.on("did-finish-load", () => {
+    // A failed load does not simply end: Chromium renders its own error page
+    // in the same webContents, and that error page fires did-finish-load too.
+    // Without this guard a failed renderer would be revealed as an error page
+    // instead of producing the recovery panel — the exact failure the panel
+    // exists for.
+    if (mainLoadFailed) return;
     // The renderer's own handshake is preferred; this fallback covers a build
     // whose root component no longer signals, so a working app can never be
     // held behind the boot view until the deadline.
@@ -388,6 +402,7 @@ function createMainWindow(options) {
       mainWindow.loadFile(RENDERER_ENTRY);
       return;
     }
+    mainLoadFailed = true;
     failBoot(`The interface failed to load (${description}, code ${code}).`);
   });
 

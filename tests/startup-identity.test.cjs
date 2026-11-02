@@ -141,8 +141,16 @@ test("startup is readiness-driven, not a fixed wait", () => {
   const main = read("electron", "main.js");
   assert.doesNotMatch(main, /setTimeout\([^)]*\},\s*3000\)/, "the 3-second splash timer must stay gone");
   assert.match(main, /createMainWindow\(\{ revealOnReady: false \}\)/, "the app window loads behind the boot view");
-  assert.match(main, /did-finish-load[\s\S]{0,400}completeBoot\(\)/, "a loaded document is a readiness signal");
-  assert.match(main, /did-fail-load[\s\S]{0,400}failBoot\(/, "a failed load must reach the recovery state");
+  // Asserted on the function that owns the listeners, so the distance between
+  // the event and the call does not matter and a comment cannot break it.
+  const createMain = main.slice(main.indexOf("function createMainWindow"), main.indexOf("function setupSystemTray"));
+  assert.match(createMain, /did-finish-load[\s\S]*?completeBoot\(\)/, "a loaded document is a readiness signal");
+  assert.match(createMain, /did-fail-load[\s\S]*?failBoot\(/, "a failed load must reach the recovery state");
+  // Chromium renders its own error page in the same webContents after a failed
+  // load, and that page fires did-finish-load. Without this guard the failed
+  // renderer would be revealed as if it were the app — which the acceptance
+  // suite caught in the renderer-failure mode.
+  assert.match(createMain, /if \(mainLoadFailed\) return;/, "a failed document must never be revealed as the app");
   // The deadline is a failure detector, and it is long enough not to be the
   // normal path; the old code used 3000 ms as the *success* path.
   const deadline = main.match(/const BOOT_DEADLINE_MS = (\d+)/);

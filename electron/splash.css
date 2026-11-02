@@ -185,13 +185,13 @@ body {
 
 .boot-tagline {
   margin: 6px 0 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: .5em;
   font-size: 13px;
   letter-spacing: .04em;
   color: var(--boot-text-soft);
-}
-
-.boot-tagline-en::after {
-  content: " · ";
 }
 
 .boot-tagline-ar {
@@ -199,16 +199,23 @@ body {
   color: var(--boot-text-soft);
 }
 
+/* A separator between an LTR and an RTL run has to be its own element: a
+   neutral character inside a mixed-direction line is reordered by the bidi
+   algorithm and ends up on the wrong side. */
+.boot-sep {
+  opacity: .55;
+  font-weight: 400;
+}
+
 .boot-state {
   margin: 16px 0 0;
   min-height: 34px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: .55em;
   font-size: 13px;
   color: var(--boot-violet-light);
-}
-
-.boot-state span + span::before {
-  content: " — ";
-  color: rgba(200, 182, 221, .5);
 }
 
 .boot-state[data-boot-state="failed"] {
@@ -243,16 +250,16 @@ body {
 
 .boot-recovery h2 {
   margin: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: .5em;
   font-size: 19px;
   font-weight: 600;
   color: #ffd0da;
 }
 
-.boot-recovery h2 span + span::before {
-  content: " · ";
-}
-
-.boot-recovery h2 span:last-child {
+.boot-recovery h2 [lang="ar"] {
   font-size: 17px;
   font-weight: 400;
 }
@@ -278,7 +285,7 @@ body {
 .boot-recovery-actions button {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: .45em;
   padding: 9px 16px;
   font: inherit;
   font-size: 13px;
@@ -287,10 +294,6 @@ body {
   border: 1px solid rgba(188, 101, 255, .45);
   border-radius: 8px;
   cursor: pointer;
-}
-
-.boot-recovery-actions button span + span::before {
-  content: " · ";
 }
 
 .boot-recovery-actions button:hover {
@@ -309,12 +312,12 @@ body {
 
 .boot-recovery-note {
   margin: 2px 0 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: .5em;
   font-size: 12px;
   color: rgba(200, 182, 221, .8);
-}
-
-.boot-recovery-note span + span::before {
-  content: " · ";
 }
 
 /* Startup failed: freeze the ignition in an extinguished pose. The recovery

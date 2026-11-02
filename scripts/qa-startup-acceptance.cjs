@@ -25,8 +25,9 @@ const crypto = require("crypto");
 
 const ROOT = path.resolve(__dirname, "..");
 const MODE = process.env.KNOUX_QA_MODE || "boot";
+const LABEL = process.env.KNOUX_QA_LABEL || "";
 const OUT_DIR = process.env.KNOUX_QA_OUT || path.join(os.tmpdir(), "knoux-startup-acceptance");
-const FRAMES_DIR = path.join(OUT_DIR, "frames", MODE);
+const FRAMES_DIR = path.join(OUT_DIR, "frames", LABEL ? `${MODE}-${LABEL}` : MODE);
 fs.mkdirSync(FRAMES_DIR, { recursive: true });
 
 const results = [];
@@ -39,7 +40,10 @@ function record(name, pass, detail) {
 }
 
 // --- isolated profile, before anything can read the real one ----------------
-const profileRoot = fs.mkdtempSync(path.join(os.tmpdir(), `knoux-boot-qa-${MODE}-`));
+// A profile can be pinned with KNOUX_QA_PROFILE so the same directory is
+// reused across runs; that is how a warm launch is exercised.
+const pinnedProfile = process.env.KNOUX_QA_PROFILE || null;
+const profileRoot = pinnedProfile || fs.mkdtempSync(path.join(os.tmpdir(), `knoux-boot-qa-${MODE}-`));
 const userData = path.join(profileRoot, "userData");
 fs.mkdirSync(userData, { recursive: true });
 const VAULT_MARKERS = ["knouxcrypt-vault", "vault", "enrollment", "envelope-store"];
@@ -54,11 +58,52 @@ if (MODE === "reduced") {
   // simulated class. It must be set before the first window is created.
   app.commandLine.appendSwitch("force-prefers-reduced-motion");
 }
+
+// --- slow renderer ----------------------------------------------------------
+// A real slow renderer, not a mocked one: a local static server that answers
+// after a delay. The app window is created through the development path, so
+// main.js loads the document over http://127.0.0.1:<port>/.
+let slowServer = null;
+let slowDelayMs = 0;
+async function startSlowServer(delayMs) {
+  const http = require("http");
+  const fsSync = require("fs");
+  const BUILD = path.join(ROOT, "build");
+  const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".woff2": "font/woff2", ".json": "application/json" };
+  const server = http.createServer((req, res) => {
+    const url = new URL(req.url, "http://127.0.0.1");
+    let file = path.join(BUILD, decodeURIComponent(url.pathname));
+    const isDocument = url.pathname === "/" || url.pathname === "/index.html";
+    if (!file.startsWith(BUILD) || !fsSync.existsSync(file) || fsSync.statSync(file).isDirectory()) {
+      file = path.join(BUILD, "index.html");
+    }
+    // Only the document is slow. Delaying every asset as well would multiply
+    // the delay by the number of module preloads and the test would measure
+    // the server, not the startup.
+    const respond = () => {
+      try {
+        const body = fsSync.readFileSync(file);
+        res.writeHead(200, { "Content-Type": TYPES[path.extname(file)] || "application/octet-stream" });
+        res.end(body);
+      } catch (err) {
+        res.writeHead(500);
+        res.end(String(err));
+      }
+    };
+    if (isDocument) setTimeout(respond, delayMs);
+    else respond();
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  return server;
+}
+
 if (MODE === "failure") {
   // A host that cannot resolve makes main.js take its did-fail-load branch with
   // a code the dev-server fallback deliberately does not catch. This is a real
   // startup failure, not a mocked one.
   process.env.KNOUX_DEV_SERVER_URL = "http://knoux-qa-unreachable.invalid/";
+} else if (MODE === "slow") {
+  slowDelayMs = Number(process.env.KNOUX_QA_SLOW_MS || 4000);
 } else {
   process.env.KNOUX_USE_BUILD = "1";
 }
@@ -117,12 +162,23 @@ const RENDERER_PROBE = `(() => ({
   title: document.title,
 }))()`;
 
+/**
+ * Capture the window.
+ *
+ * capturePage() on a frameless transparent window that has not been composited
+ * yet returns a blank white image, and a blank 600x400 PNG is barely over a
+ * kilobyte. Those frames are worthless as evidence, so they are discarded
+ * instead of being filed as captures.
+ */
+const MIN_FRAME_BYTES = 2500;
 async function grab(win, label) {
   if (!win || win.isDestroyed()) return null;
   try {
     const image = await win.capturePage();
+    const png = image.toPNG();
+    if (png.length < MIN_FRAME_BYTES) return null;
     const name = `${String(frames.length).padStart(3, "0")}-${label}-${at()}ms.png`;
-    fs.writeFileSync(path.join(FRAMES_DIR, name), image.toPNG());
+    fs.writeFileSync(path.join(FRAMES_DIR, name), png);
     const size = image.getSize();
     frames.push({ name, at: at(), label, width: size.width, height: size.height });
     return name;
@@ -132,6 +188,21 @@ async function grab(win, label) {
 }
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * The development path opens a detached DevTools window, which is noise in a
+ * capture and steals focus from the boot view. Close it whenever it appears.
+ */
+function closeDevTools() {
+  try {
+    const { webContents } = require("electron");
+    for (const contents of webContents.getAllWebContents()) {
+      if (contents.isDevTools && contents.isDevTools()) contents.close();
+    }
+  } catch {
+    /* the API shape varies between Electron versions */
+  }
+}
 
 async function findWindow(match, timeoutMs) {
   const started = Date.now();
@@ -144,7 +215,19 @@ async function findWindow(match, timeoutMs) {
 }
 
 app.whenReady().then(async () => {
-  // Registered before electron/main.js is loaded, so this handler runs first.
+  if (MODE === "slow") {
+    slowServer = await startSlowServer(slowDelayMs);
+    const port = slowServer.address().port;
+    process.env.KNOUX_DEV_SERVER_URL = `http://127.0.0.1:${port}/`;
+  }
+  // The renderer URL differs by path: the packaged build loads build/index.html,
+  // the development path loads the dev server root. The matcher has to know
+  // both, or the slow-renderer mode looks for a URL that never appears.
+  const rendererUrl = process.env.KNOUX_DEV_SERVER_URL || "";
+  const isRenderer = (url) => url.includes("index.html") || (rendererUrl && url.startsWith(rendererUrl));
+
+  // main.js is loaded first because it is what requests the single-instance
+  // lock; asking Electron about the lock before that would always answer "no".
   require(path.join(ROOT, "electron", "main.js"));
 
   // Electron 45 exposes hasSingleInstanceLock(); an older build has
@@ -156,24 +239,46 @@ app.whenReady().then(async () => {
     : typeof app.isSingleInstance === "function"
       ? app.isSingleInstance()
       : true;
+
+  // The child of a repeated launch is expected NOT to own the lock. It must
+  // leave immediately and must not open a window of its own.
+  if (MODE === "repeat-child") {
+    record("a repeated launch does not take the single-instance lock", holdsLock === false, `lock=${holdsLock}`);
+    record("a repeated launch opens no window", BrowserWindow.getAllWindows().length === 0, `${BrowserWindow.getAllWindows().length} windows`);
+    return finish();
+  }
+
   record("single-instance lock held by this run", holdsLock, holdsLock ? "" : "another KnouxCrypt instance is running");
 
   const boot = await findWindow((u) => u.includes("splash.html"), 6000);
   record("boot window appears", !!boot, boot ? `at ${at()}ms` : "never appeared");
   if (!boot) return finish();
 
-  // In the inspection modes the app window is closed as soon as it exists.
-  // Startup now finishes in well under a second, so probing a boot view that is
-  // about to be retired by the handoff measured nothing but a race; holding the
-  // transition open lets the ignition be watched from beginning to end. The
-  // handoff itself is measured in mode "handoff", where nothing is held back.
+  // The inspection modes hold the transition open so the ignition can be
+  // watched from beginning to end. The hold and the capture have to happen in
+  // the same loop: the handoff closes the boot view as soon as the renderer is
+  // ready, which is well inside the ignition window.
   if (MODE === "boot" || MODE === "reduced") {
-    for (let i = 0; i < 60; i++) {
+    // Wait for the boot document itself: capturing a window that has not
+    // painted yet produces a blank frame, and the ignition begins at first
+    // paint, so the frames have to start there to show the eyes going dark and
+    // then lighting.
+    if (boot.webContents.isLoading()) {
+      await new Promise((resolve) => {
+        const timer = setTimeout(resolve, 4000);
+        boot.webContents.once("did-finish-load", () => { clearTimeout(timer); resolve(); });
+      });
+    }
+    const started = Date.now();
+    const want = 8;
+    // Keep trying until eight real frames exist: the first attempts land
+    // before the compositor has a frame and are discarded.
+    while (frames.length < want && Date.now() - started < 2600 && !boot.isDestroyed()) {
       for (const other of BrowserWindow.getAllWindows()) {
         if (!other.isDestroyed() && other !== boot) other.destroy();
       }
-      await wait(5);
-      if (boot.isDestroyed()) break;
+      await grab(boot, frames.length < 3 ? "boot-early" : frames.length < 6 ? "boot-igniting" : "boot-lit");
+      await wait(60);
     }
   }
   if (boot.isDestroyed()) {
@@ -194,19 +299,62 @@ app.whenReady().then(async () => {
   );
   record("boot window is visible while the app window is not", boot.isVisible());
 
+  // --- a genuinely slow renderer -------------------------------------------
+  if (MODE === "slow") {
+    await grab(boot, "slow-boot");
+    const started = Date.now();
+    let recoveryShown = false;
+    let stillVisible = false;
+    while (Date.now() - started < slowDelayMs + 2000) {
+      if (boot.isDestroyed()) break;
+      closeDevTools();
+      const state = await boot.webContents.executeJavaScript(BOOT_PROBE, true).catch(() => null);
+      if (state && state.recoveryHidden === false) { recoveryShown = true; break; }
+      stillVisible = boot.isVisible();
+      await wait(250);
+    }
+    record("the boot view keeps holding the screen while the renderer is slow", stillVisible === true, `still visible ${Date.now() - started}ms into a ${slowDelayMs}ms delay`);
+    record("a slow renderer is not mistaken for a failure", recoveryShown === false, `recovery shown=${recoveryShown}`);
+
+    const slowWindow = await findWindow(isRenderer, 25000);
+    let revealed = false;
+    let revealedAt = null;
+    const revealStarted = Date.now();
+    for (;;) {
+      if (slowWindow && !slowWindow.isDestroyed() && slowWindow.isVisible()) { revealed = true; revealedAt = Date.now() - t0; break; }
+      if (Date.now() - revealStarted > 30000) break;
+      await wait(25);
+    }
+    record("the slow renderer is revealed once it is genuinely ready", revealed === true, `revealed at ${revealedAt}ms`);
+    record("the boot view was held for the whole slow load", revealedAt !== null && revealedAt >= slowDelayMs, `revealed at ${revealedAt}ms, server delay ${slowDelayMs}ms`);
+    return finish();
+  }
+
+  // --- closing the boot view during startup --------------------------------
+  if (MODE === "closeboot") {
+    boot.close();
+    await wait(250);
+    const bootLeft = BrowserWindow.getAllWindows().filter((w) => !w.isDestroyed() && w.webContents.getURL().includes("splash.html"));
+    record("closing the boot view leaves no second boot view", bootLeft.length === 0, `${bootLeft.length} left`);
+    const survivor = await findWindow(isRenderer, 25000);
+    let revealed = false;
+    const revealStarted = Date.now();
+    for (;;) {
+      if (survivor && !survivor.isDestroyed() && survivor.isVisible()) { revealed = true; break; }
+      if (Date.now() - revealStarted > 25000) break;
+      await wait(25);
+    }
+    record("the application still starts when the boot view is closed early", revealed === true, `revealed ${Date.now() - revealStarted}ms after the close`);
+    const appWindows = BrowserWindow.getAllWindows().filter((w) => !w.isDestroyed() && isRenderer(w.webContents.getURL()));
+    record("closing the boot view does not create a duplicate window", appWindows.length === 1, `${appWindows.length} app windows`);
+    if (survivor && !survivor.isDestroyed()) await grab(survivor, "after-boot-closed");
+    return finish();
+  }
+
   // The inspection modes held the transition open on purpose, so everything
   // below is measured there; mode "handoff" and mode "failure" never touch the
   // boot document after this point because it is legitimately being retired.
   if (MODE === "boot" || MODE === "reduced") {
-    // --- frame sequence through the ignition ---
-    await grab(boot, "boot-early");
-    await wait(180);
-    await grab(boot, "boot-igniting");
-    await wait(220);
-    await grab(boot, "boot-lit");
-    await wait(320);
-    await grab(boot, "boot-settled");
-
     const probe = await boot.webContents.executeJavaScript(BOOT_PROBE, true);
 
     // --- identity ---
@@ -256,24 +404,24 @@ app.whenReady().then(async () => {
     record("recovery states the actual reason", /ERR_NAME_NOT_RESOLVED|ERR_|failed to load|did not report/i.test(failed.recoveryDetail || ""), failed.recoveryDetail);
     record("recovery reassures about the vault", /untouched/.test(failed.recoveryNote || ""), failed.recoveryNote);
     record("recovery focuses Retry for keyboard use", failed.retryFocused === true, String(failed.retryFocused));
-    const broken = await findWindow((u) => u.includes("index.html"), 1500);
+    const broken = await findWindow(isRenderer, 1500);
     record("the broken window is never revealed", !broken || !broken.isVisible(), broken ? "window exists" : "no app window");
     return finish();
   }
 
   // --- handoff (mode "handoff": nothing is held back) ---
-  const appWindow = await findWindow((u) => u.includes("index.html"), 25000);
+  const appWindow = await findWindow(isRenderer, 25000);
   // The window exists the moment main.js creates it; the claim is about when it
   // becomes visible, so wait for the reveal rather than sampling once.
   let revealed = false;
+  let revealedAt = null;
   const revealStarted = Date.now();
   for (;;) {
-    if (appWindow && !appWindow.isDestroyed() && appWindow.isVisible()) { revealed = true; break; }
+    if (appWindow && !appWindow.isDestroyed() && appWindow.isVisible()) { revealed = true; revealedAt = Date.now() - t0; break; }
     if (Date.now() - revealStarted > 25000) break;
     await wait(25);
   }
-  record("app window is revealed", revealed, `visible ${Date.now() - revealStarted}ms after it was found, ${at()}ms after the run began`);
-  record("app window is revealed", revealed === true, appWindow ? `at ${at()}ms` : "no app window");
+  record("app window is revealed", revealed, revealedAt === null ? "never revealed" : `visible at ${revealedAt}ms`);
   const bootGone = await (async () => {
     const started = Date.now();
     for (;;) {
@@ -286,18 +434,71 @@ app.whenReady().then(async () => {
   // The old build held the boot view for exactly 3000 ms whatever happened.
   // Reaching a revealed app window faster than that is the measurable proof the
   // handoff is now driven by readiness.
-  record("handoff is readiness-driven, not the old fixed 3 s wait", at() < 3000, `revealed at ${at()}ms`);
+  record("handoff is readiness-driven, not the old fixed 3 s wait", revealedAt !== null && revealedAt < 3000, `revealed at ${revealedAt}ms`);
 
   if (appWindow) {
     await grab(appWindow, "app-first-frame");
-    const page = await appWindow.webContents.executeJavaScript(RENDERER_PROBE, true);
-    record("React tree mounted after reveal", page.mounted === true);
-    record("the official emblem is used inside the app too", page.hasStag === true);
-    const status = await appWindow.webContents.executeJavaScript("window.electronAPI.vault.status()", true).catch((e) => ({ error: String(e) }));
-    record("handoff does not authenticate: the vault has no active session", status && status.locked === true && status.activeSessions === 0, JSON.stringify(status));
-    record("handoff does not enrol a vault behind the user's back", status && status.enrolled === false, JSON.stringify(status));
+    // The first route is lazily loaded, so the emblem appears a tick after the
+    // tree mounts. Poll rather than sample once.
+    let page = null;
+    for (let i = 0; i < 60; i++) {
+      page = await appWindow.webContents.executeJavaScript(RENDERER_PROBE, true).catch(() => null);
+      if (page && page.mounted && page.hasStag) break;
+      await wait(100);
+    }
+    record("React tree mounted after reveal", Boolean(page && page.mounted));
+    record("the official emblem is used inside the app too", Boolean(page && page.hasStag));
+    // The vault IPC answers with an {ok, data} envelope; the claim is about the
+    // data: no session, no enrolment, nothing unlocked behind the handoff.
+    const envelope = await appWindow.webContents
+      .executeJavaScript("window.electronAPI.vault.status()", true)
+      .catch((e) => ({ ok: false, error: String(e) }));
+    const status = envelope && envelope.ok ? envelope.data : null;
+    record("handoff does not authenticate: the vault has no active session", Boolean(status && status.locked === true && status.activeSessions === 0), JSON.stringify(status || envelope));
+    record("handoff does not enrol a vault behind the user's back", Boolean(status && status.enrolled === false), JSON.stringify(status || envelope));
     record("window label is the standardised brand", /KNOUX CRYPT/.test(appWindow.getTitle()), appWindow.getTitle());
     await grab(appWindow, "app-settled");
+  }
+
+  // --- repeated launch: a second instance must not create a second app ------
+  if (appWindow && !appWindow.isDestroyed()) {
+    const { spawn } = require("child_process");
+    const child = spawn(process.execPath, [__filename], {
+      env: { ...process.env, KNOUX_QA_MODE: "repeat-child", KNOUX_QA_PROFILE: profileRoot },
+      stdio: "ignore",
+    });
+    const childExit = await new Promise((resolve) => {
+      const timer = setTimeout(() => resolve(null), 30000);
+      child.on("exit", (code) => { clearTimeout(timer); resolve(code); });
+    });
+    record("a repeated launch exits instead of opening a second app", childExit !== null && childExit === 0, `child exit ${childExit}`);
+    await wait(800);
+    const windows = BrowserWindow.getAllWindows().filter((w) => !w.isDestroyed() && isRenderer(w.webContents.getURL()));
+    record("a repeated launch leaves exactly one app window", windows.length === 1, `${windows.length} app windows`);
+    record("the original window is still alive and focused", appWindow.isVisible(), String(appWindow.isVisible()));
+  }
+
+  // --- Secure Access is reachable and the splash never skipped it ----------
+  if (appWindow && !appWindow.isDestroyed()) {
+    const access = await appWindow.webContents
+      .executeJavaScript(
+        `(async () => {
+          location.hash = '#/secure-access-login';
+          await new Promise((r) => setTimeout(r, 700));
+          const main = document.querySelector('main[data-screen="SECURE_ACCESS_LOGIN"]');
+          return {
+            hash: location.hash,
+            present: !!main,
+            vaultState: main ? main.getAttribute('data-vault-state') : null,
+            passwordField: !!document.querySelector('main[data-screen="SECURE_ACCESS_LOGIN"] input[type="password"]'),
+          };
+        })()`,
+        true,
+      )
+      .catch((e) => ({ error: String(e) }));
+    record("the Secure Access gate is reachable after the handoff", Boolean(access && access.present), JSON.stringify(access));
+    record("the gate asks for a vault password rather than opening one", Boolean(access && access.passwordField), JSON.stringify(access));
+    await grab(appWindow, "secure-access");
   }
 
   finish();
@@ -322,7 +523,21 @@ function finish() {
   try {
     for (const win of BrowserWindow.getAllWindows()) win.destroy();
   } catch { /* already gone */ }
-  fs.rmSync(profileRoot, { recursive: true, force: true, maxRetries: 6, retryDelay: 120 });
+  if (slowServer) {
+    try { slowServer.close(); } catch { /* already closed */ }
+  }
+  // A pinned profile is reused by the next run (warm launch), so only a profile
+  // this run created is removed.
+  if (!pinnedProfile) {
+    // The profile may still be held by Electron's own file handles for a
+    // moment after the windows are destroyed; failing to remove it must not
+    // fail the run.
+    try {
+      fs.rmSync(profileRoot, { recursive: true, force: true, maxRetries: 6, retryDelay: 120 });
+    } catch {
+      /* left behind in the temp directory; harmless */
+    }
+  }
   setTimeout(() => process.exit(failures ? 1 : 0), 200);
   app.exit(failures ? 1 : 0);
 }
