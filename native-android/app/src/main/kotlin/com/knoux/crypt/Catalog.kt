@@ -61,7 +61,7 @@ object Catalog {
         ServiceDef("OFFLINE_ADVISOR", "Offline Security Advisor", "مستشار الأمان دون اتصال", "Review local security posture", "راجع الوضع الأمني المحلي", ServiceArt.PRIVACY, "security_advisor", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("KEY_DERIVATION", "Key Derivation", "اشتقاق المفاتيح", "Derive keys with Argon2id", "اشتق المفاتيح باستخدام Argon2id", ServiceArt.KEY, "key_derivation", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("SECURITY_ACTIVITY", "Security Activity", "سجل الأمان", "Review local security events", "راجع أحداث الأمان المحلية", ServiceArt.PRIVACY, "security_activity", ServiceStatus.IMPLEMENTED, false),
-        ServiceDef("SECRET_CAPSULE", "Expiring Secret Capsule", "كبسولة سرية مؤقتة", "Seal a secret with an expiry label", "اختم سرًا مع تاريخ انتهاء", ServiceArt.KEY, null, ServiceStatus.DESIGN_ONLY, false),
+        ServiceDef("SECRET_CAPSULE", "Expiring Secret Capsule", "كبسولة سرية مؤقتة", "Seal a secret with an expiry label", "اختم سرًا مع تاريخ انتهاء", ServiceArt.KEY, "secret_capsule", ServiceStatus.IMPLEMENTED, true),
         ServiceDef("SESSION_PRIVACY", "Session Privacy", "خصوصية الجلسة", "Control session lock behavior", "تحكّم في سلوك قفل الجلسة", ServiceArt.PRIVACY, "session_privacy", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("FILE_INTEGRITY", "File Integrity", "سلامة الملف", "Check a file against a known hash", "قارن ملفًا ببصمة معروفة", ServiceArt.ENCRYPT, "file_integrity", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("SECURE_CLIPBOARD", "Secure Clipboard", "حافظة آمنة", "Managed clipboard copy lease", "نسخ مُدار بعقد للحافظة", ServiceArt.PRIVACY, "secure_clipboard", ServiceStatus.IMPLEMENTED, false),

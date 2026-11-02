@@ -3,6 +3,7 @@ package com.knoux.crypt
 import android.content.Context
 import com.knoux.crypt.data.AndroidDeviceSignals
 import com.knoux.crypt.data.ArchiveService
+import com.knoux.crypt.data.CapsuleService
 import com.knoux.crypt.data.CertificateVaultService
 import com.knoux.crypt.data.DataStoreAdvisorDismissalStore
 import com.knoux.crypt.data.DataStoreVaultKeyRegistry
@@ -72,6 +73,16 @@ class AppContainer(context: Context) {
     )
     /** TASK 29: encrypted collection labels + membership stored on the media record. */
     val vaultCollections = VaultCollectionsService(session, secrets, securityEvents)
+    /**
+     * TASK 41: expiring secret capsule. The expiry and open limit live inside the
+     * capsule's own authenticated record, and every refusal is audited with a typed
+     * reason before any allowance is consumed.
+     */
+    val secretCapsule = CapsuleService(
+        session = session,
+        secrets = secrets,
+        audit = securityEvents,
+    )
     /**
      * TASK 30: protected document viewer. Text decrypts into wiped memory;
      * PDF leases live only under app-private cache and are deleted on close,

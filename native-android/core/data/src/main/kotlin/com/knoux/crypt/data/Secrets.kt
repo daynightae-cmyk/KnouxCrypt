@@ -22,6 +22,7 @@ object SecretKinds {
     const val MEDIA = "media"
     const val NOTE_DRAFT = "note_draft"
     const val COLLECTION = "collection"
+    const val CAPSULE = "capsule"
 }
 
 @Serializable

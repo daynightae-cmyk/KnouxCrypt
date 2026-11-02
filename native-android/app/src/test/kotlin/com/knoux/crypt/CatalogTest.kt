@@ -63,6 +63,10 @@ class CatalogTest {
         // The advisor runs with a locked vault and reports unavailable rules, so it
         // must not be gated behind unlock.
         assertEquals(false, Catalog.byId("OFFLINE_ADVISOR")?.requiresUnlock)
+        assertEquals("secret_capsule", Catalog.byId("SECRET_CAPSULE")?.route)
+        assertEquals(ServiceStatus.IMPLEMENTED, Catalog.byId("SECRET_CAPSULE")?.status)
+        // Capsules are vault records, so the destination is gated behind unlock.
+        assertEquals(true, Catalog.byId("SECRET_CAPSULE")?.requiresUnlock)
     }
 
     @Test
