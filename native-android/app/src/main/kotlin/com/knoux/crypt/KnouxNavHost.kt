@@ -36,7 +36,9 @@ import com.knoux.crypt.ui.PublicKeyQrScreen
 import com.knoux.crypt.ui.RecoveryScreen
 import com.knoux.crypt.ui.SecureClipboardScreen
 import com.knoux.crypt.ui.SecureRandomScreen
+import com.knoux.crypt.ui.SecurityActivityScreen
 import com.knoux.crypt.ui.SecureShareScreen
+import com.knoux.crypt.ui.ShadowVaultScreen
 import com.knoux.crypt.ui.SignatureStudioScreen
 import com.knoux.crypt.ui.SplashScreen
 import com.knoux.crypt.ui.TextCipherScreen
@@ -226,6 +228,20 @@ fun KnouxNavHost(
                 onOpenSecureClipboard = { nav.navigate("secure_clipboard") { launchSingleTop = true } },
             )
         }
+        composable("security_activity") {
+            SecurityActivityScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
+        }
+        composable("shadow_vault") {
+            ShadowVaultScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
+        }
         composable("secure_clipboard") {
             SecureClipboardScreen(
                 container = container,
@@ -314,6 +330,13 @@ fun KnouxNavHost(
             )
         }
         composable("privacy") {
+            PrivacyScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onLock = lockSession,
+            )
+        }
+        composable("session_privacy") {
             PrivacyScreen(
                 container = container,
                 onBack = { nav.popBackStack() },

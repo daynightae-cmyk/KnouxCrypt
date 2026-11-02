@@ -21,7 +21,17 @@ class CatalogTest {
         assertEquals(34, Catalog.groups.first { it.id == "all" }.ids.size)
         assertEquals(8, Catalog.groups.first { it.id == "essentials" }.ids.size)
         assertTrue(Catalog.all.all { it.titleAr.isNotBlank() && it.descAr.isNotBlank() })
+        // A corrupted UTF-8 source once left question marks in place of Arabic.
+        // Non-blank is not enough: every Arabic field must contain Arabic script.
+        assertTrue(
+            Catalog.all.all { service ->
+                containsArabic(service.titleAr) && containsArabic(service.descAr)
+            },
+        )
     }
+
+    private fun containsArabic(value: String): Boolean =
+        value.any { it in '\u0600'..'\u06FF' }
 
     @Test
     fun groupsReferenceKnownUniqueDestinations() {
@@ -41,6 +51,9 @@ class CatalogTest {
             }
         }
         assertEquals(34, Catalog.all.map { Catalog.routeFor(it) }.toSet().size)
+        assertEquals("shadow_vault", Catalog.byId("VAULT")?.route)
+        assertEquals(ServiceStatus.IMPLEMENTED, Catalog.byId("VAULT")?.status)
+        assertEquals(ServiceStatus.IMPLEMENTED, Catalog.byId("NOTES")?.status)
     }
 
     @Test

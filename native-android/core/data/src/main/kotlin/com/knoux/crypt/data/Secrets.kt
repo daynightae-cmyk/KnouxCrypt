@@ -19,12 +19,18 @@ object SecretKinds {
     const val SHARE_RECEIPT = "share_receipt"
     const val CERTIFICATE = "certificate"
     const val ARCHIVE = "archive"
+    const val MEDIA = "media"
+    const val NOTE_DRAFT = "note_draft"
 }
 
 @Serializable
 data class NotePayload(
     val title: String,
     val body: String,
+    /** Optional category label; absent in legacy KNC1 notes. */
+    val category: String = "",
+    /** Newest first, bounded by [NoteRevisions.MAX_ENTRIES]. Inside the ciphertext. */
+    val revisions: List<NoteRevision> = emptyList(),
 )
 
 /**
@@ -249,6 +255,9 @@ object SecretsJson {
     fun encodeNote(title: String, body: String): String =
         json.encodeToString(NotePayload.serializer(), NotePayload(title, body))
 
+    fun encodeNote(payload: NotePayload): String =
+        json.encodeToString(NotePayload.serializer(), payload)
+
     fun decodeNote(value: String): NotePayload? =
         runCatching { json.decodeFromString(NotePayload.serializer(), value) }.getOrNull()
 
@@ -314,6 +323,18 @@ object SecretsJson {
 
     fun decodeArchive(value: String): ArchiveRecordPayload? =
         runCatching { json.decodeFromString(ArchiveRecordPayload.serializer(), value) }.getOrNull()
+
+    fun encodeMedia(payload: VaultMediaPayload): String =
+        json.encodeToString(VaultMediaPayload.serializer(), payload)
+
+    fun decodeMedia(value: String): VaultMediaPayload? =
+        runCatching { json.decodeFromString(VaultMediaPayload.serializer(), value) }.getOrNull()
+
+    fun encodeDraft(payload: NoteDraftPayload): String =
+        json.encodeToString(NoteDraftPayload.serializer(), payload)
+
+    fun decodeDraft(value: String): NoteDraftPayload? =
+        runCatching { json.decodeFromString(NoteDraftPayload.serializer(), value) }.getOrNull()
 
     fun encodeSigningKey(payload: SigningKeyPayload): String =
         json.encodeToString(SigningKeyPayload.serializer(), payload)

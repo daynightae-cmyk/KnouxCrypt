@@ -36,6 +36,7 @@ class ShareService(
     private val session: SessionManager,
     private val secrets: SecretRepository,
     private val random: SecureRandom = SecureRandom(),
+    private val audit: SecurityAuditSink = NoopSecurityAuditSink,
 ) {
     companion object {
         const val IDENTITY_RECORD_ID = "knoux.share-identity.v1"
@@ -309,6 +310,12 @@ class ShareService(
             },
         )
         val receiptId = secrets.save(access, SecretKinds.SHARE_RECEIPT, null, SecretsJson.encodeShareReceipt(receipt))
+        audit.recordSafely(
+            SecurityAuditEvent(
+                SecurityEventAction.SHARE_SEALED,
+                "recipients=${recipients.size} bytes=$plaintextLength",
+            ),
+        )
         return SealOutcome.Sealed(
             receiptId = receiptId,
             packageIdHex = summary.packageIdHex,
@@ -354,7 +361,7 @@ class ShareService(
             SecretsJson.decodeShareMetadata(String(raw, Charsets.UTF_8))
         }
         val summary = result.summary
-        return when (result.verdict) {
+        val outcome = when (result.verdict) {
             SecureSharePackage.Verdict.OPENED -> {
                 if (summary != null) {
                     val receipt = ShareReceiptPayload(
@@ -401,6 +408,16 @@ class ShareService(
             SecureSharePackage.Verdict.TAMPERED -> ReceiveOutcome.Tampered(result.detail)
             SecureSharePackage.Verdict.UNSUPPORTED -> ReceiveOutcome.Unsupported(result.detail)
         }
+        if (outcome is ReceiveOutcome.Opened) {
+            audit.recordSafely(
+                SecurityAuditEvent(SecurityEventAction.SHARE_OPENED, "bytes=${outcome.bytes}"),
+            )
+        } else {
+            audit.recordSafely(
+                SecurityAuditEvent(SecurityEventAction.SHARE_FAILED, "package was not opened"),
+            )
+        }
+        return outcome
     }
 
     /** The receipts this device has written, newest first. */

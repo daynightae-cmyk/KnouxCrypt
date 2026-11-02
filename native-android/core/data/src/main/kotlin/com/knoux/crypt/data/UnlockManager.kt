@@ -22,6 +22,7 @@ class UnlockManager internal constructor(
     private val gates: GateKeyStore,
     private val tokens: GateTokenStore,
     private val session: SessionManager,
+    private val audit: SecurityAuditSink = NoopSecurityAuditSink,
 ) {
     companion object {
         const val RECOVERY_BIOMETRIC_INVALIDATED = "biometric-key-invalidated"
@@ -90,6 +91,7 @@ class UnlockManager internal constructor(
         preparedSetup = null
         preparedSetupSlot = null
         session.authorizeEnrollment(gate)
+        audit.recordSafely(SecurityAuditEvent(SecurityEventAction.UNLOCK_ENROLLED))
     }
 
     /** Prepares an unlock prompt for the active gate. */
@@ -104,6 +106,9 @@ class UnlockManager internal constructor(
         } catch (failure: Throwable) {
             if (gates.isInvalidated(failure)) {
                 tokens.setRecoveryReason(RECOVERY_BIOMETRIC_INVALIDATED)
+                audit.recordSafely(
+                    SecurityAuditEvent(SecurityEventAction.UNLOCK_GATE_INVALIDATED, "unlock gate key invalidated"),
+                )
                 throw UnlockKeyInvalidatedException()
             }
             throw failure
@@ -121,7 +126,19 @@ class UnlockManager internal constructor(
         preparedUnlock = null
         try {
             session.authorizeUnlock(gate, UnlockProtocol.payloadOf(blob))
+            audit.recordSafely(SecurityAuditEvent(SecurityEventAction.UNLOCK_SUCCEEDED))
         } catch (failure: Throwable) {
+            when {
+                gates.isInvalidated(failure) -> audit.recordSafely(
+                    SecurityAuditEvent(SecurityEventAction.UNLOCK_GATE_INVALIDATED, "unlock gate key invalidated"),
+                )
+                failure is UnlockRejectedException -> audit.recordSafely(
+                    SecurityAuditEvent(SecurityEventAction.UNLOCK_REJECTED, "unlock proof rejected"),
+                )
+                else -> audit.recordSafely(
+                    SecurityAuditEvent(SecurityEventAction.UNLOCK_FAILED, "unlock failed"),
+                )
+            }
             if (gates.isInvalidated(failure)) {
                 tokens.setRecoveryReason(RECOVERY_BIOMETRIC_INVALIDATED)
                 throw UnlockKeyInvalidatedException()
@@ -168,6 +185,7 @@ class UnlockManager internal constructor(
         }
         val access = session.currentAccess() ?: throw UnlockNotAuthorizedException()
         tokens.setRecoveryReason(null)
+        audit.recordSafely(SecurityAuditEvent(SecurityEventAction.OWNER_REVERIFIED))
         return RotationAuthorization(access)
     }
 
@@ -224,6 +242,7 @@ class UnlockManager internal constructor(
         // a successful rotation into a reported failure.
         runCatching { gates.deleteGate(previous) }
         runCatching { tokens.clearBlob(previous) }
+        audit.recordSafely(SecurityAuditEvent(SecurityEventAction.GATE_ROTATED))
     }
 
     private suspend fun usableSlot(): GateSlot? {

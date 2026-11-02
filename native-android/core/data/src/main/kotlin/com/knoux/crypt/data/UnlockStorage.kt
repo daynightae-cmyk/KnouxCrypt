@@ -80,6 +80,11 @@ private class KeystoreGateKeyStore(private val keystore: KeystoreManager) : Gate
 
 /** Public construction point so the app module never sees the security internals. */
 object UnlockManagers {
-    fun create(context: Context, keystore: KeystoreManager, session: SessionManager): UnlockManager =
-        UnlockManager(KeystoreGateKeyStore(keystore), DataStoreGateTokenStore(context), session)
+    fun create(
+        context: Context,
+        keystore: KeystoreManager,
+        session: SessionManager,
+        audit: SecurityAuditSink = NoopSecurityAuditSink,
+    ): UnlockManager =
+        UnlockManager(KeystoreGateKeyStore(keystore), DataStoreGateTokenStore(context), session, audit)
 }
