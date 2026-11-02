@@ -450,7 +450,20 @@ function setupSystemTray() {
   // On Linux a Tray requires a display server and a StatusNotifier host; GTK
   // aborts the whole process (not a catchable exception) when there is none.
   // Skip the tray in headless/CI runs instead of crashing the app.
-  if (process.platform === "linux" && !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY) return;
+  //
+  // The display variable is not the whole story: under the headless ozone
+  // platform Chromium never opens an X11 connection, so GDK has no default
+  // display even when DISPLAY is set (xvfb-run sets it). Creating the tray
+  // there aborts with "Can't create a GtkStyleContext without a display
+  // connection", which is how the Linux CI job died in the Electron check.
+  const ozonePlatform = app.commandLine.getSwitchValue("ozone-platform");
+  const headlessOzone = ozonePlatform === "headless" || ozonePlatform === "wayland-headless";
+  if (
+    process.platform === "linux" &&
+    (headlessOzone || (!process.env.DISPLAY && !process.env.WAYLAND_DISPLAY))
+  ) {
+    return;
+  }
 
   const icon = loadIcon("tray-icon.png") || loadIcon("icon.png");
   if (!icon) return;

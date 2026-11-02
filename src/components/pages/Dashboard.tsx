@@ -42,26 +42,34 @@ const quickActions: QuickActionCard[] = [
     stats: { label: "خوارزميات", value: "4" },
   },
   {
+    // This card advertises whole-disk and USB encryption. The suite has no
+    // volume layer — it encrypts files, vaults, notes, credentials and keys —
+    // so the copy no longer claims a certification it does not have or a disk
+    // count it never measured. The card stays navigable to the legacy screen,
+    // but it says "not available" instead of "active" with invented numbers.
     title: "إدارة الأقراص الذكية",
-    description: "تشفير متقدم للأقراص والـ USB",
-    subtitle: "حماية عسكرية",
+    description: "تشفير الأقراص وUSB غير متوفر في هذا الإصدار",
+    subtitle: "غير متاح حاليًا",
     icon: "🛡️",
     path: "/disk-manager",
     color: "#10B981",
     gradient: "from-emerald-500 to-teal-600",
-    status: "active",
-    stats: { label: "أقراص", value: "5" },
+    status: "idle",
+    stats: { label: "الحالة", value: "غير متاح" },
   },
   {
     title: "تشفير النظام الكامل",
     description: "حماية شاملة للقرص الصلب",
-    subtitle: "مقاوم كمي",
+    // "مقاوم كمي" (quantum-resistant) and a 98% protection figure were both
+    // invented: nothing in the suite measures a protection percentage, and the
+    // KDF is Argon2id with AES-256-GCM, not a post-quantum construction.
+    subtitle: "غير متاح حاليًا",
     icon: "🌐",
     path: "/system-encryption",
     color: "#F59E0B",
     gradient: "from-amber-500 to-orange-600",
     status: "idle",
-    stats: { label: "حماية", value: "98%" },
+    stats: { label: "الحالة", value: "غير متاح" },
   },
   {
     title: "المساعد الذكي AI",
@@ -246,11 +254,15 @@ export const Dashboard: React.FC = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.8 }}
             >
+              {/* A pulsing green "system fully protected" badge asserted a state
+                  the application cannot know: it does not scan the system, watch
+                  for malware, or verify that the user's files are encrypted.
+                  What it can say truthfully is where the work happens. */}
               <div className="inline-flex items-center px-4 py-2 rounded-full bg-green-500/20 border border-green-500/30 text-green-300 text-sm font-medium mb-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse" />
-                نظام محمي بالكامل
+                <div className="w-2 h-2 bg-green-400 rounded-full mr-2" />
+                التشفير يتم محليًا على جهازك
               </div>
-              <div className="text-sm text-gray-400">مستوى الأمان: عسكري</div>
+              <div className="text-sm text-gray-400">لا يتم رفع أي بيانات إلى أي خادم</div>
             </motion.div>
           </div>
         </div>

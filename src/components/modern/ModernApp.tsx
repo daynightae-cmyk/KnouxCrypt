@@ -7,6 +7,7 @@ import { ModernSidebar } from "./ModernSidebar";
 import { ModernDashboard } from "./ModernDashboard";
 import { SecurityProvider } from "../../context/SecurityContext";
 import { NotificationProvider } from "../UI/QuantumNotification";
+import { StagEmblem } from "../entry/StagEmblem";
 import "../../styles/modern-theme.css";
 
 // Import existing pages
@@ -196,11 +197,15 @@ const EncryptPage: React.FC = () => {
       transition={{ duration: 0.5 }}
     >
       <div className="glass-card-strong p-8">
-        <h1 className="text-3xl font-bold text-gradient mb-4">
-          🔒 تشفير الملفات
+        <h1 className="text-3xl font-bold text-gradient mb-4 flex items-center gap-3">
+          {/* The lock emoji used to stand in for the product here. */}
+          <span className="inline-block w-8 h-8 shrink-0 align-middle">
+            <StagEmblem />
+          </span>
+          تشفير الملفات
         </h1>
         <p className="text-white/70 text-lg">
-          حماية متقدمة للملفات والمجلدات باستخدام خوارزميات عسكرية
+          حماية متقدمة للملفات والمجلدات باستخدام خوارزميات تشفير معتمدة عالميًا
         </p>
       </div>
 
