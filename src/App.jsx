@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from "react";
+import React, { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, HashRouter, Route, Routes } from "react-router-dom";
 import { LanguageProvider, useLanguage } from "./i18n/Language";
 import { NotesProvider } from "./components/notes/NotesContext";
@@ -26,6 +26,11 @@ function LoadingScreen() {
 // reloads resolve against the single index.html in both Electron and the web.
 const Router = typeof window !== "undefined" && window.knouxcrypt?.isElectron ? HashRouter : BrowserRouter;
 function App() {
+  // The native boot view ends when it has evidence that this document is up,
+  // not after a fixed wait. Reported once, after the first committed render.
+  useEffect(() => {
+    window.electronAPI?.window?.ready?.();
+  }, []);
   return <LanguageProvider><NotesProvider><PasswordProvider><Router><AppShell>
     <ScreenLoadBoundary>
     <Suspense fallback={<LoadingScreen/>}>

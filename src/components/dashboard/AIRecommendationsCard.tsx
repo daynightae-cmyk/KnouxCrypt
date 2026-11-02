@@ -54,7 +54,9 @@ const AIRecommendationsCard: React.FC<AIRecommendationsCardProps> = ({
   const getSecurityLevelInfo = (confidenceScore: number) => {
     if (confidenceScore >= 0.8) {
       return {
-        level: "Military",
+        // "Military" was a certification the product does not have. The badge
+        // ranks recommendation confidence, so it says that instead.
+        level: "Maximum",
         color: "text-red-400",
         icon: "🛡️",
         bgColor: "bg-red-500/20",

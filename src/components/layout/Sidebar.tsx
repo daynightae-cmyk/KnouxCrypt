@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LocalAIAssistant } from "../UI/LocalAIAssistant";
 import { NeonButton2025 } from "../UI/NeonButton2025";
 import { AboutDialog } from "../UI/AboutDialog";
+import { StagEmblem } from "../entry/StagEmblem";
 
 interface NavigationItem {
   path: string;
@@ -119,22 +120,22 @@ export const Sidebar: React.FC = () => {
             className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br from-indigo-600/20 to-purple-600/20 border border-white/10 backdrop-blur-sm"
             whileHover={{ scale: 1.02 }}
           >
+            {/* Official emblem, kept upright: it used to rotate on a 20s loop
+                inside an indigo gradient tile with a lock emoji on top. */}
             <motion.div
               className="relative"
               animate={{
-                rotate: [0, 360],
-                scale: [1, 1.1, 1],
+                scale: [1, 1.05, 1],
               }}
               transition={{
-                rotate: { duration: 20, repeat: Infinity, ease: "linear" },
                 scale: { duration: 2, repeat: Infinity, ease: "easeInOut" },
               }}
             >
-              <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-2xl shadow-lg">
-                🔐
+              <div className="w-12 h-12 shadow-lg">
+                <StagEmblem />
               </div>
               {/* Glow Effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl blur-lg opacity-30 -z-10" />
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-xl blur-lg opacity-30 -z-10" />
             </motion.div>
             <div>
               <motion.h1

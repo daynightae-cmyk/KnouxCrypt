@@ -1,5 +1,5 @@
 /**
- * KnouxCrypt™ 2025 - Electron Main Process
+ * KNOUX CRYPT - Electron Main Process
  *
  * Security posture:
  *   - context isolation ON, node integration OFF, renderer sandboxed
@@ -8,6 +8,9 @@
  *   - no privilege escalation: the app does not request administrator rights
  *   - all privileged work (vault crypto, filesystem) happens here and is
  *     exposed to the renderer only through the validated vault IPC contract
+ *   - the boot view is loaded last and reveals the app window only when that
+ *     window reports readiness; it carries no vault surface and is not a path
+ *     around the renderer's authentication gate
  */
 
 const {
@@ -31,10 +34,37 @@ const { pathToFileURL } = require("url");
 const { VaultService } = require("./vault/service");
 const { registerVaultIpc } = require("./vault/ipc");
 
+/**
+ * The version shown to the user is read from package metadata, not repeated
+ * here. It used to say "2025.1.0" in three places at once, so a bump in
+ * package.json left the splash, the window title and the app-info IPC all
+ * reporting a release that no longer existed.
+ */
+function readBuildVersion() {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf8"));
+    if (typeof pkg.version === "string" && pkg.version) return pkg.version;
+  } catch {
+    // Packaged layouts always carry package.json in the asar root; if it
+    // cannot be read, fall back to what Electron itself reports.
+  }
+  return app.getVersion();
+}
+
 const APP_CONFIG = {
-  name: "KnouxCrypt™ 2025",
-  version: "2025.1.0",
-  description: "نظام التشفير العسكري المتقدم",
+  // Display name. "KnouxCrypt™ 2025" embedded a year that went stale on
+  // January 1st; the product is "KNOUX CRYPT" and the year belongs to the
+  // version, not the name. productName is intentionally left alone because
+  // changing it moves the NSIS install directory and leaves the previous
+  // install orphaned — that needs an owner decision, not a drive-by rename.
+  name: "KNOUX CRYPT",
+  tagline: "Private Encryption Suite",
+  version: readBuildVersion(),
+  // The previous description claimed a certification-grade warfighter system.
+  // That is a claim, not a property: the suite uses standard, published
+  // primitives (Argon2id, AES-256-GCM, X25519), and the description now says
+  // what it is instead of what it aspires to sound like.
+  description: "Private Encryption Suite",
   author: "Knoux Technologies",
   minWidth: 1024,
   minHeight: 720,
@@ -56,8 +86,11 @@ const ALLOWED_ORIGINS = new Set([DEV_SERVER_URL]);
 const CSP = [
   "default-src 'self'",
   "script-src 'self'",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' data: https://fonts.gstatic.com",
+  // 'unsafe-inline' is for framer-motion's inline style writes, not for fonts:
+  // the third-party Google Fonts request was removed, so a local encryption
+  // suite no longer reaches an external origin while it starts.
+  "style-src 'self' 'unsafe-inline'",
+  "font-src 'self'",
   "img-src 'self' data: blob:",
   "media-src 'self' data: blob:",
   "connect-src 'self'",
@@ -74,6 +107,17 @@ let isQuitting = false;
 let journalFlushed = false;
 let vaultService = null;
 let unregisterVaultIpc = null;
+
+// --- boot handoff state -----------------------------------------------------
+// The boot view ends on evidence, not on a timer: either the app window reports
+// readiness (preferred), its document finishes loading (fallback for a renderer
+// that cannot signal), or the deadline proves nothing is coming and the boot
+// view shows a recovery panel instead of animating forever.
+const BOOT_DEADLINE_MS = 20000;
+let bootState = { state: "opening", detail: "", version: APP_CONFIG.version };
+let bootViewLoaded = false;
+let bootHandoffDone = false;
+let bootDeadline = null;
 
 function assetPath(...parts) {
   // In development assets live in the source tree; in production they are
@@ -148,7 +192,11 @@ function hardenWindow(win) {
 
 function createSplashWindow() {
   const splashFile = path.join(__dirname, "splash.html");
-  if (!fs.existsSync(splashFile)) return createMainWindow();
+  if (!fs.existsSync(splashFile)) {
+    // No boot view in this layout: start the real window directly.
+    createMainWindow({ revealOnReady: true });
+    return;
+  }
 
   splashWindow = new BrowserWindow({
     width: 600,
@@ -163,26 +211,137 @@ function createSplashWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      // The boot document gets its own, much smaller bridge than the app
+      // window: state plus two buttons, no vault surface at all.
+      preload: path.join(__dirname, "splash-preload.js"),
     },
     icon: loadIcon("icon.png"),
   });
+  splashWindow.setMenuBarVisibility(false);
 
+  splashWindow.webContents.once("did-finish-load", () => {
+    bootViewLoaded = true;
+    pushBootState();
+  });
+  splashWindow.on("closed", () => {
+    splashWindow = null;
+    bootViewLoaded = false;
+  });
   splashWindow.loadFile(splashFile);
 
-  const splashTimer = setTimeout(() => {
-    if (splashWindow && !splashWindow.isDestroyed()) {
-      splashWindow.close();
-      splashWindow = null;
+  // Load the real window now, behind the boot view. Its own readiness ends the
+  // transition; the boot view is not given a schedule of its own.
+  createMainWindow({ revealOnReady: false });
+
+  // A ceiling for a startup that stopped reporting anything, not the normal
+  // handoff path — readiness normally arrives many seconds earlier.
+  bootDeadline = setTimeout(() => {
+    failBoot("The interface did not report that it was ready within 20 seconds.");
+  }, BOOT_DEADLINE_MS);
+}
+
+/**
+ * Reveal the app and retire the boot view.
+ *
+ * This only shows the window. It grants nothing: the vault session, the
+ * enrollment and the unlock all still happen behind the renderer's own gate,
+ * so an early handoff could not reach a stored secret any more than a late one
+ * can.
+ */
+function completeBoot() {
+  if (bootHandoffDone) return;
+  bootHandoffDone = true;
+  if (bootDeadline) {
+    clearTimeout(bootDeadline);
+    bootDeadline = null;
+  }
+  setBootState("interface_ready");
+  // Show first, then close: the boot view is alwaysOnTop, so for one frame it
+  // covers the real window instead of leaving the desktop visible between them.
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.show();
+    mainWindow.focus();
+  }
+  if (splashWindow && !splashWindow.isDestroyed()) splashWindow.close();
+  splashWindow = null;
+}
+
+/**
+ * Keep the boot view up and swap its animation for an accessible recovery
+ * panel with the real reason. Revealing a window that never reported readiness
+ * would trade a visible failure for a blank one.
+ */
+function failBoot(detail) {
+  if (bootHandoffDone) return;
+  if (bootDeadline) {
+    clearTimeout(bootDeadline);
+    bootDeadline = null;
+  }
+  setBootState("failed", detail);
+}
+
+function setBootState(state, detail = "") {
+  bootState = { state, detail, version: APP_CONFIG.version };
+  pushBootState();
+}
+
+function pushBootState() {
+  if (!splashWindow || splashWindow.isDestroyed() || !bootViewLoaded) return;
+  splashWindow.webContents.send("boot:state", bootState);
+}
+
+/**
+ * The boot view's whole privileged surface: retry, quit, and a readiness report
+ * that only the app window itself is allowed to make.
+ */
+function registerBootIpc() {
+  const { ipcMain } = require("electron");
+
+  ipcMain.removeAllListeners("boot:renderer-ready");
+  ipcMain.on("boot:renderer-ready", (event) => {
+    // Without this the hidden boot document — or any other web content — could
+    // declare the app ready and drive the handoff.
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    if (event.sender !== mainWindow.webContents) return;
+    completeBoot();
+  });
+
+  ipcMain.removeAllListeners("boot:retry");
+  ipcMain.on("boot:retry", () => {
+    setBootState("retrying");
+    if (!isDev && !fs.existsSync(RENDERER_ENTRY)) {
+      // Retrying cannot fix a missing build, and reloading the window that was
+      // left on about:blank would fire did-finish-load for that blank document
+      // and reveal an empty window. Stay in recovery with the same reason.
+      failBoot(`The packaged renderer was not found at ${RENDERER_ENTRY}. Run "npm run build" before packaging.`);
+      return;
     }
-    createMainWindow();
-  }, 3000);
-  splashWindow.on("closed", () => {
-    clearTimeout(splashTimer);
-    splashWindow = null;
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      createMainWindow({ revealOnReady: false });
+    } else {
+      bootHandoffDone = false;
+      if (bootDeadline) clearTimeout(bootDeadline);
+      bootDeadline = setTimeout(() => {
+        failBoot("The interface still did not report that it was ready within 20 seconds.");
+      }, BOOT_DEADLINE_MS);
+      mainWindow.webContents.reload();
+    }
+  });
+
+  ipcMain.removeAllListeners("boot:quit");
+  ipcMain.on("boot:quit", () => {
+    isQuitting = true;
+    app.quit();
   });
 }
 
-function createMainWindow() {
+/**
+ * @param {{revealOnReady?: boolean}} options `revealOnReady: false` is used
+ *   while the boot view is up: the window loads hidden and `completeBoot()`
+ *   shows it, so nothing is ever revealed before it has reported itself.
+ */
+function createMainWindow(options) {
+  const { revealOnReady = true } = options || {};
   if (mainWindow && !mainWindow.isDestroyed()) return focusMainWindow();
 
   mainWindow = new BrowserWindow({
@@ -205,35 +364,53 @@ function createMainWindow() {
       preload: path.join(__dirname, "preload.js"),
     },
     icon: loadIcon("icon.png"),
-    backgroundColor: "#0F172A",
+    // #080411 is --crypt-obsidian, the colour shell.css paints html/body with.
+    // The window used to open on the legacy slate theme's colour, so startup
+    // flashed blue-gray before the violet app painted over it.
+    backgroundColor: "#080411",
   });
 
   hardenWindow(mainWindow);
   applySecurityHeaders(mainWindow.webContents.session);
 
+  // Readiness plumbing for the boot handoff. Both signals are facts about this
+  // window, reported by Electron, not a schedule the boot view invents.
+  mainWindow.webContents.once("did-finish-load", () => {
+    // The renderer's own handshake is preferred; this fallback covers a build
+    // whose root component no longer signals, so a working app can never be
+    // held behind the boot view until the deadline.
+    completeBoot();
+  });
+  mainWindow.webContents.on("did-fail-load", (_event, code, description, url, isMainFrame) => {
+    if (!isMainFrame) return;
+    if (isDev && code === -102 && url.startsWith(DEV_SERVER_URL) && fs.existsSync(RENDERER_ENTRY)) {
+      console.warn(`[main] dev server unavailable (${description}); loading ${RENDERER_ENTRY}`);
+      mainWindow.loadFile(RENDERER_ENTRY);
+      return;
+    }
+    failBoot(`The interface failed to load (${description}, code ${code}).`);
+  });
+
   if (isDev) {
     mainWindow.loadURL(DEV_SERVER_URL);
     mainWindow.webContents.openDevTools({ mode: "detach" });
-    // A dev server may not be running (e.g. a source checkout started directly).
-    // Fall back to the built renderer instead of showing a blank error page.
-    mainWindow.webContents.on("did-fail-load", (_event, code, description, url) => {
-      if (code === -102 && url.startsWith(DEV_SERVER_URL) && fs.existsSync(RENDERER_ENTRY)) {
-        console.warn(`[main] dev server unavailable (${description}); loading ${RENDERER_ENTRY}`);
-        mainWindow.loadFile(RENDERER_ENTRY);
-      }
-    });
   } else {
     if (!fs.existsSync(RENDERER_ENTRY)) {
-      dialog.showErrorBox(
-        "KnouxCrypt™ — build missing",
-        `The packaged renderer was not found at:\n${RENDERER_ENTRY}\n\nRun "npm run build" before packaging.`,
-      );
+      const detail = `The packaged renderer was not found at ${RENDERER_ENTRY}. Run "npm run build" before packaging.`;
+      if (splashWindow && !splashWindow.isDestroyed()) {
+        // The boot view is up: its recovery panel is the accessible place for
+        // this, so do not stack a modal dialog on top of it.
+        failBoot(detail);
+        return;
+      }
+      dialog.showErrorBox(`${APP_CONFIG.name} — build missing`, detail);
       return;
     }
     mainWindow.loadFile(RENDERER_ENTRY);
   }
 
   mainWindow.once("ready-to-show", () => {
+    if (!revealOnReady) return;
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.show();
   });
 
@@ -269,12 +446,15 @@ function setupSystemTray() {
     return;
   }
 
+  // Plain text labels: Win32 menus render emoji inconsistently (often as
+  // monochrome glyphs or tofu boxes), and a lock glyph here would be a generic
+  // icon standing in for the product's own.
   const contextMenu = Menu.buildFromTemplate([
-    { label: "KnouxCrypt™ 2025", enabled: false },
+    { label: `${APP_CONFIG.name} — ${APP_CONFIG.tagline}`, enabled: false },
     { type: "separator" },
-    { label: "🏠 إظهار النافذة الرئيسية", click: () => focusMainWindow() },
+    { label: "إظهار النافذة الرئيسية", click: () => focusMainWindow() },
     {
-      label: "🔒 قفل الخزنة الآن",
+      label: "قفل الخزنة الآن",
       click: () => {
         if (vaultService) vaultService.lockAll("tray");
         sendToRenderer("vault-locked");
@@ -282,7 +462,7 @@ function setupSystemTray() {
     },
     { type: "separator" },
     {
-      label: "🚪 إنهاء البرنامج",
+      label: "إنهاء البرنامج",
       click: () => {
         isQuitting = true;
         app.quit();
@@ -290,12 +470,24 @@ function setupSystemTray() {
     },
   ]);
 
-  tray.setToolTip("KnouxCrypt™ 2025 - نظام التشفير العسكري");
+  // The tooltip states what the suite is rather than what it used to claim to
+  // be: the old Arabic tagline asserted a certified military system, which this
+  // project has never had.
+  tray.setToolTip(`${APP_CONFIG.name} — ${APP_CONFIG.tagline}`);
   tray.setContextMenu(contextMenu);
   tray.on("double-click", () => focusMainWindow());
 }
 
 function focusMainWindow() {
+  // While the boot view is still up the main window is deliberately hidden and
+  // unverified. A second-instance launch, a tray click or an OS "activate" must
+  // raise the boot view instead of revealing a renderer that has not reported
+  // readiness.
+  if (splashWindow && !splashWindow.isDestroyed()) {
+    splashWindow.moveTop();
+    splashWindow.focus();
+    return;
+  }
   if (!mainWindow || mainWindow.isDestroyed()) return;
   if (mainWindow.isMinimized()) mainWindow.restore();
   mainWindow.show();
@@ -407,9 +599,12 @@ function setupMenu() {
 function showAboutDialog() {
   dialog.showMessageBox(mainWindow || undefined, {
     type: "info",
-    title: "حول KnouxCrypt™ 2025",
-    message: APP_CONFIG.name,
-    detail: `الإصدار: ${APP_CONFIG.version}\n${APP_CONFIG.description}\n\nطور بواسطة: ${APP_CONFIG.author}\n\n© 2025 جميع الحقوق محفوظة`,
+    title: `حول ${APP_CONFIG.name}`,
+    message: `${APP_CONFIG.name} — ${APP_CONFIG.tagline}`,
+    // The version and description are read from package metadata at startup, so
+    // this dialog cannot advertise a release that no longer exists. The year is
+    // the current one rather than a literal that went stale.
+    detail: `الإصدار: ${APP_CONFIG.version}\n${APP_CONFIG.description}\n\nطور بواسطة: ${APP_CONFIG.author}\n\n© ${new Date().getFullYear()} جميع الحقوق محفوظة`,
     buttons: ["موافق"],
   });
 }
@@ -475,7 +670,9 @@ function registerWindowControls() {
   }
   ipcMain.handle("app-info", () => ({
     name: APP_CONFIG.name,
+    tagline: APP_CONFIG.tagline,
     version: APP_CONFIG.version,
+    description: APP_CONFIG.description,
     isDev,
     platform: process.platform,
   }));
@@ -526,6 +723,7 @@ if (!gotLock) {
     vaultService.viewerSweep().catch(() => {});
 
     setupAutoUpdater();
+    registerBootIpc();
     createSplashWindow();
 
     // Real session-lock controls (task 14). Locking on OS suspend and on screen

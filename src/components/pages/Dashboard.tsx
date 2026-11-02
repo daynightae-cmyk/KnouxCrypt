@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { StagEmblem } from "../entry/StagEmblem";
 
 interface QuickActionCard {
   title: string;
@@ -154,18 +155,14 @@ export const Dashboard: React.FC = () => {
           animate={{ opacity: 1 }}
         >
           <div className="text-center">
+            {/* The emblem used to spin 360° forever as a loading spinner. A logo
+                is not a spinner: the stag keeps its upright pose and only pulses. */}
             <motion.div
-              className="inline-block text-6xl mb-4"
-              animate={{
-                rotate: 360,
-                scale: [1, 1.1, 1],
-              }}
-              transition={{
-                rotate: { duration: 2, repeat: Infinity, ease: "linear" },
-                scale: { duration: 1, repeat: Infinity },
-              }}
+              className="inline-block w-16 h-16 mb-4"
+              animate={{ scale: [1, 1.06, 1] }}
+              transition={{ duration: 1.6, repeat: Infinity }}
             >
-              🔐
+              <StagEmblem />
             </motion.div>
             <motion.h2
               className="text-2xl font-bold mb-2 bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent"
@@ -231,7 +228,7 @@ export const Dashboard: React.FC = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.4 }}
                 >
-                  نظام التشفير العسكري المتقدم
+                  مجموعة التشفير الخاصة
                 </motion.p>
                 <motion.p
                   className="text-sm text-gray-400"

@@ -1,4 +1,4 @@
-# KnouxCrypt™ 2025 — Windows installer customisation / تخصيص المثبّت
+# KNOUX CRYPT — Windows installer customisation / تخصيص المثبّت
 #
 # electron-builder generates the real installer (file copy, shortcuts, the
 # uninstaller, and the HKLM uninstall entry). This file is !include'd into that
@@ -26,10 +26,10 @@
 # instead of the build aborting.
 
 !ifndef MUI_WELCOMEPAGE_TITLE
-  !define MUI_WELCOMEPAGE_TITLE "مرحباً بك في معالج تثبيت KnouxCrypt™ 2025"
+  !define MUI_WELCOMEPAGE_TITLE "مرحباً بك في معالج تثبيت KNOUX CRYPT"
 !endif
 !ifndef MUI_WELCOMEPAGE_TEXT
-  !define MUI_WELCOMEPAGE_TEXT "سيقوم هذا المعالج بإرشادك خلال تثبيت نظام التشفير KnouxCrypt™ 2025.$\r$\n$\r$\nيُنصح بإغلاق KnouxCrypt قبل المتابعة.$\r$\n$\r$\nانقر على 'التالي' للمتابعة."
+  !define MUI_WELCOMEPAGE_TEXT "سيقوم هذا المعالج بإرشادك خلال تثبيت مجموعة التشفير الخاصة KNOUX CRYPT.$\r$\n$\r$\nيُنصح بإغلاق KnouxCrypt قبل المتابعة.$\r$\n$\r$\nانقر على 'التالي' للمتابعة."
 !endif
 
 # ------------------------------------------------------------------- installer
@@ -68,7 +68,7 @@
   # The wizard already confirms interactively, so this text is only ever for a
   # human at the console, and must never appear in a scripted run.
   IfSilent knouxcryptUnInitDone
-  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "هل أنت متأكد من أنك تريد إزالة KnouxCrypt™ 2025؟$\r$\nلن يتم حذف خزنتك أو ملفاتك المشفرة./Your vault and encrypted files will NOT be deleted." IDYES knouxcryptUnInitDone
+  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "هل أنت متأكد من أنك تريد إزالة KNOUX CRYPT؟$\r$\nلن يتم حذف خزنتك أو ملفاتك المشفرة./Your vault and encrypted files will NOT be deleted." IDYES knouxcryptUnInitDone
   Abort
 knouxcryptUnInitDone:
 !macroend

@@ -1,335 +1,347 @@
+/*
+ * KnouxCrypt native boot view.
+ *
+ * Observations that shaped this file:
+ *   - The window is 600x400 and transparent, so the paintable surface is the
+ *     stage, not the body. Putting the background on the body would make the
+ *     whole rectangle opaque and give a hard square edge against the desktop.
+ *   - The previous boot view was obsidian-free: a blue-gray gradient, an emoji
+ *     as the logo and a fake progress bar. The colours below come from the
+ *     in-app identity instead — the same #090511 the emblem's own eye shutter
+ *     is painted with, and the same violet ramp StagEmblem.jsx uses.
+ *   - Animation here mirrors stag.css rather than inventing a second language:
+ *     one eyelid aperture, one arrival curve, one breath. prefers-reduced-motion
+ *     resolves to the finished state, not to a frozen mid-animation frame.
+ */
+
+:root {
+  /* --crypt-obsidian from src/components/shell/shell.css, so the boot window,
+     the native window background and the first renderer paint are one colour.
+     The previous #0F172A was slate blue from the legacy theme and flashed before
+     the app painted. */
+  --boot-obsidian: #080411;
+  --boot-obsidian-raise: #130a20;
+  --boot-violet: #bc65ff;
+  --boot-violet-light: #e9beff;
+  --boot-eye-core: #f7e9ff;
+  --boot-text: #f4eefc;
+  --boot-text-soft: #c8b6dd;
+  --boot-duration: 1150ms;
+  --boot-ease: cubic-bezier(.22, .68, .24, 1);
+}
+
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
+html,
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(
-    135deg,
-    #0f172a 0%,
-    #1e293b 50%,
-    #334155 100%
-  );
-  color: white;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  /* The window itself is transparent; the document must stay transparent too,
+     otherwise the corners of the desktop bleed through as black. */
+  background: transparent;
+}
+
+body {
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system,
+    "Noto Sans Arabic", Tahoma, sans-serif;
+  color: var(--boot-text);
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.boot-stage {
+  position: relative;
+  height: 100%;
+  padding: 26px 30px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  position: relative;
-}
-
-/* خلفية م��حركة */
-.background-animation {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  gap: 18px;
+  border-radius: 14px;
   overflow: hidden;
-  opacity: 0.1;
+  background:
+    radial-gradient(120% 80% at 50% 12%, rgba(120, 45, 190, .22), transparent 62%),
+    linear-gradient(165deg, #150a24 0%, var(--boot-obsidian) 58%, #050208 100%);
+  border: 1px solid rgba(188, 101, 255, .22);
+  box-shadow: inset 0 0 60px rgba(80, 20, 130, .35);
+  animation: boot-stage-arrive 420ms var(--boot-ease) both;
 }
 
-.background-animation::before {
-  content: "";
+@keyframes boot-stage-arrive {
+  from { opacity: 0; transform: scale(.985); }
+  to { opacity: 1; transform: none; }
+}
+
+.boot-vignette {
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
-  animation: rotate 20s linear infinite;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(78% 62% at 50% 46%, transparent 40%, rgba(4, 2, 7, .72) 100%);
 }
 
-.background-animation::after {
-  content: "";
+/* ---------------------------------------------------------------- emblem -- */
+
+.boot-mark {
+  position: relative;
+  width: 176px;
+  aspect-ratio: 1;
+  isolation: isolate;
+}
+
+.boot-stag {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* No drop shadow on the emblem itself: the source is a flat mark and adding
+     one is how the previous identity drifted into generic-icon territory. */
+  filter: drop-shadow(0 0 22px rgba(150, 70, 230, .28));
+}
+
+.boot-eyes {
   position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, #8b5cf6 0%, transparent 70%);
-  animation: rotate 25s linear infinite reverse;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  pointer-events: none;
+  overflow: visible;
 }
 
-@keyframes rotate {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+/* The source artwork has painted white eyes; the shutter darkens exactly those
+   contours so the light underneath reads as light coming from the eyes. */
+.boot-eye-shutter { opacity: .98; }
+
+.boot-eye-envelope {
+  opacity: 1;
+  animation: boot-eye-arrival var(--boot-duration) ease-out both;
 }
 
-/* الحاوية الرئيسية */
-.splash-container {
+.boot-eye { opacity: .82; }
+
+.boot-eye-core { filter: drop-shadow(0 0 5px #f9eaff); }
+
+.boot-eye-glint { opacity: .78; }
+
+.boot-eye-trails {
+  opacity: .18;
+  stroke-dasharray: 12 140;
+  animation: boot-trail 1600ms linear 1 both;
+}
+
+/* One eyelid controller, opened once. Same transform origin as the in-app
+   aperture so the eyes part at the same height everywhere. */
+.boot-eye-aperture {
+  transform-origin: 627px 715px;
+  transform: scaleY(.001);
+  animation: boot-eyelid 620ms var(--boot-ease) 140ms both;
+}
+
+@keyframes boot-eyelid {
+  from { transform: scaleY(.001); }
+  to { transform: scaleY(1); }
+}
+
+/* Same shape as stag-arrival: dark -> dim -> flare -> settle. */
+@keyframes boot-eye-arrival {
+  0% { opacity: 0; }
+  32% { opacity: .38; }
+  58% { opacity: 1; filter: brightness(1.55); }
+  100% { opacity: .88; filter: brightness(1); }
+}
+
+@keyframes boot-trail {
+  to { stroke-dashoffset: -152; }
+}
+
+/* ------------------------------------------------------------- wordmark -- */
+
+.boot-wordmark {
   text-align: center;
-  z-index: 10;
-  animation: fadeInUp 1s ease-out;
+  animation: boot-text-arrive 520ms var(--boot-ease) 260ms both;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes boot-text-arrive {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
 }
 
-/* الشعار */
-.logo {
-  margin-bottom: 30px;
-  position: relative;
+.boot-wordmark h1 {
+  margin: 0;
+  font-size: 27px;
+  font-weight: 600;
+  letter-spacing: .16em;
+  color: var(--boot-text);
 }
 
-.logo-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 20px;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  border-radius: 20px;
+.boot-wordmark h1 em {
+  font-style: normal;
+  font-weight: 300;
+  color: var(--boot-violet-light);
+}
+
+.boot-tagline {
+  margin: 6px 0 0;
+  font-size: 13px;
+  letter-spacing: .04em;
+  color: var(--boot-text-soft);
+}
+
+.boot-tagline-en::after {
+  content: " · ";
+}
+
+.boot-tagline-ar {
+  font-size: 13px;
+  color: var(--boot-text-soft);
+}
+
+.boot-state {
+  margin: 16px 0 0;
+  min-height: 34px;
+  font-size: 13px;
+  color: var(--boot-violet-light);
+}
+
+.boot-state span + span::before {
+  content: " — ";
+  color: rgba(200, 182, 221, .5);
+}
+
+.boot-state[data-boot-state="failed"] {
+  color: #ff9db0;
+}
+
+.boot-version {
+  margin: 8px 0 0;
+  font-size: 12px;
+  letter-spacing: .08em;
+  color: rgba(200, 182, 221, .72);
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------------- recovery -- */
+
+.boot-recovery {
+  position: absolute;
+  inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 40px;
-  box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
-  animation: pulse 2s ease-in-out infinite;
-  position: relative;
+  gap: 12px;
+  padding: 28px 34px;
+  text-align: center;
+  background: linear-gradient(165deg, rgba(20, 8, 26, .97), rgba(6, 3, 10, .98));
+  animation: boot-text-arrive 300ms var(--boot-ease) both;
 }
 
-.logo-icon::before {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6, #06b6d4);
-  border-radius: 22px;
-  z-index: -1;
-  opacity: 0.5;
-  filter: blur(10px);
+.boot-recovery[hidden] { display: none; }
+
+.boot-recovery h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+  color: #ffd0da;
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 25px 50px rgba(59, 130, 246, 0.5);
-  }
+.boot-recovery h2 span + span::before {
+  content: " · ";
 }
 
-.logo-text h1 {
-  font-size: 32px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #ffffff, #e2e8f0);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 8px;
-  letter-spacing: -0.5px;
-}
-
-.logo-text .version {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 500;
-  letter-spacing: 1px;
-}
-
-.logo-text .description {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.8);
-  margin-top: 8px;
+.boot-recovery h2 span:last-child {
+  font-size: 17px;
   font-weight: 400;
 }
 
-/* شريط التحميل */
-.loading-section {
-  margin-top: 40px;
+.boot-recovery-detail {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--boot-text-soft);
+  /* Long renderer error strings must not push the buttons off a 400 px window. */
+  overflow-wrap: anywhere;
+  max-height: 58px;
+  overflow: auto;
 }
 
-.loading-text {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 20px;
-  animation: fadeInOut 1.5s ease-in-out infinite;
+.boot-recovery-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
 }
 
-@keyframes fadeInOut {
-  0%,
-  100% {
-    opacity: 0.8;
-  }
-  50% {
-    opacity: 1;
-  }
+.boot-recovery-actions button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--boot-text);
+  background: rgba(120, 45, 190, .18);
+  border: 1px solid rgba(188, 101, 255, .45);
+  border-radius: 8px;
+  cursor: pointer;
 }
 
-.loading-bar {
-  width: 300px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
-  margin: 0 auto;
-  overflow: hidden;
-  position: relative;
+.boot-recovery-actions button span + span::before {
+  content: " · ";
 }
 
-.loading-progress {
-  height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
-  border-radius: 2px;
-  animation: loading 2s ease-in-out infinite;
-  position: relative;
+.boot-recovery-actions button:hover {
+  background: rgba(150, 70, 230, .3);
 }
 
-.loading-progress::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.3),
-    transparent
-  );
-  animation: shimmer 1.5s ease-in-out infinite;
+.boot-recovery-actions button:focus-visible {
+  outline: 2px solid var(--boot-violet-light);
+  outline-offset: 2px;
 }
 
-@keyframes loading {
-  0% {
-    width: 0%;
-  }
-  50% {
-    width: 70%;
-  }
-  100% {
-    width: 100%;
-  }
+#bootRetry {
+  background: rgba(150, 70, 230, .42);
+  border-color: rgba(233, 190, 255, .6);
 }
 
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-/* معلومات إضافية */
-.info-section {
-  position: absolute;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-  color: rgba(255, 255, 255, 0.6);
+.boot-recovery-note {
+  margin: 2px 0 0;
   font-size: 12px;
+  color: rgba(200, 182, 221, .8);
 }
 
-.info-section .company {
-  margin-bottom: 5px;
-  font-weight: 500;
+.boot-recovery-note span + span::before {
+  content: " · ";
 }
 
-.info-section .copyright {
-  font-size: 11px;
-  opacity: 0.8;
+/* Startup failed: freeze the ignition in an extinguished pose. The recovery
+   panel covers the stage, but a still-running animation underneath is exactly
+   the "infinite animation instead of a real error" this task removes. */
+.boot-stage[data-boot-phase="failed"] :is(.boot-wordmark, .boot-eye-envelope, .boot-eye-aperture, .boot-eye-trails) {
+  animation: none;
 }
 
-/* جزيئات متحركة */
-.particles {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-}
+.boot-stage[data-boot-phase="failed"] .boot-eye-aperture { transform: scaleY(1); }
+.boot-stage[data-boot-phase="failed"] .boot-eye-envelope { opacity: .3; filter: saturate(.4); }
+.boot-stage[data-boot-phase="failed"] .boot-eye-trails { display: none; }
 
-.particle {
-  position: absolute;
-  width: 2px;
-  height: 2px;
-  background: rgba(59, 130, 246, 0.6);
-  border-radius: 50%;
-  animation: float 6s ease-in-out infinite;
-}
+/* ---------------------------------------------------------- reduced motion -- */
 
-.particle:nth-child(1) {
-  top: 20%;
-  left: 20%;
-  animation-delay: 0s;
-}
-.particle:nth-child(2) {
-  top: 80%;
-  left: 80%;
-  animation-delay: 1s;
-}
-.particle:nth-child(3) {
-  top: 40%;
-  left: 70%;
-  animation-delay: 2s;
-}
-.particle:nth-child(4) {
-  top: 70%;
-  left: 30%;
-  animation-delay: 3s;
-}
-.particle:nth-child(5) {
-  top: 30%;
-  left: 50%;
-  animation-delay: 4s;
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px) scale(1);
-    opacity: 0.6;
+@media (prefers-reduced-motion: reduce) {
+  .boot-stage,
+  .boot-wordmark,
+  .boot-recovery,
+  .boot-eye-envelope,
+  .boot-eye-aperture,
+  .boot-eye-trails {
+    animation: none;
   }
-  50% {
-    transform: translateY(-20px) scale(1.2);
-    opacity: 1;
-  }
-}
 
-/* تأثيرات إضافية */
-.glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(
-    circle,
-    rgba(59, 130, 246, 0.1) 0%,
-    transparent 70%
-  );
-  border-radius: 50%;
-  animation: glow 3s ease-in-out infinite;
-}
-
-@keyframes glow {
-  0%,
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.3;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.2);
-    opacity: 0.6;
-  }
+  /* Resolve to the finished frame, never a frozen half-open eye. */
+  .boot-eye-aperture { transform: scaleY(1); }
+  .boot-eye-envelope { opacity: .88; }
+  .boot-eye-trails { display: none; }
 }
