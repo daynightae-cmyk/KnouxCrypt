@@ -90,6 +90,7 @@ class VaultKeyRotationManager(
     private val dao: SecretDao,
     private val transactions: TransactionRunner,
     private val random: SecureRandom = SecureRandom(),
+    private val audit: SecurityAuditSink = NoopSecurityAuditSink,
 ) {
     companion object {
         const val BATCH_SIZE = 16
@@ -115,55 +116,81 @@ class VaultKeyRotationManager(
      * journal after a fresh owner verification. No record is changed here.
      */
     suspend fun prepare(access: VaultAccess, authorization: RotationAuthorization): RotationJournal =
-        rotationMutex.withLock {
-            if (authorizedAccess !== access) authorize(access, authorization)
-            val journal = registry.rotationJournal()
-            val active = registry.activeVersion()
-            if (journal != null) {
-                if (journal.targetVersion != active && journal.sourceVersion != active) {
-                    throw VaultKeyInconsistentException("Rotation journal does not match the active key version")
+        try {
+            rotationMutex.withLock {
+                if (authorizedAccess !== access) authorize(access, authorization)
+                val journal = registry.rotationJournal()
+                val active = registry.activeVersion()
+                if (journal != null) {
+                    if (journal.targetVersion != active && journal.sourceVersion != active) {
+                        throw VaultKeyInconsistentException("Rotation journal does not match the active key version")
+                    }
+                    audit.recordSafely(
+                        SecurityAuditEvent(
+                            SecurityEventAction.KEY_ROTATION_RESUMED,
+                            "source=v${journal.sourceVersion} target=v${journal.targetVersion}",
+                        ),
+                    )
+                    return@withLock journal
                 }
-                return@withLock journal
-            }
-            val counts = dao.versionCounts().associate { it.keyVersion to it.count }
-            // Remove harmless wrapped keys left by an interrupted preparation
-            // that never wrote a journal or any dependent row. Version 0 is the
-            // Keystore root and is never in this registry.
-            registry.versions()
-                .filter { it != active && !counts.containsKey(it) }
-                .forEach { orphan -> runCatching { registry.removeWrappedKey(orphan) } }
-            val foreignVersions = counts.keys - setOf(active)
-            if (foreignVersions.isNotEmpty()) {
-                throw VaultKeyInconsistentException(
-                    "Records exist under key versions $foreignVersions without a rotation journal",
+                val counts = dao.versionCounts().associate { it.keyVersion to it.count }
+                // Remove harmless wrapped keys left by an interrupted preparation
+                // that never wrote a journal or any dependent row. Version 0 is the
+                // Keystore root and is never in this registry.
+                registry.versions()
+                    .filter { it != active && !counts.containsKey(it) }
+                    .forEach { orphan -> runCatching { registry.removeWrappedKey(orphan) } }
+                val foreignVersions = counts.keys - setOf(active)
+                if (foreignVersions.isNotEmpty()) {
+                    throw VaultKeyInconsistentException(
+                        "Records exist under key versions $foreignVersions without a rotation journal",
+                    )
+                }
+                if (active > LEGACY_KEY_VERSION && registry.wrappedKey(active) == null) {
+                    throw MissingVaultKeyException(active)
+                }
+                val highest = maxOf(
+                    active,
+                    counts.keys.maxOrNull() ?: LEGACY_KEY_VERSION,
+                    registry.versions().maxOrNull() ?: LEGACY_KEY_VERSION,
                 )
+                val target = highest + 1
+                keys.createDataKey(access, target, random)
+                val now = System.currentTimeMillis()
+                val prepared = RotationJournal(
+                    sourceVersion = active,
+                    targetVersion = target,
+                    phase = RotationPhases.PREPARED,
+                    createdAt = now,
+                    updatedAt = now,
+                    totalRows = counts[active] ?: 0,
+                )
+                try {
+                    registry.setRotationJournal(prepared)
+                } catch (failure: Exception) {
+                    runCatching { registry.removeWrappedKey(target) }
+                    throw VaultKeyInconsistentException("Could not persist the rotation journal", failure)
+                }
+                audit.recordSafely(
+                    SecurityAuditEvent(
+                        SecurityEventAction.KEY_ROTATION_STARTED,
+                        "source=v$active target=v$target rows=${prepared.totalRows}",
+                    ),
+                )
+                prepared
             }
-            if (active > LEGACY_KEY_VERSION && registry.wrappedKey(active) == null) {
-                throw MissingVaultKeyException(active)
-            }
-            val highest = maxOf(
-                active,
-                counts.keys.maxOrNull() ?: LEGACY_KEY_VERSION,
-                registry.versions().maxOrNull() ?: LEGACY_KEY_VERSION,
+        } catch (failure: Throwable) {
+            audit.recordSafely(
+                SecurityAuditEvent(
+                    if (failure is kotlinx.coroutines.CancellationException) {
+                        SecurityEventAction.KEY_ROTATION_CANCELLED
+                    } else {
+                        SecurityEventAction.KEY_ROTATION_FAILED
+                    },
+                    "preparation did not complete",
+                ),
             )
-            val target = highest + 1
-            keys.createDataKey(access, target, random)
-            val now = System.currentTimeMillis()
-            val prepared = RotationJournal(
-                sourceVersion = active,
-                targetVersion = target,
-                phase = RotationPhases.PREPARED,
-                createdAt = now,
-                updatedAt = now,
-                totalRows = counts[active] ?: 0,
-            )
-            try {
-                registry.setRotationJournal(prepared)
-            } catch (failure: Exception) {
-                runCatching { registry.removeWrappedKey(target) }
-                throw VaultKeyInconsistentException("Could not persist the rotation journal", failure)
-            }
-            prepared
+            throw failure
         }
 
     /**
@@ -240,7 +267,9 @@ class VaultKeyRotationManager(
      * active version and retires the old DEK only when zero rows depend on it.
      * The Keystore root key is never retired.
      */
-    suspend fun verifyAndCutover(access: VaultAccess): RotationResult = rotationMutex.withLock {
+    suspend fun verifyAndCutover(access: VaultAccess): RotationResult =
+        try {
+            rotationMutex.withLock {
         requireAuthorized(access)
         val journal = registry.rotationJournal()
             ?: throw RotationIncompleteException("No rotation is in progress")
@@ -302,14 +331,34 @@ class VaultKeyRotationManager(
         )
         registry.setRotationJournal(null)
         authorizedAccess = null
-        RotationResult(
+        val result = RotationResult(
             sourceVersion = journal.sourceVersion,
             targetVersion = journal.targetVersion,
             migratedRows = verified,
             oldDataKeyRetired = sourceRetired,
             rootKeyRetained = journal.sourceVersion == LEGACY_KEY_VERSION,
         )
-    }
+        audit.recordSafely(
+            SecurityAuditEvent(
+                SecurityEventAction.KEY_ROTATION_COMPLETED,
+                "source=v${journal.sourceVersion} target=v${journal.targetVersion} rows=$verified",
+            ),
+        )
+        result
+            }
+        } catch (failure: Throwable) {
+            audit.recordSafely(
+                SecurityAuditEvent(
+                    if (failure is kotlinx.coroutines.CancellationException) {
+                        SecurityEventAction.KEY_ROTATION_CANCELLED
+                    } else {
+                        SecurityEventAction.KEY_ROTATION_FAILED
+                    },
+                    "verification did not complete",
+                ),
+            )
+            throw failure
+        }
 
     /**
      * Stops without discarding migrated data. If nothing was migrated, the
@@ -322,10 +371,13 @@ class VaultKeyRotationManager(
         val journal = registry.rotationJournal() ?: return@withLock RotationCancelResult.CANCELLED_CLEAN
         val active = registry.activeVersion()
         if (active == journal.targetVersion) {
+            audit.recordSafely(
+                SecurityAuditEvent(SecurityEventAction.KEY_ROTATION_CANCELLED, "cutover already completed"),
+            )
             return@withLock RotationCancelResult.CANCELLED_RESUMABLE
         }
         val targetRows = dao.countVersion(journal.targetVersion)
-        if (targetRows == 0) {
+        val result = if (targetRows == 0) {
             // No row ever depended on the target key; removing it cannot lose data.
             runCatching { registry.removeWrappedKey(journal.targetVersion) }
             registry.setRotationJournal(null)
@@ -333,6 +385,13 @@ class VaultKeyRotationManager(
         } else {
             RotationCancelResult.CANCELLED_RESUMABLE
         }
+        audit.recordSafely(
+            SecurityAuditEvent(
+                SecurityEventAction.KEY_ROTATION_CANCELLED,
+                "state=${result.name.lowercase()} migrated_rows=$targetRows",
+            ),
+        )
+        result
     }
 
     private fun authorize(access: VaultAccess, authorization: RotationAuthorization) {

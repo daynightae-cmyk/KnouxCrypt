@@ -76,6 +76,13 @@ interface SecretDao {
 
 data class VersionCount(val keyVersion: Int, val count: Int)
 
+/** Result of an optimistic, revision-checked vault write. */
+sealed interface SaveOutcome {
+    data object Saved : SaveOutcome
+    data object Missing : SaveOutcome
+    data class Conflict(val currentUpdatedAt: Long) : SaveOutcome
+}
+
 @Database(entities = [SecretEntity::class, SecurityEventEntity::class], version = 3, exportSchema = true)
 abstract class KnouxDatabase : RoomDatabase() {
     abstract fun secrets(): SecretDao
@@ -89,7 +96,16 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
     }
 }
 
-/** Adds the non-secret local audit timeline used by TASK 39. */
+/**
+ * Adds the non-secret local audit timeline used by TASK 39.
+ *
+ * The DDL must match [SecurityEventEntity] exactly. An earlier revision created
+ * two undeclared indexes here, which made Room reject every migrated database
+ * ("Migration didn't properly handle security_events"). The entity declares no
+ * indexes and the timeline is bounded to 500 rows, so the migration creates the
+ * table only. Any future index must be declared on the entity and exported in
+ * the version-3 schema before it is added here.
+ */
 val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(
@@ -101,8 +117,6 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
                 "severity TEXT NOT NULL," +
                 "createdAt INTEGER NOT NULL)"
         )
-        database.execSQL("CREATE INDEX IF NOT EXISTS idx_security_events_createdAt ON security_events(createdAt)")
-        database.execSQL("CREATE INDEX IF NOT EXISTS idx_security_events_category ON security_events(category)")
     }
 }
 
@@ -128,6 +142,7 @@ class SecretRepository(
     private val dao: SecretDao,
     private val session: SessionManager,
     private val keys: VaultKeyManager,
+    private val audit: SecurityAuditSink = NoopSecurityAuditSink,
 ) {
     fun observe(access: VaultAccess, kind: String): Flow<List<SecretRecord>> = flow {
         session.requireValid(access)
@@ -152,18 +167,47 @@ class SecretRepository(
         // A lock may have happened while the DAO call was suspended. Never
         // hand back plaintext that was decrypted after revocation.
         session.requireValid(access)
+        if (record?.decryptionFailed == true) {
+            audit.recordSafely(
+                SecurityAuditEvent(SecurityEventAction.DATA_UNREADABLE, "record kind could not be decrypted"),
+            )
+        }
         record
     }
 
     suspend fun save(access: VaultAccess, kind: String, id: String?, payloadJson: String): String =
         withContext(Dispatchers.IO) {
-            session.withAuthorizedMutation(access) {
-                val recordId = id?.takeIf { it.isNotBlank() } ?: java.util.UUID.randomUUID().toString()
-                val keyVersion = keys.activeVersion(access)
-                val codec = SecretCodec(keys.keyFor(access, keyVersion))
-                val blob = codec.encrypt(kind, recordId, payloadJson, keyVersion)
-                dao.upsert(SecretEntity(recordId, kind, blob, System.currentTimeMillis(), keyVersion))
+            try {
+                val recordId = session.withAuthorizedMutation(access) {
+                    val resolvedId = id?.takeIf { it.isNotBlank() } ?: java.util.UUID.randomUUID().toString()
+                    val keyVersion = keys.activeVersion(access)
+                    val codec = SecretCodec(keys.keyFor(access, keyVersion))
+                    val blob = codec.encrypt(kind, resolvedId, payloadJson, keyVersion)
+                    // Timestamps double as optimistic revision tokens for the
+                    // editor. Keep them strictly increasing even across two saves
+                    // in the same millisecond.
+                    val previous = if (id.isNullOrBlank()) null else dao.find(resolvedId)
+                    val updatedAt = maxOf(System.currentTimeMillis(), (previous?.updatedAt ?: 0L) + 1)
+                    dao.upsert(SecretEntity(resolvedId, kind, blob, updatedAt, keyVersion))
+                    resolvedId
+                }
+                audit.recordSafely(
+                    SecurityAuditEvent(
+                        SecurityEventAction.DATA_WRITTEN,
+                        "kind=${safeKind(kind)} action=${if (id.isNullOrBlank()) "create" else "update"}",
+                    ),
+                )
                 recordId
+            } catch (failure: kotlinx.coroutines.CancellationException) {
+                audit.recordSafely(
+                    SecurityAuditEvent(SecurityEventAction.DATA_WRITE_CANCELLED, "kind=${safeKind(kind)}"),
+                )
+                throw failure
+            } catch (failure: Throwable) {
+                audit.recordSafely(
+                    SecurityAuditEvent(SecurityEventAction.DATA_WRITE_FAILED, "kind=${safeKind(kind)}"),
+                )
+                throw failure
             }
         }
 
@@ -178,34 +222,117 @@ class SecretRepository(
         items: List<Pair<String?, String>>,
     ): List<String> = withContext(Dispatchers.IO) {
         if (items.isEmpty()) return@withContext emptyList()
-        session.withAuthorizedMutation(access) {
-            val keyVersion = keys.activeVersion(access)
-            val codec = SecretCodec(keys.keyFor(access, keyVersion))
-            val now = System.currentTimeMillis()
-            val ids = ArrayList<String>(items.size)
-            val entities = ArrayList<SecretEntity>(items.size)
-            items.forEach { (requestedId, payloadJson) ->
-                val recordId = requestedId?.takeIf { it.isNotBlank() } ?: java.util.UUID.randomUUID().toString()
-                ids += recordId
-                entities += SecretEntity(
-                    recordId,
-                    kind,
-                    codec.encrypt(kind, recordId, payloadJson, keyVersion),
-                    now,
-                    keyVersion,
-                )
+        try {
+            val ids = session.withAuthorizedMutation(access) {
+                val keyVersion = keys.activeVersion(access)
+                val codec = SecretCodec(keys.keyFor(access, keyVersion))
+                val now = System.currentTimeMillis()
+                val resolved = ArrayList<String>(items.size)
+                val entities = ArrayList<SecretEntity>(items.size)
+                items.forEach { (requestedId, payloadJson) ->
+                    val recordId = requestedId?.takeIf { it.isNotBlank() } ?: java.util.UUID.randomUUID().toString()
+                    resolved += recordId
+                    entities += SecretEntity(
+                        recordId,
+                        kind,
+                        codec.encrypt(kind, recordId, payloadJson, keyVersion),
+                        now,
+                        keyVersion,
+                    )
+                }
+                dao.upsertAll(entities)
+                resolved
             }
-            dao.upsertAll(entities)
+            audit.recordSafely(
+                SecurityAuditEvent(
+                    SecurityEventAction.DATA_WRITTEN,
+                    "kind=${safeKind(kind)} count=${ids.size} action=batch",
+                ),
+            )
             ids
+        } catch (failure: kotlinx.coroutines.CancellationException) {
+            audit.recordSafely(
+                SecurityAuditEvent(SecurityEventAction.DATA_WRITE_CANCELLED, "kind=${safeKind(kind)} action=batch"),
+            )
+            throw failure
+        } catch (failure: Throwable) {
+            audit.recordSafely(
+                SecurityAuditEvent(SecurityEventAction.DATA_WRITE_FAILED, "kind=${safeKind(kind)} action=batch"),
+            )
+            throw failure
         }
     }
 
     suspend fun delete(access: VaultAccess, id: String) = withContext(Dispatchers.IO) {
-        session.withAuthorizedMutation(access) {
-            session.key(access) // authorize before mutating
-            dao.delete(id)
+        try {
+            session.withAuthorizedMutation(access) {
+                session.key(access) // authorize before mutating
+                dao.delete(id)
+            }
+            audit.recordSafely(SecurityAuditEvent(SecurityEventAction.DATA_DELETED, "record deleted"))
+        } catch (failure: kotlinx.coroutines.CancellationException) {
+            audit.recordSafely(SecurityAuditEvent(SecurityEventAction.DATA_DELETE_CANCELLED, "delete cancelled"))
+            throw failure
+        } catch (failure: Throwable) {
+            audit.recordSafely(SecurityAuditEvent(SecurityEventAction.DATA_DELETE_FAILED, "delete failed"))
+            throw failure
         }
     }
+
+    /**
+     * Compare-and-write used by the notes editor. The record timestamp is the
+     * optimistic revision token: a write is refused if another save changed the
+     * row after the editor loaded it, so autosave cannot silently overwrite a
+     * newer encrypted revision.
+     */
+    suspend fun saveIfUnchanged(
+        access: VaultAccess,
+        kind: String,
+        id: String,
+        expectedUpdatedAt: Long,
+        payloadJson: String,
+    ): SaveOutcome = withContext(Dispatchers.IO) {
+        try {
+            val outcome = session.withAuthorizedMutation(access) {
+                val current = dao.find(id)
+                if (current == null) {
+                    SaveOutcome.Missing
+                } else if (current.updatedAt != expectedUpdatedAt) {
+                    SaveOutcome.Conflict(current.updatedAt)
+                } else {
+                    val keyVersion = keys.activeVersion(access)
+                    val codec = SecretCodec(keys.keyFor(access, keyVersion))
+                    val blob = codec.encrypt(kind, id, payloadJson, keyVersion)
+                    val updatedAt = maxOf(System.currentTimeMillis(), current.updatedAt + 1)
+                    dao.upsert(SecretEntity(id, kind, blob, updatedAt, keyVersion))
+                    SaveOutcome.Saved
+                }
+            }
+            when (outcome) {
+                SaveOutcome.Saved -> audit.recordSafely(
+                    SecurityAuditEvent(
+                        SecurityEventAction.DATA_WRITTEN,
+                        "kind=${safeKind(kind)} action=checked-update",
+                    ),
+                )
+                is SaveOutcome.Conflict, SaveOutcome.Missing -> Unit
+            }
+            outcome
+        } catch (failure: kotlinx.coroutines.CancellationException) {
+            audit.recordSafely(
+                SecurityAuditEvent(SecurityEventAction.DATA_WRITE_CANCELLED, "kind=${safeKind(kind)} action=checked-update"),
+            )
+            throw failure
+        } catch (failure: Throwable) {
+            audit.recordSafely(
+                SecurityAuditEvent(SecurityEventAction.DATA_WRITE_FAILED, "kind=${safeKind(kind)} action=checked-update"),
+            )
+            throw failure
+        }
+    }
+
+    /** Bounded, non-secret record-kind token; never a user title or identifier. */
+    private fun safeKind(kind: String): String = kind.trim().lowercase().take(24).ifBlank { "unknown" }
 
     private suspend fun decode(access: VaultAccess, entity: SecretEntity): SecretRecord {
         session.requireValid(access)

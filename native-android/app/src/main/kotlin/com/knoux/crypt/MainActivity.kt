@@ -15,6 +15,8 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.knoux.crypt.data.AppSettings
+import com.knoux.crypt.data.SecurityAuditEvent
+import com.knoux.crypt.data.SecurityEventAction
 import com.knoux.crypt.data.SessionPrivacyPolicy
 import com.knoux.crypt.data.UnlockKeyInvalidatedException
 import com.knoux.crypt.data.UnlockManager
@@ -22,6 +24,7 @@ import com.knoux.crypt.data.UnlockNotAuthorizedException
 import com.knoux.crypt.data.UnlockNotConfiguredException
 import com.knoux.crypt.data.UnlockReenrollmentBlockedException
 import com.knoux.crypt.data.UnlockRejectedException
+import com.knoux.crypt.data.recordSafely
 import javax.crypto.Cipher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -140,6 +143,7 @@ class MainActivity : FragmentActivity() {
                     GateAction.ROTATE_KEYS -> container.unlockManager.prepareRotationReauthCipher()
                 }
             } catch (failure: Exception) {
+                auditGateFailure(action, failure)
                 handleFailure(failure, action)
                 return@launch
             }
@@ -208,6 +212,7 @@ class MainActivity : FragmentActivity() {
                         else -> AccessErrors.platformDetail(errString.toString())
                     }
                     reportPromptMessage(action, message)
+                    auditPromptError(action, errorCode)
                 }
             },
         )
@@ -232,6 +237,45 @@ class MainActivity : FragmentActivity() {
             container.rotationAuthBroker.fail(message)
         } else {
             accessViewModel.onError(message)
+        }
+    }
+
+    /**
+     * The biometric prompt itself is an authoritative platform boundary; a
+     * cancelled or errored prompt never reaches UnlockManager, so the outcome is
+     * recorded here without any biometric or secret detail.
+     */
+    private fun auditPromptError(action: GateAction, errorCode: Int) {
+        val cancelled = errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON ||
+            errorCode == BiometricPrompt.ERROR_USER_CANCELED ||
+            errorCode == BiometricPrompt.ERROR_CANCELED
+        val event = when {
+            action == GateAction.ROTATE && cancelled -> SecurityEventAction.GATE_ROTATION_CANCELLED
+            action == GateAction.ROTATE -> SecurityEventAction.GATE_ROTATION_FAILED
+            cancelled -> SecurityEventAction.UNLOCK_CANCELLED
+            else -> SecurityEventAction.UNLOCK_FAILED
+        }
+        lifecycleScope.launch {
+            container.securityEvents.recordSafely(
+                SecurityAuditEvent(event, "biometric prompt ${if (cancelled) "cancelled" else "error"}"),
+            )
+        }
+    }
+
+    /** Authentication could not even begin; the operation never reached the gate. */
+    private fun auditGateFailure(action: GateAction, failure: Exception) {
+        val detail = when (failure) {
+            is UnlockNotConfiguredException -> "unlock gate not configured"
+            is UnlockNotAuthorizedException -> "session not authorized"
+            else -> "gate preparation failed"
+        }
+        val event = if (action == GateAction.ROTATE) {
+            SecurityEventAction.GATE_ROTATION_FAILED
+        } else {
+            SecurityEventAction.UNLOCK_FAILED
+        }
+        lifecycleScope.launch {
+            container.securityEvents.recordSafely(SecurityAuditEvent(event, detail))
         }
     }
 

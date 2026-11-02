@@ -28,7 +28,10 @@ data class AppSettings(
 private val Context.settingsDataStore by preferencesDataStore("knoux_settings")
 
 /** Nonsecret preferences only. No tokens, keys, inbox addresses or content. */
-class SettingsRepository(context: Context) {
+class SettingsRepository(
+    context: Context,
+    private val audit: SecurityAuditSink = NoopSecurityAuditSink,
+) {
     private companion object {
         val LANGUAGE = stringPreferencesKey("language")
         val REDUCED_MOTION = booleanPreferencesKey("reduced_motion")
@@ -79,23 +82,30 @@ class SettingsRepository(context: Context) {
     }
 
     suspend fun setAutoLockSeconds(seconds: Int) {
-        store.edit { it[AUTO_LOCK] = SessionPrivacyPolicy.requireAutoLockSeconds(seconds) }
+        val value = SessionPrivacyPolicy.requireAutoLockSeconds(seconds)
+        store.edit { it[AUTO_LOCK] = value }
+        recordPrivacyChange("auto_lock_seconds", value.toString())
     }
 
     suspend fun setLockOnScreenOff(enabled: Boolean) {
         store.edit { it[LOCK_SCREEN_OFF] = enabled }
+        recordPrivacyChange("lock_on_screen_off", enabled.toString())
     }
 
     suspend fun setClipboardClearSeconds(seconds: Int) {
-        store.edit { it[CLIPBOARD_CLEAR] = SessionPrivacyPolicy.requireClipboardSeconds(seconds) }
+        val value = SessionPrivacyPolicy.requireClipboardSeconds(seconds)
+        store.edit { it[CLIPBOARD_CLEAR] = value }
+        recordPrivacyChange("clipboard_clear_seconds", value.toString())
     }
 
     suspend fun setBlockScreenshots(enabled: Boolean) {
         store.edit { it[BLOCK_SCREENSHOTS] = enabled }
+        recordPrivacyChange("block_screenshots", enabled.toString())
     }
 
     suspend fun setMaskOnAppSwitch(enabled: Boolean) {
         store.edit { it[MASK_APP_SWITCH] = enabled }
+        recordPrivacyChange("mask_on_app_switch", enabled.toString())
     }
 
     suspend fun setAudioEnabled(enabled: Boolean) {
@@ -112,5 +122,12 @@ class SettingsRepository(context: Context) {
 
     suspend fun setUiVolume(volume: Float) {
         store.edit { it[UI_VOLUME] = AudioPolicy.requireVolume(volume) }
+    }
+
+    /** Records only the setting name and its validated non-secret value. */
+    private suspend fun recordPrivacyChange(name: String, value: String) {
+        audit.recordSafely(
+            SecurityAuditEvent(SecurityEventAction.PRIVACY_SETTING_CHANGED, "$name=$value"),
+        )
     }
 }
