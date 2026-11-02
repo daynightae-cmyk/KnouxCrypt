@@ -175,6 +175,21 @@ test("packaging icons exist so electron-builder cannot fail on Windows", () => {
   assert.equal(png.subarray(0, 8).toString("hex"), "89504e470d0a1a0a", "icon.png must be a real PNG");
 });
 
+test("packaging only asks for architectures Electron can actually build", () => {
+  // Electron 45 publishes no 32-bit Windows build: the release asset
+  // electron-v45.2.1-win32-ia32.zip answers 404. Requesting ia32 made every
+  // packaging run end in an error after the x64 app was already unpacked, so
+  // the installer and portable steps never ran.
+  const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
+  for (const target of pkg.build.win.target) {
+    assert.ok(
+      !target.arch.includes("ia32"),
+      `the ${target.target} target still asks for ia32, which Electron 45 cannot build`,
+    );
+    assert.ok(target.arch.includes("x64"), `the ${target.target} target must still build x64`);
+  }
+});
+
 test("the app does not require administrator privileges at runtime", () => {
   assert.doesNotMatch(mainSource, /setUserTasks|runas|elevate/i);
   assert.doesNotMatch(preloadSource, /runas|elevate/i);
