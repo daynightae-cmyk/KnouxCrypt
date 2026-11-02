@@ -190,10 +190,10 @@ export const ModernDashboard: React.FC = () => {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-4xl font-bold text-gradient mb-2">
-              KnouxCrypt™ 2025
+              KNOUX CRYPT
             </h1>
             <p className="text-xl text-white/70">
-              نظام التشفير العسكري المتقدم
+              مجموعة التشفير الخاصة
             </p>
             <p className="text-sm text-white/50 mt-1">
               {formatTime(currentTime)}

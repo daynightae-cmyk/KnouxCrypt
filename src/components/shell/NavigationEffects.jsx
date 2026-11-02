@@ -20,7 +20,7 @@ export function NavigationEffects() {
       const text = heading.textContent.trim();
       if (text !== lastHeading) {
         lastHeading = text;
-        document.title = `${text} — Knoux Crypt`;
+        document.title = `${text} — KNOUX CRYPT`;
         setAnnouncement(text);
       }
       if (focusPending && !document.querySelector("dialog[open]")) {

@@ -1,7 +1,7 @@
 {
   "name": "knouxcrypt",
   "version": "2025.1.0",
-  "description": "KnouxCrypt™ 2025 - نظام التشفير العسكري المتقدم",
+  "description": "KNOUX CRYPT — Private Encryption Suite",
   "main": "electron/main.js",
   "homepage": "./",
   "scripts": {
@@ -18,6 +18,8 @@
     "check:security": "node scripts/check-dependency-security.cjs",
     "check:capabilities": "node scripts/check-capabilities.cjs",
     "icons": "node scripts/generate-icons.cjs",
+    "verify:icons": "node scripts/verify-icons.cjs",
+    "check:startup": "node scripts/run-startup-acceptance.cjs",
     "dist": "npm run build && npm run icons && electron-builder",
     "dist:win": "npm run build && npm run icons && electron-builder --win",
     "check:electron:runtime": "electron --no-sandbox --ozone-platform=headless scripts/electron-runtime-check.cjs",
@@ -84,15 +86,13 @@
         {
           "target": "nsis",
           "arch": [
-            "x64",
-            "ia32"
+            "x64"
           ]
         },
         {
           "target": "portable",
           "arch": [
-            "x64",
-            "ia32"
+            "x64"
           ]
         }
       ],
@@ -157,7 +157,7 @@
       "desktop": {
         "entry": {
           "Name": "KnouxCrypt™ 2025",
-          "Comment": "نظام التشفير العسكري المتقدم",
+          "Comment": "مجموعة التشفير الخاصة — Private Encryption Suite",
           "GenericName": "Encryption Software",
           "Keywords": "encryption;security;crypto;knoux;",
           "Categories": "Security;Utility;"

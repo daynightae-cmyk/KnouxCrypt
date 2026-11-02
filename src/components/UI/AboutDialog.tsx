@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { StagEmblem } from "../entry/StagEmblem";
 import {
   APP_CONSTANTS,
   getSystemInfo,
@@ -55,13 +56,11 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
-              <motion.div
-                className="text-5xl"
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 4, repeat: Infinity }}
-              >
-                🔐
-              </motion.div>
+              {/* The About dialog is the one screen that states what the product
+                  is, so it must not open with a wobbling lock emoji. */}
+              <div className="w-12 h-12">
+                <StagEmblem />
+              </div>
               <div>
                 <h2 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
                   {APP_CONSTANTS.NAME}
@@ -116,7 +115,9 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
                 className="space-y-6"
               >
                 <div className="text-center mb-8">
-                  <div className="text-6xl mb-4">🛡️</div>
+                  <div className="w-16 h-16 mx-auto mb-4">
+                    <StagEmblem />
+                  </div>
                   <h3 className="text-2xl font-bold text-white mb-2">
                     {APP_CONSTANTS.FULL_NAME}
                   </h3>

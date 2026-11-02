@@ -1,54 +1,144 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KnouxCrypt™ 2025 - جاري التحميل</title>
-    <!-- The splash is a static document: its own script and stylesheet are external,
-         so no inline execution and no network are allowed anywhere in it. -->
+    <!--
+      Native boot view. Its only jobs are: show the official stag-K, ignite the
+      eyes once, and hand off when the renderer is actually ready. It is
+      deliberately NOT a second cinematic intro — SplashEntry.jsx owns the
+      introduction, and playing both back to back is what made startup feel
+      long and self-important.
+
+      No fabricated status text and no progress bar: this window cannot know
+      how far along anything is, so it no longer pretends to. The previous
+      version rotated four invented setup/status lines plus a "ready!" claim on
+      a 500 ms timer and animated a bar to a fixed width, none of which measured
+      anything real. The only text it can show truthfully is the state the main
+      process actually reports, and that arrives over a one-channel bridge in
+      splash-preload.js.
+
+      Task D — audio: this window plays none. Sound belongs to the renderer,
+      which owns both the consent prompt and the user's stored preference. A
+      native boot window has neither, so playing audio here would either break
+      consent or restart the same cue across splash stages.
+
+      Static document: stylesheet and script are external, so the policy needs
+      no 'unsafe-inline' and no network access at all.
+    -->
+    <title>KNOUX CRYPT</title>
     <meta http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; frame-ancestors 'none'" />
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; frame-ancestors 'none'" />
     <link rel="stylesheet" href="./splash.css" />
   </head>
   <body>
-    <!-- خلفية متحركة -->
-    <div class="background-animation"></div>
+    <div class="boot-stage" data-boot-phase="emerging">
+      <div class="boot-vignette" aria-hidden="true"></div>
 
-    <!-- تأثير التوهج -->
-    <div class="glow"></div>
+      <div class="boot-mark">
+        <!-- Official symmetrical stag with the integrated K, copied byte-for-byte
+             from src/assets/knoux-stag.png. Same file, same geometry: nothing here
+             re-draws, re-poses or substitutes the emblem. -->
+        <img class="boot-stag" src="./stag-k.png" width="1254" height="1254" alt="" />
+        <svg class="boot-eyes" viewBox="0 0 1254 1254" fill="none" aria-hidden="true">
+          <defs>
+            <!-- Eye contours traced from the same 1254 px source as StagEmblem.jsx;
+                 tests/startup-identity.test.cjs fails if the two drift apart. -->
+            <path id="boot-eye-left"
+              d="M398 677 C421 690 449 692 466 704 C484 717 495 740 500 753 C483 734 469 734 447 726 C425 716 416 694 398 677Z" />
+            <path id="boot-eye-right"
+              d="M856 677 C833 690 805 692 788 704 C770 717 759 740 754 753 C771 734 785 734 807 726 C829 716 838 694 856 677Z" />
+            <clipPath id="boot-eye-left-clip"><use href="#boot-eye-left" /></clipPath>
+            <clipPath id="boot-eye-right-clip"><use href="#boot-eye-right" /></clipPath>
+            <!-- Same eyelid aperture as the in-app emblem: one inherited controller
+                 closes original eye-shaped light, never the image. -->
+            <clipPath id="boot-aperture"><rect class="boot-eye-aperture" width="1254" height="1254" /></clipPath>
+            <radialGradient id="boot-core">
+              <stop offset="0" stop-color="#ffffff" />
+              <stop offset=".4" stop-color="#f7e9ff" />
+              <stop offset="1" stop-color="#bc65ff" />
+            </radialGradient>
+            <filter id="boot-bloom" x="-120%" y="-160%" width="340%" height="420%">
+              <feGaussianBlur stdDeviation="14" />
+            </filter>
+          </defs>
 
-    <!-- جزيئات متحركة -->
-    <div class="particles">
-      <div class="particle"></div>
-      <div class="particle"></div>
-      <div class="particle"></div>
-      <div class="particle"></div>
-      <div class="particle"></div>
-    </div>
+          <!-- The source has painted white eyes. A reversible local occlusion layer
+               lets those exact contours go dark; source pixels and silhouette stay
+               intact. Identical to the shutter in StagEmblem.jsx. -->
+          <g class="boot-eye-shutter" fill="#090511">
+            <use href="#boot-eye-left" />
+            <use href="#boot-eye-right" />
+          </g>
 
-    <!-- الحاوية الرئيسية -->
-    <div class="splash-container">
-      <div class="logo">
-        <div class="logo-icon">🔐</div>
-        <div class="logo-text">
-          <h1>KnouxCrypt™</h1>
-          <div class="version">الإصدار 2025.1.0</div>
-          <div class="description">نظام التشفير العسكري المتقدم</div>
-        </div>
+          <g clip-path="url(#boot-aperture)">
+            <g class="boot-eye-envelope">
+              <g class="boot-eye boot-eye-left">
+                <use href="#boot-eye-left" class="boot-eye-bloom" fill="#b25cff" filter="url(#boot-bloom)" />
+                <use href="#boot-eye-left" class="boot-eye-core" fill="url(#boot-core)" />
+                <g clip-path="url(#boot-eye-left-clip)">
+                  <ellipse class="boot-eye-glint" cx="453" cy="713" rx="36" ry="7" fill="white"
+                    transform="rotate(35 453 713)" />
+                </g>
+              </g>
+              <g class="boot-eye boot-eye-right">
+                <use href="#boot-eye-right" class="boot-eye-bloom" fill="#b25cff" filter="url(#boot-bloom)" />
+                <use href="#boot-eye-right" class="boot-eye-core" fill="url(#boot-core)" />
+                <g clip-path="url(#boot-eye-right-clip)">
+                  <ellipse class="boot-eye-glint" cx="801" cy="713" rx="36" ry="7" fill="white"
+                    transform="rotate(-35 801 713)" />
+                </g>
+              </g>
+              <g class="boot-eye-trails" stroke="#e9beff" stroke-width="2">
+                <path d="M440 713 Q368 710 330 693" />
+                <path d="M814 713 Q886 710 924 693" />
+              </g>
+            </g>
+          </g>
+        </svg>
       </div>
 
-      <div class="loading-section">
-        <div class="loading-text" id="loadingText">جاري تحميل النظام...</div>
-        <div class="loading-bar">
-          <div class="loading-progress"></div>
-        </div>
+      <div class="boot-wordmark">
+        <h1>KNOUX <em>CRYPT</em></h1>
+        <p class="boot-tagline">
+          <span class="boot-tagline-en">Private Encryption Suite</span>
+          <span class="boot-sep" aria-hidden="true">·</span>
+          <span class="boot-tagline-ar" lang="ar" dir="rtl">مجموعة التشفير الخاصة</span>
+        </p>
+        <!-- Each language keeps its own direction and the separator is its own
+             element: a neutral character between an LTR and an RTL run is
+             reordered by the bidi algorithm and lands at the wrong end. -->
+        <p class="boot-state" id="bootState" role="status" aria-live="polite">
+          <span id="bootStateEn">Opening KNOUX CRYPT</span>
+          <span class="boot-sep" aria-hidden="true">·</span>
+          <span id="bootStateAr" lang="ar" dir="rtl">جارٍ فتح KnouxCrypt</span>
+        </p>
+        <p class="boot-version" id="bootVersion" dir="ltr"></p>
       </div>
-    </div>
 
-    <!-- معلومات الشركة -->
-    <div class="info-section">
-      <div class="company">Knoux Technologies</div>
-      <div class="copyright">© 2025 جميع الحقوق محفوظة</div>
+      <!-- Recovery replaces the animation instead of layering under it. Shown
+           only when the renderer genuinely failed, with the real reason. -->
+      <div class="boot-recovery" id="bootRecovery" hidden>
+        <h2>
+          <span lang="en">The interface did not start</span>
+          <span class="boot-sep" aria-hidden="true">·</span>
+          <span lang="ar" dir="rtl">لم يتم تشغيل الواجهة</span>
+        </h2>
+        <p class="boot-recovery-detail" id="bootRecoveryDetail" dir="ltr"></p>
+        <div class="boot-recovery-actions">
+          <button id="bootRetry" type="button">
+            <span lang="en">Retry</span><span class="boot-sep" aria-hidden="true">·</span><span lang="ar" dir="rtl">إعادة المحاولة</span>
+          </button>
+          <button id="bootQuit" type="button">
+            <span lang="en">Quit</span><span class="boot-sep" aria-hidden="true">·</span><span lang="ar" dir="rtl">إنهاء</span>
+          </button>
+        </div>
+        <p class="boot-recovery-note">
+          <span lang="en">Your vault and encrypted files are untouched.</span>
+          <span class="boot-sep" aria-hidden="true">·</span>
+          <span lang="ar" dir="rtl">خزنتك وملفاتك المشفرة لم تتغير.</span>
+        </p>
+      </div>
     </div>
 
     <script src="./splash.js" defer></script>
