@@ -1,0 +1,1 @@
+SUPPLEMENTAL REVIEW DRAFT ONLY. Primary execution source is D:\KnouxCrypt\missions\fullstack-android (46 tasks 00..45). Do not execute two mission sequences or duplicate modules. This preserved draft offers extra notes for manual review only. No changes to the other active agent files. Documentation, not implemented Android functionality.
