@@ -35,21 +35,36 @@ for path in sources:
     text = path.read_text(encoding="utf-8")
     assert not any(term in text for term in ("android.webkit", "WebView(", "console.log", "printStackTrace(")), path
 
-policy = (root / "core/security/src/main/kotlin/com/knoux/crypt/security/SessionPolicy.kt").read_text()
+policy = (root / "core/security/src/main/kotlin/com/knoux/crypt/security/SessionPolicy.kt").read_text(encoding="utf-8")
 assert "fun canReadSecrets(): Boolean = false" in policy
 assert "if (!debugPreviewAllowed) return false" in policy
 
-activity = (root / "app/src/main/kotlin/com/knoux/crypt/MainActivity.kt").read_text()
+activity = (root / "app/src/main/kotlin/com/knoux/crypt/MainActivity.kt").read_text(encoding="utf-8")
 assert "override fun onStop()" in activity, "MainActivity must revoke on background"
 assert "container.session.lock()" in activity, "MainActivity must lock the real session"
 assert "FLAG_SECURE" in activity, "Screen-capture protection missing"
 assert "BiometricPrompt" in activity and "CryptoObject" in activity, "Auth-bound biometric prompt missing"
 
-container = (root / "app/src/main/kotlin/com/knoux/crypt/AppContainer.kt").read_text()
+container = (root / "app/src/main/kotlin/com/knoux/crypt/AppContainer.kt").read_text(encoding="utf-8")
 assert "securityEvents" in container and "ShadowVaultService" in container
 assert "session.addOnLockListener" in container, "Lock-time cleanup wiring missing"
 
-codec = (root / "core/security/src/main/kotlin/com/knoux/crypt/security/AuthenticatedEnvelope.kt").read_text()
+# TASK 30 protected document viewer: plaintext may only exist in wiped memory or
+# in an app-private cache lease, and a lock must reclaim that lease.
+viewer = (root / "core/data/src/main/kotlin/com/knoux/crypt/data/DocumentViewer.kt").read_text(encoding="utf-8")
+assert "WipeableBuffer" in viewer, "Text reads must use a self-wiping in-memory buffer"
+assert "storage.fill(0)" in viewer, "Superseded plaintext buffers must be wiped on growth"
+for forbidden in ("getExternalStorageDirectory", "MediaStore", "createTempFile", "getExternalCacheDir"):
+    assert forbidden not in viewer, f"Document viewer must not use {forbidden}"
+assert "leaseRoot" in viewer and "DocumentViewerPolicy.isLeaseFile" in viewer
+assert "fun onLock()" in viewer and "fun sweepExpiredLeases" in viewer
+assert "documentViewer.onLock()" in container, "Lock must delete live PDF leases"
+assert "sweepExpiredLeases()" in container, "Startup must reclaim orphaned leases"
+viewer_ui = (root / "app/src/main/kotlin/com/knoux/crypt/ui/DocumentViewerScreen.kt").read_text(encoding="utf-8")
+assert "IDLE_CLEAR_SECONDS" in viewer_ui, "The viewer must honour its auto-clear bound"
+assert "viewer.closeLease" in viewer_ui, "The viewer must release its PDF lease"
+
+codec = (root / "core/security/src/main/kotlin/com/knoux/crypt/security/AuthenticatedEnvelope.kt").read_text(encoding="utf-8")
 assert codec.count("cipher.updateAAD(header)") == 2
 assert "AES/GCM/NoPadding" in codec
 assert "MAX_PLAINTEXT_BYTES" in codec and "Record too large" in codec and "Invalid record size" in codec

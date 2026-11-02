@@ -5,6 +5,7 @@ import com.knoux.crypt.data.ArchiveService
 import com.knoux.crypt.data.CertificateVaultService
 import com.knoux.crypt.data.DataStoreVaultKeyRegistry
 import com.knoux.crypt.data.DatabaseProvider
+import com.knoux.crypt.data.DocumentViewerService
 import com.knoux.crypt.data.KeystoreManager
 import com.knoux.crypt.data.MetadataCleaner
 import com.knoux.crypt.data.PasswordAuditService
@@ -67,6 +68,20 @@ class AppContainer(context: Context) {
     )
     /** TASK 29: encrypted collection labels + membership stored on the media record. */
     val vaultCollections = VaultCollectionsService(session, secrets, securityEvents)
+    /**
+     * TASK 30: protected document viewer. Text decrypts into wiped memory;
+     * PDF leases live only under app-private cache and are deleted on close,
+     * on lock and by the startup sweep of an interrupted previous process.
+     */
+    val documentViewer = DocumentViewerService(
+        session = session,
+        secrets = secrets,
+        vault = shadowVault,
+        vaultFiles = vaultFiles,
+        leaseRoot = java.io.File(appContext.cacheDir, "document_viewer"),
+        audit = securityEvents,
+        auditScope = appScope,
+    )
     val archives = ArchiveService(session, vaultFiles, secrets) { appContext.cacheDir }
     val metadataCleaner = MetadataCleaner()
     val passwordAudit = PasswordAuditService(session, database.secrets(), secrets)
@@ -91,5 +106,9 @@ class AppContainer(context: Context) {
         }
         // Drop interrupted import temps; decrypted media never exists on disk.
         session.addOnLockListener { shadowVault.onLock() }
+        // A lock must never leave a decrypted PDF lease behind.
+        session.addOnLockListener { documentViewer.onLock() }
+        // Reclaim a lease orphaned by a previous process that was killed mid-view.
+        appScope.launch(Dispatchers.IO) { documentViewer.sweepExpiredLeases() }
     }
 }

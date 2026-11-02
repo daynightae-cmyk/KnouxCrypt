@@ -39,6 +39,8 @@ import com.knoux.crypt.ui.SecureRandomScreen
 import com.knoux.crypt.ui.SecurityActivityScreen
 import com.knoux.crypt.ui.SecureShareScreen
 import com.knoux.crypt.ui.ShadowVaultScreen
+import com.knoux.crypt.ui.DocumentLibraryScreen
+import com.knoux.crypt.ui.DocumentViewerScreen
 import com.knoux.crypt.ui.VaultCollectionsScreen
 import com.knoux.crypt.ui.SignatureStudioScreen
 import com.knoux.crypt.ui.SplashScreen
@@ -243,6 +245,7 @@ fun KnouxNavHost(
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
                 collectionId = null,
                 onOpenCollections = { nav.navigate("vault_collections") { launchSingleTop = true } },
+                onOpenDocument = { item -> nav.navigate("document_viewer/${item.id}") },
             )
         }
         composable(
@@ -255,6 +258,7 @@ fun KnouxNavHost(
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
                 collectionId = entry.arguments?.getString("collectionId").orEmpty(),
                 onOpenCollections = { nav.navigate("vault_collections") { launchSingleTop = true } },
+                onOpenDocument = { item -> nav.navigate("document_viewer/${item.id}") },
             )
         }
         composable("vault_collections") {
@@ -264,6 +268,27 @@ fun KnouxNavHost(
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
                 onOpenCollection = { id -> nav.navigate("shadow_vault/collection/$id") },
                 onOpenVault = { nav.navigate("shadow_vault") { launchSingleTop = true } },
+            )
+        }
+        composable("document_viewer") {
+            DocumentLibraryScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+                onOpenDocument = { id -> nav.navigate("document_viewer/$id") },
+            )
+        }
+        composable(
+            route = "document_viewer/{recordId}",
+            arguments = listOf(navArgument("recordId") { type = NavType.StringType }),
+        ) { entry ->
+            DocumentViewerScreen(
+                container = container,
+                recordId = entry.arguments?.getString("recordId").orEmpty(),
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+                onOpenVault = { nav.navigate("shadow_vault") { launchSingleTop = true } },
+                onOpenPrivacy = { nav.navigate("privacy") { launchSingleTop = true } },
             )
         }
         composable("secure_clipboard") {
