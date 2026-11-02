@@ -1,0 +1,30 @@
+ANIMA IMAGE-TO-APP | LINK SCREEN 42 (SESSION_PRIVACY_CONTROLS) TO THE CURRENT KNOUX CRYPT APP SHELL FIRST.
+USE the SAME existing Anima project, session and route registry. No new app, website clone, remote assets, deleted screens, changed stag-K or duplicate AppShell. Attach ONLY 42_SESSION_PRIVACY_CONTROLS.png as pixel-locked reference, then implement accessible local UI interactions.
+Mandatory flow: SPLASH_ENTRY -> SECURE_ACCESS_LOGIN -> HOME, followed by service routes. Touch to Enter opens Auth only, not Home. Sign In on Auth offers an explicit local VISUAL DEMO transition to Home; no real auth, biometrics, encryption, key storage or backend. Every later screen connects to the SAME existing navigation; back returns to the caller.
+
+REFERENCE IS LAW. The SINGLE attached portrait is the pixel-lock reference for this one screen. Reconstruct the actual in-app viewport, not a gallery of mockups. Preserve exact layout, geometry, stag-K, typography, gradients, highlights, proportions, spacing, icons, cards and navigation. The image must NOT become a flattened full-screen bitmap with transparent tap hotspots. Rebuild text, buttons, inputs, toggles, tabs, menus and cards as independent accessible React components; use local image layers only for complex illustrated artwork. Do not render decorative handset frames around the live UI.
+
+SCOPE SEPARATION. ANIMA creates visuals and real local front-end behavior only. Use React state, typed components if supported, local samples, accessible semantic controls and CSS animation. No real encryption, key generation, auth, biometrics, OTP, file system, cloud, QR, native settings, networking, security scan, persistence, production secrets or provider connections. Real Android security services are delegated to another engineering stage. Screenshot success text is sample copy, never a verified live state. For secure actions show a visual-only demo panel.
+
+NO EXTERNAL INPUTS. The supplied image is the only design source. No remote assets, imported sites, tracking, templates or icon substitutes. Reuse local stag logo and assets in the SAME app. Execute UI construction, not planning.
+
+CURRENT SCREEN 42 - SESSION PRIVACY CONTROLS / TIMEOUT POLICIES
+Screen route ID: SESSION_PRIVACY_CONTROLS. Existing mission references: 19.
+
+REFERENCE ANCHORS: SESSION SECURITY header with lock radar, inactivity timeout segmented control, clipboard clearing and screenshot/privacy settings, Review Local Session Settings CTA.
+
+SCREEN INTERACTIONS: Change timeout options and toggle demo protections; do not claim system-wide enforcement.
+
+DISTINCTIVE MOTION: Lock radar responds to focus with one soft luminous tick.
+
+ROUTING: PRIVACY Settings opens SESSION_PRIVACY_CONTROLS.
+
+
+
+INTEGRATION CONTRACT. Use one shared AppShell, theme tokens, route registry, back handling, system insets, splash continuity and common bottom-navigation components. Register the NEW screen ID without removing old IDs. Unfinished routes show a labeled local placeholder sheet until added. Keep prior UI state on back. Never duplicate shell or navigation.
+
+MICROINTERACTION QUALITY. Build idle, pressed, focused, selected, loading-preview and disabled UI variants as appropriate, plus a smooth Back exit. Use cinematic violet edge sweeps, small press depth, glass shimmer and screen-specific motion, not generic glow everywhere. Reduced-motion supported; sound OFF by default. Honor accessible touch, mobile safe areas, scrolling, keyboard and RTL.
+
+VISUAL QA: Pixel-compare idle UI, pressed/focus states, Back, narrow Android viewport, keyboard and reduced motion. All buttons, cards and menus respond locally or show clear demo sheet. No fake security status. Preserve brand, layout, insets, previous components and routes.
+
+FINAL ACCEPTANCE. Render the reference's idle frame first, then add local interactions. Check small Android widths for clipping, overlapping bars and unexpected scroll. Every visible control responds locally; routes resolve or show placeholder; previous screens survive. Report changed files and tested UI only. No false security completion.

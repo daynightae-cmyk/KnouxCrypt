@@ -1,0 +1,9 @@
+KNOUX universal engineering block applied
+Missions=44
+Changed=44
+Backup=D:\KnouxCrypt\visuals\anima_v5\_PROMPT_BACKUPS\BeforeUniversal_20261030_054443
+CharsMin=3811
+CharsMax=4684
+PNG files unchanged
+Source routes: Splash > Auth > Home
+No commit / push

@@ -1,0 +1,29 @@
+ANIMA — IMAGE-TO-APP — EXISTING KNOUX CRYPT PROJECT ONLY
+THIS REQUEST ADDS OR REFINES EXACTLY ONE SCREEN. Continue the existing React app. Preserve the built Splash, stag logo, animated eyes, fingerprint Enter control, routes, styling and all previous screens. Do not reset or recreate the app.
+
+REFERENCE IS LAW. The SINGLE attached portrait is the pixel-lock reference for this one screen. Reconstruct the actual in-app viewport, not a gallery of mockups. Preserve exact layout, geometry, stag-K, typography, gradients, highlights, proportions, spacing, icons, cards and navigation. The image must NOT become a flattened full-screen bitmap with transparent tap hotspots. Rebuild text, buttons, inputs, toggles, tabs, menus and cards as independent accessible React components; use local image layers only for complex illustrated artwork. Do not render decorative handset frames around the live UI.
+
+SCOPE SEPARATION. ANIMA creates visuals and real local front-end behavior only. Use React state, typed components if supported, local samples, accessible semantic controls and CSS animation. No real encryption, key generation, auth, biometrics, OTP, file system, cloud, QR, native settings, networking, security scan, persistence, production secrets or provider connections. Real Android security services are delegated to another engineering stage. Screenshot success text is sample copy, never a verified live state. For secure actions show a visual-only demo panel.
+
+NO EXTERNAL INPUTS. The supplied image is the only design source. No remote assets, imported sites, tracking, templates or icon substitutes. Reuse local stag logo and assets in the SAME app. Execute UI construction, not planning.
+
+CURRENT SCREEN 37 — ARGON2ID KEY DERIVATION / RESOURCE CONTROLS
+Screen route ID: ARGON2ID_KEY_DERIVATION. Existing mission references: 05.
+
+REFERENCE ANCHORS: KEY DERIVATION heading and suspended geometric key cube, key source form, memory/time/parallelism settings, derivation profile and Run Local Derivation CTA.
+
+SCREEN INTERACTIONS: Resource controls update local explanatory preview only, no real KDF computation or key output.
+
+DISTINCTIVE MOTION: Key cube fractures to highlight parameters on focus, then holds.
+
+ROUTING: KEY_DETAILS advanced tools opens ARGON2ID_KEY_DERIVATION.
+
+
+
+INTEGRATION CONTRACT. Use one shared AppShell, theme tokens, route registry, back handling, system insets, splash continuity and common bottom-navigation components. Register the NEW screen ID without removing old IDs. Unfinished routes show a labeled local placeholder sheet until added. Keep prior UI state on back. Never duplicate shell or navigation.
+
+MICROINTERACTION QUALITY. Build idle, pressed, focused, selected, loading-preview and disabled UI variants as appropriate, plus a smooth Back exit. Use cinematic violet edge sweeps, small press depth, glass shimmer and screen-specific motion, not generic glow everywhere. Reduced-motion supported; sound OFF by default. Honor accessible touch, mobile safe areas, scrolling, keyboard and RTL.
+
+VISUAL QA SCENARIOS. At minimum compare: untouched initial screen, pressed main action, expanded service panel, Back navigation, reduced-motion mode and narrow Android viewport. For each control render focus, touch feedback and a stable selected state. Avoid dead CTA buttons: if the real action is deferred, reveal a clearly marked local demo sheet describing the feature and a Close button. Keep sample content fictional and do not request personal data. The background illustration must not move behind text so far that legibility suffers. Reuse the same brand logo, spacing tokens, bottom-nav transition and screen-switch animation across the app. Never overwrite approved files. Reuse existing route names, and label any sample security status as a visual preview.
+
+FINAL ACCEPTANCE. Render the reference's idle frame first, then add local interactions. Check small Android widths for clipping, overlapping bars and unexpected scroll. Every visible control responds locally; routes resolve or show placeholder; previous screens survive. Report changed files and tested UI only. No false security completion.
