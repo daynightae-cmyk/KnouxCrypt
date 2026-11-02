@@ -107,6 +107,14 @@ device, a fail-open defect there is catastrophic, and a service that deliberatel
 be fake closure. Prerequisites 08/09 are merged and its reference is hash-verified
 (`f5c8b498999c9fb645f890414376349c6d8aed11c1fe638ff1f2bc0dc0d1d18d`).
 
+Cross-cutting hardening (branch `test/android-ciphertext-at-rest-20261102`, base main `9131ea8`, see
+`CIPHERTEXT_AT_REST_GUARD_20261102.md`): a ciphertext-at-rest sweep now runs over all 15 secret
+kinds, and `SecretKinds.ALL` is checked against the source so a new kind cannot be added without
+extending the guard. Both positive controls were executed and observed to fail before being
+reverted — an undeclared kind breaks the coverage test, and plaintext deliberately appended to a
+stored envelope breaks the leak test. Without the second control the leak test could have been
+passing because its own byte comparison was broken. JVM suite: 391 tests, 0 failures.
+
 Mission-set position after TASK 41: every remaining mission is blocked on something this host cannot
 manufacture — 33 and 35 need a device or a peer, 40 depends on TASK 22's unimplemented transport
 (which would also require an INTERNET permission the camera-only manifest policy forbids, so that is
