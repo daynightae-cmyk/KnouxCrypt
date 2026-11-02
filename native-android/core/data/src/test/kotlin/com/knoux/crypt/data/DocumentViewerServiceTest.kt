@@ -230,6 +230,9 @@ class DocumentViewerServiceTest {
         val pdfFailure = runCatching { viewer.openPdfLease(access, descriptor) }.exceptionOrNull()
         assertEquals(DocumentFailure.MISSING, (pdfFailure as DocumentRejectedException).failure)
         assertTrue(leaseRoot.listFiles().orEmpty().isEmpty())
+        // A rejected open is audited even when it fails before any decryption.
+        assertEquals(2, sink.events.count { it.action == SecurityEventAction.DOCUMENT_OPEN_FAILED })
+        assertTrue(sink.details().contains("reason=MISSING"))
     }
 
     @Test

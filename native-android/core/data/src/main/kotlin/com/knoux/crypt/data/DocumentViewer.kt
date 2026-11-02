@@ -192,12 +192,12 @@ class DocumentViewerService(
      */
     suspend fun readText(access: VaultAccess, descriptor: DocumentDescriptor): String =
         withContext(Dispatchers.IO) {
-            validate(access, descriptor)
-            if (descriptor.mode != DocumentMode.TEXT) {
-                throw DocumentRejectedException(DocumentFailure.UNSUPPORTED_TYPE)
-            }
             val buffer = WipeableBuffer(DocumentViewerPolicy.MAX_TEXT_BYTES)
             try {
+                validate(access, descriptor)
+                if (descriptor.mode != DocumentMode.TEXT) {
+                    throw DocumentRejectedException(DocumentFailure.UNSUPPORTED_TYPE)
+                }
                 source(descriptor).inputStream().use { input ->
                     vaultFiles.decrypt(
                         access = access,
@@ -239,16 +239,17 @@ class DocumentViewerService(
      */
     suspend fun openPdfLease(access: VaultAccess, descriptor: DocumentDescriptor): File =
         withContext(Dispatchers.IO) {
-            validate(access, descriptor)
-            if (descriptor.mode != DocumentMode.PDF) {
-                throw DocumentRejectedException(DocumentFailure.UNSUPPORTED_TYPE)
-            }
-            if (!leaseRoot.isDirectory && !leaseRoot.mkdirs()) {
-                auditFailure(descriptor, DocumentFailure.LEASE_WRITE_FAILED)
-                throw DocumentRejectedException(DocumentFailure.LEASE_WRITE_FAILED)
-            }
+            // Building the name performs no I/O, so every rejection below can still
+            // report the lease it is abandoning.
             val lease = DocumentViewerPolicy.leaseFile(leaseRoot)
             try {
+                validate(access, descriptor)
+                if (descriptor.mode != DocumentMode.PDF) {
+                    throw DocumentRejectedException(DocumentFailure.UNSUPPORTED_TYPE)
+                }
+                if (!leaseRoot.isDirectory && !leaseRoot.mkdirs()) {
+                    throw DocumentRejectedException(DocumentFailure.LEASE_WRITE_FAILED)
+                }
                 FileOutputStream(lease).use { output ->
                     source(descriptor).inputStream().use { input ->
                         vaultFiles.decrypt(
