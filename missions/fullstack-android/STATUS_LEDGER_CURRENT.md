@@ -1,6 +1,6 @@
 # KNOUX Crypt — Native Android Status Ledger (current HEAD)
 
-Generated for hardening branch. Source baseline: c219849. TASK 39 repair implementation: 7c0c8c0 (see `39_LOCAL_SECURITY_ACTIVITY/EVIDENCE.md`). This ledger does not delete historical reports.
+Generated for hardening branch. Source baseline: c219849. TASK 39 repair implementation: 7c0c8c0 (see `39_LOCAL_SECURITY_ACTIVITY/EVIDENCE.md`). TASK 05 implementation: ab0424a. TASK 07 implementation: 6ebcf96. CI/source-guard repair: fd54f27. This ledger does not delete historical reports.
 
 Status vocabulary: PLANNED, DESIGN_ONLY, BLOCKED, SOURCE_IMPLEMENTED, JVM_TESTED, DEVICE_TESTED, VISUAL_VERIFIED, SECURITY_REVIEWED, RELEASE_READY, RELEASED.
 
@@ -11,9 +11,9 @@ Status vocabulary: PLANNED, DESIGN_ONLY, BLOCKED, SOURCE_IMPLEMENTED, JVM_TESTED
 | 02 | Secure Access Login | access | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | biometric |
 | 03 | Home | home | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 04 | File Cipher | file_cipher | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | KNF1/KNF2 |
-| 05 | Shadow Vault | (none) | DESIGN_ONLY | PLANNED | none | needs media impl |
+| 05 | Shadow Vault | shadow_vault (VAULT) | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED (7 service tests) | KNF2 media + KNC2 metadata + encrypted thumbs; authenticated streaming; device/visual NOT tested |
 | 06 | Secure Notes | notes | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | KNC records |
-| 07 | Notes Editor | notes | (via 06) | PLANNED | none | enhancement pending |
+| 07 | Notes Editor | notes | (via 06) | SOURCE_IMPLEMENTED | JVM_TESTED (5 service tests) | encrypted autosave, bounded history, undo, conflicts, recovery; device NOT tested |
 | 08 | Passwords | passwords | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 09 | Password Detail | password_detail | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 10 | Authenticator | authenticator | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | TOTP |
@@ -54,4 +54,11 @@ Status vocabulary: PLANNED, DESIGN_ONLY, BLOCKED, SOURCE_IMPLEMENTED, JVM_TESTED
 | 45 | Final Integration | n/a | n/a | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 46 | (reserved) | n/a | n/a | PLANNED | none | |
 
-Device evidence: none on current SHA (ADB empty). Visual evidence: not re-run this pass. Security review: not independently performed.
+Device evidence: none on current SHA (ADB empty, no emulator/system image installed). Visual evidence: not re-run this pass. Security review: not independently performed.
+
+Follow-up to TASK 39 (commits ab0424a, fd54f27): generic `DATA_*` audit writes are suppressed
+for the `media` and `note_draft` kinds so Shadow Vault imports and notes autosave cannot
+evict real security events from the bounded 500-event timeline; media keeps its dedicated
+`MEDIA_*` events. The Android CI workflow now accepts SDK licenses non-interactively and
+`scripts/check-source.py` checks the current invariants (camera-only manifest, biometric
+session gate, lock cleanup, AEAD framing) instead of a removed MainActivity path.

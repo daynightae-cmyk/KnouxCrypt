@@ -149,6 +149,22 @@ runtime status remains untested.
   Android backup remains disabled by the app configuration.
 - Historical actions before commit `7c0c8c0` were never recorded.
 
+## Follow-up commits affecting TASK 39
+
+- `ab0424a` (TASK 05): generic `DATA_WRITTEN/DELETED` audit writes are suppressed for the
+  `media` and `note_draft` record kinds. Without this, every Shadow Vault import and every
+  notes autosave burst would have written a timeline row and evicted genuine security
+  outcomes from the 500-event bound. Media keeps its dedicated `MEDIA_*` events; note
+  commits still emit one `DATA_WRITTEN` per save. Regression test:
+  `SecretRepositoryAuditTest.editorDraftsAndMediaDoNotFloodTheTimeline`.
+- `fd54f27` (CI): the first CI run for this branch (workflow run 41378866725, commit
+  `c240b87`) **failed in 19 s** at `android-actions/setup-android@v3` because `sdkmanager`
+  demanded interactive license acceptance, and the source guard then referenced a removed
+  `src/main/java` MainActivity and rejected the shipped camera permission. No Android job
+  ever reached compilation on that commit. The workflow now accepts licenses
+  non-interactively and the guard checks the current invariants; both pass locally.
+  **A green `android.yml` run is still not claimed** until a run log proves it.
+
 ## Next safe task
 
 TASK 05 Shadow Vault, reusing this audit pipeline for media import/export/open outcomes.
