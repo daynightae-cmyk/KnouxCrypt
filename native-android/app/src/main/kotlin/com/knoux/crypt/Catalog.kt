@@ -54,7 +54,7 @@ object Catalog {
         ServiceDef("SECURE_RANDOM", "Secure Random Studio", "مولّد العشوائية الآمن", "Generate audited-source random values", "أنشئ قيمًا عشوائية آمنة", ServiceArt.KEY, "random", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("HMAC_AUTHENTICITY", "HMAC Authenticity Lab", "مختبر HMAC", "Prove message authenticity with HMAC", "أثبت أصالة الرسالة باستخدام HMAC", ServiceArt.KEY, "hmac", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("PUBLIC_KEY_QR", "Public Key QR", "رمز المفتاح العام", "Share a public key as a QR code", "شارك مفتاحًا عامًا كرمز QR", ServiceArt.KEY, "public_key_qr", ServiceStatus.IMPLEMENTED, true),
-        ServiceDef("COLLECTIONS", "Collections", "المجموعات", "Group vault items by project", "جمّع عناصر الخزنة حسب المشروع", ServiceArt.VAULT, null, ServiceStatus.DESIGN_ONLY, true),
+        ServiceDef("COLLECTIONS", "Collections", "المجموعات", "Group vault items by project", "جمّع عناصر الخزنة حسب المشروع", ServiceArt.VAULT, "vault_collections", ServiceStatus.IMPLEMENTED, true),
         ServiceDef("DOCUMENT_VIEWER", "Document Viewer", "عارض المستندات", "Open decrypted documents in memory", "افتح المستندات المفكوكة في الذاكرة", ServiceArt.VAULT, null, ServiceStatus.DESIGN_ONLY, true),
         ServiceDef("PACKAGE_INSPECTOR", "Package Inspector", "فاحص الحزم", "Inspect KNF/KNP headers without keys", "افحص ترويسات KNF/KNP دون مفاتيح", ServiceArt.ENCRYPT, "package_inspector", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("AUTOFILL", "Autofill", "الملء التلقائي", "Fill passwords through Android Autofill", "املأ كلمات المرور عبر خدمة أندرويد", ServiceArt.PASSWORDS, null, ServiceStatus.DESIGN_ONLY, true),

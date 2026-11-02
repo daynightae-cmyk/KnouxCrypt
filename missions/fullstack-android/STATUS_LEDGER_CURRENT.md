@@ -1,6 +1,6 @@
 # KNOUX Crypt — Native Android Status Ledger (current HEAD)
 
-Generated for hardening branch. Source baseline: c219849. TASK 39 repair implementation: 7c0c8c0 (see `39_LOCAL_SECURITY_ACTIVITY/EVIDENCE.md`). TASK 05 implementation: ab0424a. TASK 07 implementation: 6ebcf96. CI/source-guard repair: fd54f27. This ledger does not delete historical reports.
+Generated for hardening branch. Source baseline: c219849. TASK 39 repair implementation: 7c0c8c0 (see `39_LOCAL_SECURITY_ACTIVITY/EVIDENCE.md`). TASK 05 implementation: ab0424a. TASK 07 implementation: 6ebcf96. CI/source-guard repair: fd54f27. TASK 29 implementation branch: 0997afd (`feature/android-task29-vault-collections-20261102`, base main `619a1e3`). This ledger does not delete historical reports.
 
 Status vocabulary: PLANNED, DESIGN_ONLY, BLOCKED, SOURCE_IMPLEMENTED, JVM_TESTED, DEVICE_TESTED, VISUAL_VERIFIED, SECURITY_REVIEWED, RELEASE_READY, RELEASED.
 
@@ -35,7 +35,7 @@ Status vocabulary: PLANNED, DESIGN_ONLY, BLOCKED, SOURCE_IMPLEMENTED, JVM_TESTED
 | 26 | Secure Random | random | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 27 | HMAC Authenticity | hmac | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 28 | Public Key QR | public_key_qr | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
-| 29 | Vault Collections | (none) | DESIGN_ONLY | PLANNED | none | depends 05 |
+| 29 | Vault Collections | vault_collections | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED (8 service tests) | encrypted labels + membership on media record; no Room migration; BLOCKED_DEVICE (no emulator/system image) |
 | 30 | Document Viewer | (none) | DESIGN_ONLY | PLANNED | none | depends 04,05 |
 | 31 | Vault Key Rotation | key_rotation | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 32 | Package Inspector | package_inspector | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
