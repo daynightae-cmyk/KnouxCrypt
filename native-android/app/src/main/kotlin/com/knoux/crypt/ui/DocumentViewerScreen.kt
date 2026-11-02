@@ -393,9 +393,16 @@ class DocumentViewerViewModel(
         }
     }
 
-    /** Any real interaction pushes the auto-clear back out. */
+    /**
+     * Any real interaction pushes the auto-clear back out. `detectTransformGestures`
+     * fires on every motion event, so the timer is only restarted when the
+     * countdown has actually advanced; otherwise a single drag would relaunch a
+     * coroutine per frame.
+     */
     fun keepAlive() {
-        if (_state.value.opened) startIdleTimer()
+        if (!_state.value.opened) return
+        if (_state.value.secondsRemaining > DocumentViewerPolicy.IDLE_CLEAR_SECONDS - 2) return
+        startIdleTimer()
     }
 
     /**

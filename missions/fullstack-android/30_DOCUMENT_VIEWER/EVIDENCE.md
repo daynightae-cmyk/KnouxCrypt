@@ -180,7 +180,15 @@ on the final head SHA counts as the gate.
 | `016e9f007375b435bc86946fd099ee9f99d95c80` | 41466855064 | success |
 | `c4ff11dfadd799b58f6425097992ea74299bd0ee` | 41468168540 | **cancelled** by a later push to the same ref — not a pass |
 | `a7ce0ea01214048148180b2e247a9cc8474c57a4` | 41469323447 | success (compile, JVM tests, lint, debug APK, SHA-256, evidence upload) |
-| final PR head (accessibility polish) | see merge note | gate |
+| `5b5bab1b1cc67323fc2c95e28739bffab868abf1` | 41471368147 | **cancelled** — a later push to the same ref superseded it, so it is not counted as a pass |
+| final PR head | see merge note | gate |
+
+## Late review catch (idle-timer restart)
+
+`keepAlive()` is wired to `detectTransformGestures`, which fires on every motion event. Restarting
+the countdown coroutine per frame would have launched up to sixty coroutines per second during a
+pinch or drag, each copying the whole state. It now only restarts the timer once the countdown has
+actually advanced, so one gesture resets the bound at most once.
 
 ## Process incident recorded, not hidden
 
