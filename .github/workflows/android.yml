@@ -21,6 +21,10 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v3
+        with:
+          accept-android-sdk-licenses: false
+      - name: Accept SDK licenses
+        run: yes | sdkmanager --licenses >/dev/null || true
       - name: Install SDK components
         run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
       - uses: gradle/actions/setup-gradle@v4
