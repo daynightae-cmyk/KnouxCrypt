@@ -5,6 +5,13 @@ State: **SOURCE_IMPLEMENTED, JVM_TESTED, DEVICE_TESTED=NO (BLOCKED_DEVICE), VISU
 - Baseline commit: `3bf27e8d6db099b1b7034abc406ecf4d6e47e4ce` (`origin/main`, tree verified clean,
   `gh pr list --state open` returned `[]` before branching)
 - Implementation branch: `feature/android-task41-secret-capsule-20261102`
+- Implementation commits: `2ada8b4` (feature) + `bf43718` (verification tooling, CI step, docs)
+- Merged into `main` as `07371a61abe858df66f2285617dca385f61b34b7` (merge commit, parents
+  `3bf27e8` + `bf43718`) via PR #44. No squash, no rebase, no force-push.
+- CI: "Android Native CI" run `41492118419` on the PR head `bf43718` = **success**, **17/17 steps**,
+  including the new "Packaged Arabic check" step running for the first time in CI. Conclusion and
+  step list read back from `gh run view --json`, not from a watcher exit code.
+- Post-merge run on `main` at `07371a6`: `41493808817` = **success**, 17/17 steps.
 - Prerequisite reused, not re-implemented: TASK 16 Secure Share (`secure_share` route, already on
   `main`). Prerequisite TASK 40 Transfer Wizard is still design-only and is **not** required for the
   local capsule lifecycle; the share handoff goes through the existing SAF document picker instead.

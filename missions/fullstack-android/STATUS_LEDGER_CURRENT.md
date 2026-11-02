@@ -47,7 +47,7 @@ Status vocabulary: PLANNED, DESIGN_ONLY, BLOCKED, SOURCE_IMPLEMENTED, JVM_TESTED
 | 38 | Signature Studio | signature_studio | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | digest mode 2 |
 | 39 | Local Security Activity | security_activity | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED; migration tests compiled not run | real producers + Room Flow; device unverified; see 39 evidence |
 | 40 | Transfer Wizard | (none) | DESIGN_ONLY | PLANNED | none | |
-| 41 | Expiring Secret Capsule | secret_capsule | IMPLEMENTED | SOURCE_IMPLEMENTED (branch `feature/android-task41-secret-capsule-20261102`, base main `3bf27e8`) | JVM_TESTED (14 rule tests incl. a concurrency test) | secret + expiry + open limit + revocation all inside one authenticated KNC2 record; state derived from an injected clock and never stored; refusal never consumes an allowance; CAS on the record revision stops two reveals spending the last open; KNP2 share package refuses to yield content past expiry; no backend and no remote revocation claimed; BLOCKED_DEVICE; see 41 evidence |
+| 41 | Expiring Secret Capsule | secret_capsule | IMPLEMENTED | SOURCE_IMPLEMENTED (MERGED `07371a6`, CI green on PR head `bf43718` run 41492118419 and on main run 41493808817, 17/17 steps each) | JVM_TESTED (14 rule tests incl. a concurrency test) | secret + expiry + open limit + revocation all inside one authenticated KNC2 record; state derived from an injected clock and never stored; refusal never consumes an allowance; CAS on the record revision stops two reveals spending the last open; KNP2 share package refuses to yield content past expiry; no backend and no remote revocation claimed; BLOCKED_DEVICE; see 41 evidence |
 | 42 | Session Privacy | session_privacy | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | shared PrivacyScreen; settings enforced in MainActivity |
 | 43 | File Integrity | file_integrity | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 44 | Secure Clipboard | secure_clipboard | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
@@ -94,6 +94,27 @@ or adapters, that the permission query is limited to this package, and that the 
 stays on screen. Two local Gradle invocations failed with `java.net.BindException` inside Gradle's
 own FileLockContentionHandler - a Windows loopback-port conflict, not a build error - were retried
 after a delay and passed; the retries are recorded in the evidence rather than hidden.
+
+TASK 41 integration note: merged to `main` as `07371a6` via PR #44 (commits `2ada8b4` + `bf43718`).
+Android CI green on the PR head (run 41492118419) and on merged main (run 41493808817), 17/17 steps
+each — the extra step is the new Packaged Arabic check, confirmed to have actually run rather than
+been skipped, since PR #44 introduced it. Result: 5,119 Arabic word-runs across 117 sources, 0
+missing from the packaged dex.
+
+TASK 33 position: recorded BLOCKED rather than stubbed. It is an exported component that hands
+password plaintext to another app; the Dataset authentication round trip cannot be exercised without a
+device, a fail-open defect there is catastrophic, and a service that deliberately offers nothing would
+be fake closure. Prerequisites 08/09 are merged and its reference is hash-verified
+(`f5c8b498999c9fb645f890414376349c6d8aed11c1fe638ff1f2bc0dc0d1d18d`).
+
+Mission-set position after TASK 41: every remaining mission is blocked on something this host cannot
+manufacture — 33 and 35 need a device or a peer, 40 depends on TASK 22's unimplemented transport
+(which would also require an INTERNET permission the camera-only manifest policy forbids, so that is
+an owner decision, not an engineering gap), and 45 is the device/visual/security/release gate itself.
+The single highest-value unblock is installing `emulator` plus
+`system-images;android-36;google_apis;x86_64` under `D:\Android\sdk`, or attaching a device on an
+isolated test profile; that would also let the TASK 39 Room migration 1→2→3 instrumented tests run
+for the first time instead of only compiling.
 
 Follow-up to TASK 39 (commits ab0424a, fd54f27): generic `DATA_*` audit writes are suppressed
 for the `media` and `note_draft` kinds so Shadow Vault imports and notes autosave cannot
