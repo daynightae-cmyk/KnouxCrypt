@@ -62,3 +62,13 @@ evict real security events from the bounded 500-event timeline; media keeps its 
 `MEDIA_*` events. The Android CI workflow now accepts SDK licenses non-interactively and
 `scripts/check-source.py` checks the current invariants (camera-only manifest, biometric
 session gate, lock cleanup, AEAD framing) instead of a removed MainActivity path.
+
+Integration record (2026-11-02): the Android hardening lane was merged into `main` as
+`f586e80` (production tip `a5df8d4`), then `origin/main` desktop work (PRs #35, #36) was
+merged in as `24a75ca` and pushed. File overlap between the lanes is zero
+(`native-android/**`, `missions/fullstack-android/**`, `.github/workflows/android.yml` only).
+**`Android Native CI` run `41392808824` on `main` = success**: checkout, JDK 17, SDK setup,
+source boundary check, Kotlin compile (incl. `:core:data:compileDebugAndroidTestKotlin`),
+JVM tests, Android lint, debug APK, SHA-256, evidence upload. Instrumented tests remain
+compiled-but-not-executed: no device/emulator in CI or on this host. The orphaned `workspace`
+gitlink was already removed by the desktop lane on `main`; it is not present in this tree.
