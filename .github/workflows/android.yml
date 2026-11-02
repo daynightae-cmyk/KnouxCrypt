@@ -47,6 +47,20 @@ jobs:
         run: gradle --no-daemon -p native-android :app:assembleDebug --stacktrace
       - name: SHA-256
         run: sha256sum native-android/app/build/outputs/apk/debug/*.apk
+      # Proves the Arabic UI text survived compilation, dexing and packaging. The
+      # original corruption shipped as valid UTF-8 question marks, so a source-only
+      # check was not enough; this one reads the bytes actually inside the APK.
+      - name: Packaged Arabic check
+        working-directory: native-android
+        run: |
+          python3 - <<'PYEOF'
+          import glob, sys
+          sys.argv = ['check-dex-arabic.py'] + sorted(
+              glob.glob('app/src/main/kotlin/com/knoux/crypt/**/*.kt', recursive=True)
+              + glob.glob('core/*/src/main/kotlin/com/knoux/crypt/**/*.kt', recursive=True)
+          )
+          exec(open('scripts/check-dex-arabic.py', encoding='utf-8').read())
+          PYEOF
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@v4
