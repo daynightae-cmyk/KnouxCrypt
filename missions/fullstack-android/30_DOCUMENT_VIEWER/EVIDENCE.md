@@ -5,7 +5,7 @@ State: **SOURCE_IMPLEMENTED, JVM_TESTED, DEVICE_TESTED=NO (BLOCKED_DEVICE), VISU
 - Baseline commit: `354f8f41a1ca1ee2df149bc2467a35174000a79a` (`origin/main`, tree verified clean
   before branching; `gh pr list --state open` returned `[]`)
 - Implementation branch: `feature/android-task30-document-viewer-20261102`
-- Implementation commits: `e144b18` (feature) + `016e9f0` (execution-path fixes)
+- Implementation commits: `e144b18` (feature), `016e9f0` (execution-path fixes), `c4ff11d` (audit path) + the lease-reclaim fix recorded in the review note below
 - Prerequisites: TASK 05 Shadow Vault (`ab0424a`) and TASK 29 Vault Collections (`6b3ef20`), both
   already on `main` and reused, not re-implemented
 - No Room schema change: database version stays **3**, no new table, no migration, and no change to
@@ -124,7 +124,7 @@ All from `native-android/` on Windows, `--no-daemon`, launcher Gradle 8.14.6 / J
 | # | COMMAND | WORKTREE | EXIT | RESULT | TEST_COUNT | LOG_OR_ARTIFACT |
 |---|---|---|---|---|---|---|
 | 1 | `./gradlew.bat :core:data:compileDebugKotlin` | `D:\KnouxCrypt-Android-Ready` @ `feature/android-task30-document-viewer-20261102` | 0 | PASS | n/a | gradle console |
-| 2 | `./gradlew.bat :core:data:testDebugUnitTest --tests "com.knoux.crypt.data.DocumentViewerServiceTest"` | same | 0 | PASS | 10/10, 0 fail, 1.196 s | `core/data/build/test-results/testDebugUnitTest/TEST-com.knoux.crypt.data.DocumentViewerServiceTest.xml` |
+| 2 | `./gradlew.bat :core:data:testDebugUnitTest --tests "com.knoux.crypt.data.DocumentViewerServiceTest"` | same | 0 | PASS | 11/11, 0 fail, 1.185 s | `core/data/build/test-results/testDebugUnitTest/TEST-com.knoux.crypt.data.DocumentViewerServiceTest.xml` |
 | 3 | `./gradlew.bat :core:security:test` | same | 0 | PASS | 161 tests, 0 failures | `core/security/build/test-results/` |
 | 4 | `./gradlew.bat :core:data:testDebugUnitTest` | same | 0 | PASS | 175 tests, 0 failures, 21 classes | `core/data/build/test-results/testDebugUnitTest/` |
 | 5 | `./gradlew.bat :app:testDebugUnitTest` | same | 0 | PASS | 18 tests, 0 failures, 6 classes | `app/build/test-results/testDebugUnitTest/` |
@@ -135,7 +135,7 @@ All from `native-android/` on Windows, `--no-daemon`, launcher Gradle 8.14.6 / J
 | 10 | dex literal check (unzip APK, search concatenated `classes*.dex` for 10 Arabic viewer strings) | same | 0 | PASS 10/10 | n/a | inline python over `app-debug.apk` |
 | 11 | `aapt2 dump permissions app-debug.apk` (build-tools 36.0.0) | same | 0 | PASS | 3 permissions | CAMERA, USE_BIOMETRIC, USE_FINGERPRINT only |
 
-## Targeted test coverage (`DocumentViewerServiceTest`, 10 JVM cases)
+## Targeted test coverage (`DocumentViewerServiceTest`, 11 JVM cases)
 
 1. `modeAndAcceptancePolicyIsExplicit` — full MIME/mode/limit matrix including OOXML rejection and
    lease-name recognition.
@@ -153,23 +153,33 @@ All from `native-android/` on Windows, `--no-daemon`, launcher Gradle 8.14.6 / J
    byte-equal to the plaintext while the container is not, removed by `closeLease`, idempotent on a
    second close, and removed by `onLock` for a lease that was still open.
 7. `staleDescriptorCannotOpenADeletedRecord` — after `ShadowVaultService.delete`, both read paths
-   fail `MISSING` and no lease is created.
+   fail `MISSING`, no lease is created, and both rejections are audited even though they happen
+   before any decryption.
 8. `tamperedContainerFailsAsUnreadableAndLeavesNoLease` — a one-bit flip in the final tag byte makes
    the open fail `UNREADABLE`, leaves zero lease files, and records the typed failure.
-9. `startupSweepRemovesStaleLeasesAndKeepsOtherFiles` — an orphaned lease older than the bound is
-   reclaimed, an unrelated file and a still-owned live lease are not.
-10. `auditDetailsNeverCarryTheDocumentNameOrAnyPath` — after open, close, lock and sweep, no audit
+9. `reopeningTheSameRecordReclaimsThePreviousLease` — opening the same record twice deletes the first
+   lease, leaves exactly one lease file, keeps `activeLeaseCount()` at 1 and records
+   `DOCUMENT_LEASE_CLEARED reason=reopen deleted=true`.
+10. `startupSweepRemovesStaleLeasesAndKeepsOtherFiles` — an orphaned lease older than the bound is
+    reclaimed, an unrelated file and a still-owned live lease are not.
+11. `auditDetailsNeverCarryTheDocumentNameOrAnyPath` — after open, close, lock and sweep, no audit
     detail contains the document name, the record id, the lease file name, the lease root or any
     path separator.
 
 ## CI
 
-GitHub Actions "Android Native CI" on the exact PR head SHA — see the integration table below.
+GitHub Actions "Android Native CI" (`.github/workflows/android.yml`, triggers on
+`native-android/**`). The workflow has `concurrency: android-native-${{ github.ref }}` with
+`cancel-in-progress: true`, and the `pull_request` path filter evaluates the whole PR diff, so any
+further push to this branch cancels an in-flight run. Two runs were cancelled that way; only the run
+on the final head SHA counts as the gate.
 
 | FULL_SHA | RUN | RESULT |
 |---|---|---|
 | `e144b18daadb7d383186aa165286115380607497` | 41465619254 | success (compile, JVM tests, lint, debug APK, SHA-256, evidence upload) |
-| `016e9f007375b435bc86946fd099ee9f99d95c80` | 41466855064 | see below |
+| `016e9f007375b435bc86946fd099ee9f99d95c80` | 41466855064 | success |
+| `c4ff11dfadd799b58f6425097992ea74299bd0ee` | 41468168540 | **cancelled** by a later push to the same ref — not a pass |
+| final PR head | see below | gate |
 
 ## Remaining production blockers (unchanged by this task)
 

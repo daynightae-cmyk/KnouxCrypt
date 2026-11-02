@@ -3,6 +3,10 @@ package com.knoux.crypt.data
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.security.SecureRandom
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -29,6 +33,12 @@ class DocumentViewerServiceTest {
     private lateinit var sink: CollectingSink
     private val random = SecureRandom()
 
+    /**
+     * Unconfined so the detached lease-cleared audit used by close/lock/reopen is
+     * recorded before the call returns, which keeps the assertions deterministic.
+     */
+    private val auditScope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+
     private class CollectingSink : SecurityAuditSink {
         val events = mutableListOf<SecurityAuditEvent>()
         override suspend fun record(event: SecurityAuditEvent) { events += event }
@@ -43,12 +53,21 @@ class DocumentViewerServiceTest {
         sink = CollectingSink()
         val cipher = VaultFileCipher(vault.session)
         shadow = ShadowVaultService(vault.session, vault.repository, cipher, mediaRoot, sink)
-        viewer = DocumentViewerService(vault.session, vault.repository, shadow, cipher, leaseRoot, sink)
+        viewer = DocumentViewerService(
+            vault.session,
+            vault.repository,
+            shadow,
+            cipher,
+            leaseRoot,
+            sink,
+            auditScope,
+        )
         runBlocking { vault.enroll() }
     }
 
     @After
     fun tearDown() {
+        auditScope.cancel()
         mediaRoot.deleteRecursively()
         leaseRoot.deleteRecursively()
     }
@@ -251,6 +270,23 @@ class DocumentViewerServiceTest {
         assertEquals(0, viewer.activeLeaseCount())
         assertTrue(leaseRoot.listFiles().orEmpty().isEmpty())
         assertTrue(sink.details().contains("DOCUMENT_OPEN_FAILED mode=pdf reason=UNREADABLE"))
+    }
+
+    @Test
+    fun reopeningTheSameRecordReclaimsThePreviousLease() = runBlocking {
+        val plain = ByteArray(40_000).also(random::nextBytes)
+        val descriptor = store("repeat.pdf", "application/pdf", plain)
+        val access = vault.access() ?: error("vault is locked")
+
+        val first = viewer.openPdfLease(access, descriptor)
+        val second = viewer.openPdfLease(access, descriptor)
+        assertFalse("the replaced lease survived", first.exists())
+        assertTrue(second.isFile)
+        assertEquals(1, viewer.activeLeaseCount())
+        assertEquals(1, leaseRoot.listFiles().orEmpty().count { DocumentViewerPolicy.isLeaseFile(it.name) })
+        assertTrue(sink.details().contains("DOCUMENT_LEASE_CLEARED reason=reopen deleted=true"))
+        viewer.closeLease(descriptor.recordId)
+        assertTrue(leaseRoot.listFiles().orEmpty().isEmpty())
     }
 
     @Test

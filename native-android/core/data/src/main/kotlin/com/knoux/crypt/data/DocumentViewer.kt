@@ -264,7 +264,21 @@ class DocumentViewerService(
                 if (!lease.isFile || lease.length() == 0L) {
                     throw DocumentRejectedException(DocumentFailure.LEASE_WRITE_FAILED)
                 }
-                synchronized(leasesLock) { liveLeases[descriptor.recordId] = lease }
+                // One lease per record: a re-open replaces the previous copy, so the
+                // old file is deleted here instead of being orphaned in the cache.
+                val replaced = synchronized(leasesLock) {
+                    val previous = liveLeases.put(descriptor.recordId, lease)
+                    if (previous != null && previous != lease) previous else null
+                }
+                if (replaced != null) {
+                    val reclaimed = runCatching { replaced.delete() }.getOrDefault(false)
+                    auditDetached(
+                        SecurityAuditEvent(
+                            SecurityEventAction.DOCUMENT_LEASE_CLEARED,
+                            "reason=reopen deleted=$reclaimed",
+                        ),
+                    )
+                }
                 audit.recordSafely(
                     SecurityAuditEvent(
                         SecurityEventAction.DOCUMENT_VIEWED,
