@@ -23,7 +23,7 @@ There is ALSO a Windows/Electron app in the **same** repository. Do not execute 
 
 1. Read current repo `AGENTS.md` if one exists (no tracked `AGENTS.md` was found during this audit, so also inspect local/untracked instructions safely). Check owner-approved brand/UX policy and task-specific acceptance.
 2. Inspect all relevant roots, remotes, `HEAD`, `origin/main`, `status --porcelain=v2 -uall`, branch tracking, `worktree list --porcelain`, untracked and ignored files, remote refs, stash, reflog, open PRs, checks and current file owners. Fetch only safely if permitted.
-3. **URGENT UNIQUE WORK:** in `D:\KnouxCrypt`, `planning/android-crypt-suite-20261029` at `6c19107`, there were **253 untracked files** at audit time, including 44 design PNG references, prompt/source packages, scripts, mission task sheets and ZIPs. This content is **NOT BACKED UP BY THE GIT BRANCH**. Inventory byte sizes/hashes and preserve the unique work safely before switching/cleaning anything; do not blindly stage large archives to GitHub or fill D/K drives. Require exact owner/agent non-overlap.
+3. **URGENT UNIQUE WORK:** in `D:\KnouxCrypt`, `planning/android-crypt-suite-20261029` at `6c19107`, there were **253 untracked files** at audit time, including 44 design PNG references, prompt/source packages, scripts, mission task sheets and ZIPs. These files are **NOT PROTECTED BY THE EXISTING GIT BRANCH**, but a separate copy-only K: snapshot was subsequently created and all **253 file SHA-256 pairs verified**. Destination: `K:\KNOUX_PROJECT_PROMPT_VAULT\KnouxCrypt__ANDROID\UNTRACKED_SNAPSHOT_20261102_6c19107` with `MANIFEST_SHA256.csv` (manifest SHA-256 `E9A02A91C894C777CBD55C2003BDFA198A57BD14BEC7D73D44DA2FD915F9CC75`). This is not an atomic/off-device backup; revalidate presence/hash/ownership before changing or cleaning anything. Require exact owner/agent non-overlap.
 4. The Windows system had C = 6.42 GB, D = 4.52 GB, K = 4.50 GB free (decimal) at audit time; recheck before builds or backup, use `D:\Temp` as appropriate, never target C without capacity check. Never overwrite active agent caches or temporary build output.
 5. No `git reset --hard`, `git clean`, force push, rebase of another agent's branch, shared worktree removal, delete, prune, checkout clobber, user-data reset, changing keys or migrations without isolated data-migration verification and explicit authorization for destructive effects.
 6. The only accepted sequence is **REALITY -> RISKS -> UNIQUE WORK -> GAPS -> TASK CLAIM -> MINIMAL IMPLEMENTATION -> TESTS -> DEVICE/VISUAL RUNTIME -> REVIEW -> COMMIT -> INTEGRATION/CI -> NEXT TASK**.
@@ -213,3 +213,16 @@ Worker handoff: `TASK_ID | OWNER | BRANCH | BASE_SHA | HEAD_SHA | WORKTREE | EXA
 **Finish each session:** Real git status/SHAs, unique work protected vs unprotected, changed source paths, test evidence, current PR and CI, native device state and exact next ready task. No fake closure, no broad planning in place of implementation, no rerun of already-integrated work.
 
 **Mission success = preserved work + real service advancement + independently verifiable proof.**
+
+## Verified local unique-work backup — post-checkpoint update, 2026-11-02
+
+A subsequent **copy-only, non-destructive** preservation operation on the authorized Windows device completed successfully, exit code **0**. Before copying it revalidated the planning HEAD `6c19107c181372bdca307c40b0876fe34270eb89`, canonical remote, exact count 253, path scope (`missions/` and `visuals/` only), and K: free-space reserve. The snapshot destination was required not to preexist (no overwrite).
+
+- Source: `D:\KnouxCrypt` (253 previously untracked files, 149,911,480 source bytes).
+- Destination: `K:\KNOUX_PROJECT_PROMPT_VAULT\KnouxCrypt__ANDROID\UNTRACKED_SNAPSHOT_20261102_6c19107`.
+- File-level result: **253/253 copied and SHA-256 byte-identical** to their source files when checked. 254 destination files including `MANIFEST_SHA256.csv`.
+- Manifest SHA-256: `E9A02A91C894C777CBD55C2003BDFA198A57BD14BEC7D73D44DA2FD915F9CC75`.
+- K: free after operation: **4,346,589,184 bytes**.
+- No original files moved/deleted, no Git checkout or index mutated, no commits made on the local planning branch.
+
+**Limitations:** This is a per-file verified snapshot, not an atomic filesystem snapshot or an off-device/offsite backup. Agent writes to source between file copies are not globally excluded; exact active-agent file leases remain unverified. Revalidate the destination and hashes before any cleanup/recovery. Original untracked files remain high-value and should not be deleted automatically.
