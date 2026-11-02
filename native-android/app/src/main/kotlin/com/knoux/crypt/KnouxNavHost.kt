@@ -37,6 +37,7 @@ import com.knoux.crypt.ui.RecoveryScreen
 import com.knoux.crypt.ui.SecureClipboardScreen
 import com.knoux.crypt.ui.SecureRandomScreen
 import com.knoux.crypt.ui.SecurityActivityScreen
+import com.knoux.crypt.ui.SecurityAdvisorScreen
 import com.knoux.crypt.ui.SecureShareScreen
 import com.knoux.crypt.ui.ShadowVaultScreen
 import com.knoux.crypt.ui.DocumentLibraryScreen
@@ -236,6 +237,16 @@ fun KnouxNavHost(
                 container = container,
                 onBack = { nav.popBackStack() },
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
+        }
+        composable("security_advisor") {
+            SecurityAdvisorScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onOpenPrivacy = { nav.navigate("privacy") { launchSingleTop = true } },
+                onOpenRecovery = { nav.navigate("recovery") { launchSingleTop = true } },
+                onOpenRotation = { nav.navigate("key_rotation") { launchSingleTop = true } },
+                onOpenTimeline = { nav.navigate("security_activity") { launchSingleTop = true } },
             )
         }
         composable("shadow_vault") {
