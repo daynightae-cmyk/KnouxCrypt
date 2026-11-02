@@ -36,6 +36,7 @@ import com.knoux.crypt.ui.PublicKeyQrScreen
 import com.knoux.crypt.ui.RecoveryScreen
 import com.knoux.crypt.ui.SecureClipboardScreen
 import com.knoux.crypt.ui.SecureRandomScreen
+import com.knoux.crypt.ui.SecretCapsuleScreen
 import com.knoux.crypt.ui.SecurityActivityScreen
 import com.knoux.crypt.ui.SecurityAdvisorScreen
 import com.knoux.crypt.ui.SecureShareScreen
@@ -237,6 +238,14 @@ fun KnouxNavHost(
                 container = container,
                 onBack = { nav.popBackStack() },
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+            )
+        }
+        composable("secret_capsule") {
+            SecretCapsuleScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+                onOpenShare = { nav.navigate("secure_share") { launchSingleTop = true } },
             )
         }
         composable("security_advisor") {

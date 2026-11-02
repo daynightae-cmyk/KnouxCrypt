@@ -371,8 +371,16 @@ class SecretRepository(
      * intentionally none). Logging each keystroke burst would flood and evict
      * real security events from the bounded timeline.
      */
+    /**
+     * Kinds with their own dedicated audit events are excluded from the generic
+     * DATA_WRITTEN/DATA_DELETED lines, so a capsule reveal or a vault import does
+     * not double-log and crowd real alerts out of the bounded 500-row timeline.
+     */
     private fun auditable(kind: String?): Boolean =
-        kind != null && kind != SecretKinds.NOTE_DRAFT && kind != SecretKinds.MEDIA
+        kind != null &&
+            kind != SecretKinds.NOTE_DRAFT &&
+            kind != SecretKinds.MEDIA &&
+            kind != SecretKinds.CAPSULE
 
     /** Bounded, non-secret record-kind token; never a user title or identifier. */
     private fun safeKind(kind: String): String = kind.trim().lowercase().take(24).ifBlank { "unknown" }
