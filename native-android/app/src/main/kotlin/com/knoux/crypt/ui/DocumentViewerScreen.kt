@@ -36,7 +36,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -68,6 +67,7 @@ import com.knoux.crypt.data.DocumentMode
 import com.knoux.crypt.data.DocumentRejectedException
 import com.knoux.crypt.data.DocumentViewerPolicy
 import com.knoux.crypt.data.DocumentViewerService
+import com.knoux.crypt.data.VaultAccess
 import com.knoux.crypt.data.VaultLockedException
 import com.knoux.crypt.data.VaultMediaItem
 import com.knoux.crypt.design.BackHeader
@@ -134,13 +134,23 @@ class DocumentViewerViewModel(
     private var lease: File? = null
     private var idleJob: Job? = null
 
+    /**
+     * `PdfRenderer` is not thread-safe and a page render is a blocking native
+     * call, so rendering and release share one intrinsic lock instead of racing.
+     */
+    private val rendererLock = Any()
+    private var renderSequence = 0
+
     /** True only when a real open operation is in flight, so the UI never fakes progress. */
     private var openJob: Job? = null
 
     init {
+        // Only a real unlocked -> locked transition may claim that a decrypted
+        // copy was released; entering the screen while already locked holds none.
         viewModelScope.launch {
+            var wasUnlocked = container.session.unlocked.value
             container.session.unlocked.collectLatest { isUnlocked ->
-                if (!isUnlocked) {
+                if (wasUnlocked && !isUnlocked) {
                     releaseAll(
                         BilingualText(
                             "The vault locked, so the decrypted copy was released.",
@@ -148,6 +158,7 @@ class DocumentViewerViewModel(
                         ),
                     )
                 }
+                wasUnlocked = isUnlocked
             }
         }
     }
@@ -184,80 +195,109 @@ class DocumentViewerViewModel(
         }
     }
 
-    private suspend fun open(descriptor: DocumentDescriptor, access: com.knoux.crypt.data.VaultAccess) {
+    private sealed interface Opened {
+        data class Text(val value: String) : Opened
+        data class Pdf(val lease: File, val pageCount: Int) : Opened
+    }
+
+    private suspend fun open(descriptor: DocumentDescriptor, access: VaultAccess) {
         _state.value = _state.value.copy(loading = true, message = null)
-        val result = runCatching {
+        val result: Result<Opened> = runCatching {
             when (descriptor.mode) {
-                DocumentMode.TEXT -> viewer.readText(access, descriptor) to null
-                DocumentMode.PDF -> null to viewer.openPdfLease(access, descriptor)
+                DocumentMode.TEXT -> Opened.Text(viewer.readText(access, descriptor))
+                DocumentMode.PDF -> {
+                    val staged = viewer.openPdfLease(access, descriptor)
+                    withContext(Dispatchers.IO) {
+                        synchronized(rendererLock) { attachRenderer(staged) }
+                    }
+                }
                 DocumentMode.UNSUPPORTED -> throw DocumentRejectedException(DocumentFailure.UNSUPPORTED_TYPE)
             }
         }
-        result.onSuccess { (decoded, staged) ->
-            if (decoded != null) {
-                _state.value = _state.value.copy(
-                    loading = false,
-                    opened = true,
-                    text = decoded,
-                    page = 0,
-                    pageCount = 0,
-                    pageBitmap = null,
-                )
-                startIdleTimer()
-            } else if (staged != null) {
-                lease = staged
-                val pages = runCatching { attachRenderer(staged) }
-                pages.onSuccess { count ->
+        result.onSuccess { opened ->
+            when (opened) {
+                is Opened.Text -> {
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        opened = true,
+                        text = opened.value,
+                        page = 0,
+                        pageCount = 0,
+                        pageBitmap = null,
+                    )
+                    startIdleTimer()
+                }
+                is Opened.Pdf -> {
+                    lease = opened.lease
                     _state.value = _state.value.copy(
                         loading = false,
                         opened = true,
                         text = null,
-                        pageCount = count,
+                        pageCount = opened.pageCount,
                         page = 0,
                     )
                     renderPage(0)
                     startIdleTimer()
-                }.onFailure { failure ->
-                    viewer.closeLease(descriptor.recordId)
-                    lease = null
-                    _state.value = _state.value.copy(
-                        loading = false,
-                        opened = false,
-                        message = BilingualText(
-                            "The document decrypted but the platform could not render it. It may be corrupt or password-protected; the original is untouched. (${failure.javaClass.simpleName})",
-                            "فُك تشفير المستند لكن لم يتمكن النظام من عرضه. قد يكون تالفًا أو محميًا بكلمة مرور؛ الملف الأصلي لم يتغير. (${failure.javaClass.simpleName})",
-                        ),
-                    )
                 }
             }
         }.onFailure { failure ->
+            // A staged lease must never survive a failed open, whatever failed.
+            val hadLease = lease != null
+            if (hadLease) {
+                synchronized(rendererLock) {
+                    runCatching { renderer?.close() }
+                    renderer = null
+                    runCatching { descriptorHandle?.close() }
+                    descriptorHandle = null
+                }
+                viewer.closeLease(descriptor.recordId)
+                lease = null
+            }
+            val reason = if (hadLease && failure !is DocumentRejectedException) {
+                BilingualText(
+                    "The document decrypted but the platform could not render it. It may be corrupt or password-protected; the original is untouched. (${failure.javaClass.simpleName})",
+                    "فُك تشفير المستند لكن لم يتمكن النظام من عرضه. قد يكون تالفًا أو محميًا بكلمة مرور؛ الملف الأصلي لم يتغير. (${failure.javaClass.simpleName})",
+                )
+            } else {
+                describe(failure)
+            }
             _state.value = _state.value.copy(
                 loading = false,
                 opened = false,
-                message = describe(failure),
+                pageBitmap = null,
+                pageCount = 0,
+                message = reason,
             )
         }
     }
 
-    private fun attachRenderer(file: File): Int {
+    /** Caller must hold [rendererLock]. Opens the renderer and reports the page count. */
+    private fun attachRenderer(file: File): Opened.Pdf {
         val handle = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
-        descriptorHandle = handle
-        renderer = PdfRenderer(handle)
-        return renderer?.pageCount ?: 0
+        try {
+            val created = PdfRenderer(handle)
+            descriptorHandle = handle
+            renderer = created
+            return Opened.Pdf(file, created.pageCount)
+        } catch (failure: Throwable) {
+            runCatching { handle.close() }
+            descriptorHandle = null
+            throw failure
+        }
     }
 
-    fun renderPage(index: Int) {
-        val active = renderer ?: return
+    private fun renderPage(index: Int) {
+        val active = synchronized(rendererLock) { renderer } ?: return
         if (index < 0 || index >= active.pageCount) return
-        if (_state.value.pageBitmap != null) {
-            _state.value = _state.value.copy(page = index)
-        }
+        val request = ++renderSequence
         viewModelScope.launch(Dispatchers.IO) {
-            val bitmap = runCatching { renderActivePage(active, index) }
+            val bitmap = synchronized(rendererLock) {
+                runCatching { renderActivePage(active, index) }
+            }
+            // A newer request, a release or a lock supersedes this render.
+            if (request != renderSequence) return@launch
             bitmap.onSuccess { image ->
-                if (container.session.currentAccess() == null) {
-                    return@onSuccess
-                }
+                if (container.session.currentAccess() == null) return@onSuccess
                 _state.value = _state.value.copy(
                     loading = false,
                     page = index,
@@ -310,10 +350,14 @@ class DocumentViewerViewModel(
         idleJob = null
         openJob?.cancel()
         openJob = null
-        runCatching { renderer?.close() }
-        renderer = null
-        runCatching { descriptorHandle?.close() }
-        descriptorHandle = null
+        // Supersedes any in-flight page render so it cannot publish after release.
+        renderSequence += 1
+        synchronized(rendererLock) {
+            runCatching { renderer?.close() }
+            renderer = null
+            runCatching { descriptorHandle?.close() }
+            descriptorHandle = null
+        }
         val record = _state.value.descriptor?.recordId
         if (record != null) viewer.closeLease(record)
         lease = null
@@ -449,8 +493,10 @@ fun DocumentViewerScreen(
     val unlocked by viewModel.unlocked.collectAsStateWithLifecycle()
     val settings by container.settings.settings.collectAsStateWithLifecycle(initialValue = null)
 
+    // The ViewModel owns the release: on lock, on idle timeout and on
+    // onCleared(). A configuration change keeps the session, so it must not
+    // silently discard a copy the user is still reading.
     LaunchedEffect(unlocked, recordId) { if (unlocked) viewModel.load() }
-    LaunchedEffect(unlocked) { if (!unlocked) viewModel.releaseNow() }
 
     var showMenu by remember { mutableStateOf(false) }
     var pendingExport by remember { mutableStateOf(false) }
@@ -461,10 +507,6 @@ fun DocumentViewerScreen(
         if (destination != null) {
             viewModel.exportTo(destination) { message -> notice = message }
         }
-    }
-
-    DisposableEffect(recordId) {
-        onDispose { viewModel.releaseNow() }
     }
 
     Column(
@@ -562,7 +604,7 @@ fun DocumentViewerScreen(
             )
             Spacer(Modifier.height(8.dp))
             ProtectionRow(
-                icon = "",
+                icon = "⊘",
                 title = tr("Screenshot restriction", "تقييد لقطة الشاشة"),
                 subtitle = tr("Prevent screenshots while viewing", "منع لقطات الشاشة أثناء العرض"),
                 value = if (current.blockScreenshots) {
@@ -659,8 +701,7 @@ private fun DocumentCard(
     val shape = RoundedCornerShape(18.dp)
     GlassCard(
         Modifier
-            .fillMaxWidth()
-            .border(1.dp, KnouxColors.Violet.copy(alpha = 0.5f), shape),
+            .fillMaxWidth(),
         borderColor = KnouxColors.Violet.copy(alpha = 0.5f),
         contentPadding = PaddingValues(12.dp),
     ) {
@@ -739,7 +780,8 @@ private fun PreviewPanel(
             .border(1.dp, KnouxColors.Line, shape),
     ) {
         when {
-            !unlocked || state.descriptor == null -> LockedPreview(state.message, onAuthenticate)
+            !unlocked -> LockedPreview(state.message, onAuthenticate)
+            state.descriptor == null -> UnavailablePreview(state.message)
             state.loading -> Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator(color = KnouxColors.Violet, strokeWidth = 2.dp)
@@ -798,6 +840,41 @@ private fun LockedPreview(message: BilingualText?, onAuthenticate: () -> Unit) {
         TextButton(onClick = onAuthenticate) {
             Text(tr("Authenticate", "المصادقة"), color = KnouxColors.Violet)
         }
+    }
+}
+
+/** The vault item exists but the viewer is not allowed to open it. */
+@Composable
+private fun UnavailablePreview(message: BilingualText?) {
+    Column(
+        Modifier.fillMaxSize().padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            tr("Not openable here", "غير قابل للفتح هنا"),
+            style = MaterialTheme.typography.titleSmall,
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            message?.let { tr(it.english, it.arabic) } ?: tr(
+                "This item is not an openable document.",
+                "هذا العنصر ليس مستندًا قابلًا للفتح.",
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = KnouxColors.Muted,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            tr(
+                "Nothing was decrypted and the encrypted original is unchanged.",
+                "لم يُفك تشفير أي شيء ولم يتغير الأصل المشفر.",
+            ),
+            style = MaterialTheme.typography.labelSmall,
+            color = KnouxColors.Faint,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
