@@ -56,6 +56,8 @@ class CatalogTest {
         assertEquals("vault_collections", Catalog.byId("COLLECTIONS")?.route)
         assertEquals(ServiceStatus.IMPLEMENTED, Catalog.byId("COLLECTIONS")?.status)
         assertEquals(ServiceStatus.IMPLEMENTED, Catalog.byId("NOTES")?.status)
+        assertEquals("document_viewer", Catalog.byId("DOCUMENT_VIEWER")?.route)
+        assertEquals(ServiceStatus.IMPLEMENTED, Catalog.byId("DOCUMENT_VIEWER")?.status)
     }
 
     @Test

@@ -89,6 +89,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.knoux.crypt.AppContainer
 import com.knoux.crypt.data.CollectionFailure
 import com.knoux.crypt.data.CollectionRejectedException
+import com.knoux.crypt.data.DocumentViewerPolicy
 import com.knoux.crypt.data.ShadowVaultService
 import com.knoux.crypt.data.VaultAccess
 import com.knoux.crypt.data.VaultCollection
@@ -604,6 +605,7 @@ fun ShadowVaultScreen(
     onNeedUnlock: () -> Unit,
     collectionId: String?,
     onOpenCollections: () -> Unit,
+    onOpenDocument: (VaultMediaItem) -> Unit = {},
 ) {
     val unlocked by container.session.unlocked.collectAsStateWithLifecycle()
     if (!unlocked) {
@@ -879,8 +881,10 @@ fun ShadowVaultScreen(
         VaultDetailsDialog(
             item = item,
             collectionLabel = collections.firstOrNull { it.id == item.payload?.collectionId }?.label,
+            canOpenAsDocument = DocumentViewerPolicy.descriptor(item) != null,
             onDismiss = { details = null },
             onOpen = { details = null; viewModel.openViewer(item) },
+            onOpenDocument = { details = null; onOpenDocument(item) },
             onExport = { details = null; pendingExportConfirm = item },
             onDelete = { details = null; pendingDelete = item },
             onCollections = { details = null; collectionPickerFor = item },
@@ -1219,8 +1223,10 @@ private fun VaultTile(
 private fun VaultDetailsDialog(
     item: VaultMediaItem,
     collectionLabel: String?,
+    canOpenAsDocument: Boolean,
     onDismiss: () -> Unit,
     onOpen: () -> Unit,
+    onOpenDocument: () -> Unit,
     onExport: () -> Unit,
     onDelete: () -> Unit,
     onCollections: () -> Unit,
@@ -1275,7 +1281,16 @@ private fun VaultDetailsDialog(
         },
         confirmButton = {
             if (item.readable) {
-                TextButton(onClick = onOpen) { Text(tr("Open securely", "فتح آمن"), color = KnouxColors.Violet) }
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (canOpenAsDocument) {
+                        TextButton(onClick = onOpenDocument) {
+                            Text(tr("Read", "قراءة"), color = KnouxColors.Violet)
+                        }
+                    }
+                    TextButton(onClick = onOpen) {
+                        Text(tr("Open securely", "فتح آمن"), color = KnouxColors.Violet)
+                    }
+                }
             }
         },
         dismissButton = {
@@ -1486,7 +1501,7 @@ private fun ViewerMessage(message: String, onClose: () -> Unit) {
 }
 
 @Composable
-private fun ZoomableImage(bitmap: Bitmap) {
+internal fun ZoomableImage(bitmap: Bitmap, onInteract: () -> Unit = {}) {
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { androidx.compose.runtime.mutableStateOf(Offset.Zero) }
     Box(
@@ -1506,6 +1521,7 @@ private fun ZoomableImage(bitmap: Bitmap) {
                     detectTransformGestures { _, pan, zoom, _ ->
                         scale = (scale * zoom).coerceIn(1f, 6f)
                         offset = if (scale <= 1f) Offset.Zero else offset + pan
+                        onInteract()
                     }
                 }
                 .graphicsLayer {
