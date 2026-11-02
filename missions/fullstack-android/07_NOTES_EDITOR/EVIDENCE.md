@@ -81,6 +81,8 @@ touching the newer row; revision history is bounded to 20 with the newest previo
 delete removes note and draft. `SecretRepositoryAuditTest` additionally proves draft/media
 writes do not emit timeline events while note writes still do.
 
+CI: **green** — run `41391174225` on `a93a19b` passed compile, JVM tests, lint and APK build.
+
 ## Device and visual verification status
 
 **Not performed.** No ADB target and no emulator/system image installed (see storage

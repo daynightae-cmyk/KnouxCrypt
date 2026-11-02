@@ -157,13 +157,28 @@ runtime status remains untested.
   outcomes from the 500-event bound. Media keeps its dedicated `MEDIA_*` events; note
   commits still emit one `DATA_WRITTEN` per save. Regression test:
   `SecretRepositoryAuditTest.editorDraftsAndMediaDoNotFloodTheTimeline`.
-- `fd54f27` (CI): the first CI run for this branch (workflow run 41378866725, commit
-  `c240b87`) **failed in 19 s** at `android-actions/setup-android@v3` because `sdkmanager`
-  demanded interactive license acceptance, and the source guard then referenced a removed
-  `src/main/java` MainActivity and rejected the shipped camera permission. No Android job
-  ever reached compilation on that commit. The workflow now accepts licenses
-  non-interactively and the guard checks the current invariants; both pass locally.
-  **A green `android.yml` run is still not claimed** until a run log proves it.
+- `fd54f27`, `781efcd`, `a93a19b` (CI): the `android.yml` workflow added in the previous pass
+  had **never successfully run**. Three separate defects were proven by real run logs:
+  1. run 41378866725 failed in 19 s at `android-actions/setup-android@v3` because `sdkmanager`
+     demanded interactive license acceptance;
+  2. run 41390151127 failed in the same step because that action's default `packages` list
+     still contains the legacy `tools` package, which no longer exists
+     (`Warning: Failed to find package 'tools'`) — unrelated to licenses;
+  3. run 41390306837 got past checkout, SDK setup and the source guard, then failed task
+     selection because `:core:data:compileKotlin` and `:core:data:test` do not exist on an
+     Android library module (only variant names such as `compileDebugKotlin` do).
+  The workflow now uses the runner's preinstalled SDK, accepts licenses non-interactively,
+  installs only the pinned platform/build-tools, and names the real debug variants; it also
+  compiles `:core:data:compileDebugAndroidTestKotlin` so the instrumented migration tests
+  cannot silently rot. `scripts/check-source.py` now checks the current invariants instead of
+  a removed `src/main/java` MainActivity path and a removed preview flag.
+- **CI is now proven green**: run `41391174225` on commit `a93a19b` completed with every step
+  successful — checkout, JDK 17, SDK setup, source boundary check, `Compile Kotlin`
+  (`:core:security:compileKotlin`, `:core:data:compileDebugKotlin`, `:app:compileDebugKotlin`,
+  `:core:data:compileDebugAndroidTestKotlin`), `JVM tests`, `Android lint`, `Debug APK`,
+  `SHA-256` and evidence upload. The earlier failed runs are listed above; they are not hidden.
+  Instrumented tests (`core/data/src/androidTest`, including the new Room migration tests)
+  are compiled but **still not executed** — no device or emulator exists in CI or on this host.
 
 ## Next safe task
 

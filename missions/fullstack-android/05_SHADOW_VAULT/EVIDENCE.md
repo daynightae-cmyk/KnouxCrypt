@@ -82,6 +82,9 @@ State: **SOURCE_IMPLEMENTED, JVM_TESTED, DEVICE_TESTED=NO, VISUAL_VERIFIED=NO**.
 | `python native-android/scripts/check-source.py` | **PASS** (camera-only manifest, bilingual parity, AEAD framing) |
 | APK content check | Arabic literals (`سجل الأمان`, `الخزنة الظلية`, `ملاحظات آمنة`, `خصوصية الجلسة`) found in packaged DEX; `aapt2 dump permissions` shows only CAMERA + biometric |
 
+CI: **green** — `Android Native CI` run `41391174225` on `a93a19b` passed compile, JVM tests,
+lint and the debug APK build. Instrumented tests are compiled but not executed (no target).
+
 New JVM tests (`ShadowVaultServiceTest`, 7): import + ciphertext-only storage + sequential
 and random authenticated reads, encrypted thumbnail round-trip and absence, export bytes and
 outcome, delete removes record and files, lock revokes an open reader mid-read, usage counts
