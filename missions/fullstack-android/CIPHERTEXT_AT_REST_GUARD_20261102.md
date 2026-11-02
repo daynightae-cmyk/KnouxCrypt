@@ -6,6 +6,10 @@ Cross-cutting regression guard, not a mission. Added on
 on merged main (run 41499350324, 17/17 steps), each verified through `gh run view --json` rather than
 inferred from a watcher exit code.
 
+Correction: commit `ea87050`'s message names the PR head as `78bf918`. The correct SHA is `78bf91e`,
+which is what the files in that commit and this one both record. The message is left as pushed rather
+than amended, because amending a commit already on `main` would require a force-push.
+
 ## Why
 
 The existing boundary tests (`SecurityBoundaryTest`, 26 cases) cover the session
