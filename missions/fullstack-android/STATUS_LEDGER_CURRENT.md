@@ -36,7 +36,7 @@ Status vocabulary: PLANNED, DESIGN_ONLY, BLOCKED, SOURCE_IMPLEMENTED, JVM_TESTED
 | 27 | HMAC Authenticity | hmac | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 28 | Public Key QR | public_key_qr | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 29 | Vault Collections | vault_collections | IMPLEMENTED | SOURCE_IMPLEMENTED (MERGED `6b3ef20`, CI green on PR SHA `a92a15b` run 41454942483 and on main run 41456728652) | JVM_TESTED (8 service tests) | encrypted labels + membership on media record; no Room migration; BLOCKED_DEVICE (no emulator/system image) |
-| 30 | Document Viewer | document_viewer | IMPLEMENTED | SOURCE_IMPLEMENTED (branch `feature/android-task30-document-viewer-20261102`, base main `354f8f4`, CI green on `a7ce0ea` run 41469323447) | JVM_TESTED (11 service tests) | in-memory-only text with a self-wiping bounded buffer; PDF staged only as an app-private cache lease reclaimed on close/lock/idle/startup-sweep; no new permission, no Room migration; BLOCKED_DEVICE (PdfRenderer runtime and visual comparison unverified); see 30 evidence |
+| 30 | Document Viewer | document_viewer | IMPLEMENTED | SOURCE_IMPLEMENTED (MERGED `37b6fef`, CI green on PR head `2ac26c3` run 41472298813) | JVM_TESTED (11 service tests) | in-memory-only text with a self-wiping bounded buffer; PDF staged only as an app-private cache lease reclaimed on close/lock/re-open/idle/startup-sweep; no new permission, no Room migration; BLOCKED_DEVICE (no emulator/system image, PdfRenderer runtime and visual comparison unverified); see 30 evidence |
 | 31 | Vault Key Rotation | key_rotation | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 32 | Package Inspector | package_inspector | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 33 | Android Autofill | (none) | DESIGN_ONLY | PLANNED | none | |
@@ -62,6 +62,16 @@ cleanup was limited to this session's own regenerable Gradle build output — 19
 D: (3,824,013,312 → 4,026,585,088 bytes free). No worktree, branch, stash, archive, dependency
 cache or visual reference was deleted; the K: preservation snapshots, the two Traycer recovery
 archives and the untracked unique assets in `D:\KnouxCrypt` remain in place.
+
+TASK 30 integration note: merged to `main` as `37b6fef` (merge commit, parents `354f8f4` +
+`2ac26c3`) via PR #42. Android CI green on the PR head (`2ac26c3`, run 41472298813, 16/16 steps) and
+on the merged main SHA (run 41474162392, 16/16 steps). Three earlier runs on this branch were
+cancelled by later pushes under the workflow's `cancel-in-progress` concurrency and are recorded as
+cancelled, not passed. Post-merge cleanup removed 194.5 MiB of this session's own regenerable Gradle
+output after proving with `git ls-files` that no tracked file lives under any `build/` directory;
+volume free space did not rise correspondingly because `D:\Temp` (3,669 MiB) dominates the drive and
+grew by a similar amount in the same window. No worktree, branch, stash, cache, archive or visual
+reference was deleted.
 
 TASK 30 review note (`016e9f0`, `c4ff11d`, `a7ce0ea`): re-reading the execution path after a green
 suite found six real defects, all fixed — `PdfRenderer` is not thread-safe and `page.render()` is a blocking native call,

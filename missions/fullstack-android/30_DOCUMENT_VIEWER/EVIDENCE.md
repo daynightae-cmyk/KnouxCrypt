@@ -5,7 +5,11 @@ State: **SOURCE_IMPLEMENTED, JVM_TESTED, DEVICE_TESTED=NO (BLOCKED_DEVICE), VISU
 - Baseline commit: `354f8f41a1ca1ee2df149bc2467a35174000a79a` (`origin/main`, tree verified clean
   before branching; `gh pr list --state open` returned `[]`)
 - Implementation branch: `feature/android-task30-document-viewer-20261102`
-- Implementation commits: `e144b18` (feature), `016e9f0` (execution-path fixes), `c4ff11d` (audit path) + the lease-reclaim fix recorded in the review note below
+- Implementation commits: `e144b18` (feature), `016e9f0` (execution-path fixes), `c4ff11d` (audit path),
+  `a7ce0ea` (lease reclamation on re-open), `5b5bab1` (accessibility), `2ac26c3` (idle-timer guard)
+- Merged into `main` as `37b6fef4eaefe5c196168c0c3ed7ab79982d5d5d` (merge commit, parents
+  `354f8f4` + `2ac26c3`) via PR #42. No squash, no rebase, no force-push; every intermediate commit is
+  preserved on the branch.
 - Prerequisites: TASK 05 Shadow Vault (`ab0424a`) and TASK 29 Vault Collections (`6b3ef20`), both
   already on `main` and reused, not re-implemented
 - No Room schema change: database version stays **3**, no new table, no migration, and no change to
@@ -181,7 +185,37 @@ on the final head SHA counts as the gate.
 | `c4ff11dfadd799b58f6425097992ea74299bd0ee` | 41468168540 | **cancelled** by a later push to the same ref — not a pass |
 | `a7ce0ea01214048148180b2e247a9cc8474c57a4` | 41469323447 | success (compile, JVM tests, lint, debug APK, SHA-256, evidence upload) |
 | `5b5bab1b1cc67323fc2c95e28739bffab868abf1` | 41471368147 | **cancelled** — a later push to the same ref superseded it, so it is not counted as a pass |
-| final PR head | see merge note | gate |
+| `2ac26c3135e5cde5bd07f55554faca9abab0e910` | 41472298813 | **success** — PR gate. All 16 steps green: source boundary check, Compile Kotlin, JVM tests, Android lint, Debug APK, SHA-256, Upload evidence |
+| `37b6fef4eaefe5c196168c0c3ed7ab79982d5d5d` (`main`) | 41474162392 | **success** — 16/16 steps green, including Source boundary check, Compile Kotlin, JVM tests, Android lint and Debug APK |
+
+Every conclusion above was read back from `gh run view --json conclusion,headSha` and the step list,
+not from a watcher's exit code. That mattered: `gh run watch` returned exit 0 for run
+`41471368147`, which the API reported as **cancelled**. A watcher exit code is therefore not treated
+as evidence in this record.
+
+## Post-merge cleanup
+
+Cleanup was limited to this session's own regenerable Gradle output under `native-android/`:
+`app/build`, `core/data/build`, `core/security/build`, `core/designsystem/build` and the root `build`.
+Before deleting, `git ls-files native-android | grep -cE '(^|/)build/'` returned **0**, proving no
+tracked file lives in any of them, and `git status --porcelain=v2` was empty at `37b6fef`. After
+cleanup all five directories report `exists=False` and the project-local `.gradle` cache (9.2 MiB)
+was deliberately kept. The deleted content measured **194.5 MiB**.
+
+Volume-level free space did **not** rise by that amount: `D:` read 3,675,418,624 bytes free before
+the cleanup and 3,661,856,768 after. The reason is that `D:` is dominated by other content, not this
+project — `D:\Temp` alone holds 3,669 MiB and `D:\KnouxCrypt-Android-Ready` is 770 MiB — and something
+under `D:\Temp` grew by roughly the same amount during the same window. The deletion is therefore
+recorded as 194.5 MiB of regenerable output removed, not as a net capacity win, and no attempt was
+made to delete other tools' temporary data to make the number look better.
+
+Two directories survived the first `shutil.rmtree` because their Gradle `.transforms` dex paths
+exceed Windows `MAX_PATH`; they were removed after enumerating them with the `\\?\` extended-length
+prefix. `robocopy /MIR` returned code 16 and was abandoned rather than retried blindly.
+
+Nothing else was touched: no worktree, branch, stash, reflog entry, dependency cache, archive or
+visual reference was deleted. The `D:\KnouxCrypt` planning worktree at `6c19107`, the K: preservation
+snapshots and the Traycer recovery archives remain in place.
 
 ## Late review catch (idle-timer restart)
 
