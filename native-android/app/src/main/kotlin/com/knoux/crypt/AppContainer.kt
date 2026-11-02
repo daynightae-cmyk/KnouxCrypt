@@ -1,8 +1,10 @@
 package com.knoux.crypt
 
 import android.content.Context
+import com.knoux.crypt.data.AndroidDeviceSignals
 import com.knoux.crypt.data.ArchiveService
 import com.knoux.crypt.data.CertificateVaultService
+import com.knoux.crypt.data.DataStoreAdvisorDismissalStore
 import com.knoux.crypt.data.DataStoreVaultKeyRegistry
 import com.knoux.crypt.data.DatabaseProvider
 import com.knoux.crypt.data.DocumentViewerService
@@ -10,6 +12,7 @@ import com.knoux.crypt.data.KeystoreManager
 import com.knoux.crypt.data.MetadataCleaner
 import com.knoux.crypt.data.PasswordAuditService
 import com.knoux.crypt.data.RoomTransactionRunner
+import com.knoux.crypt.data.SecurityAdvisorService
 import com.knoux.crypt.data.SecretRepository
 import com.knoux.crypt.data.SecurityAuditEvent
 import com.knoux.crypt.data.SecurityEventAction
@@ -30,6 +33,7 @@ import com.knoux.crypt.data.VaultKeyRotationManager
 import com.knoux.crypt.data.recordSafely
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
@@ -95,6 +99,21 @@ class AppContainer(context: Context) {
         audit = securityEvents,
     )
     val rotationAuthBroker = RotationAuthBroker()
+
+    /**
+     * TASK 34: offline security advisor. Reads only framework signals this app may
+     * see, its own settings, unlock enrolment, the key inventory and the local
+     * timeline. It makes no network call and never enumerates other packages.
+     */
+    val securityAdvisor = SecurityAdvisorService(
+        signals = AndroidDeviceSignals(appContext),
+        settings = { settings.settings.first() },
+        unlock = unlockManager,
+        rotation = keyRotation,
+        events = securityEvents,
+        secrets = secrets,
+        dismissals = DataStoreAdvisorDismissalStore(appContext),
+    )
 
     init {
         // Lock is an authoritative session outcome and is recorded even when the

@@ -64,6 +64,22 @@ viewer_ui = (root / "app/src/main/kotlin/com/knoux/crypt/ui/DocumentViewerScreen
 assert "IDLE_CLEAR_SECONDS" in viewer_ui, "The viewer must honour its auto-clear bound"
 assert "viewer.closeLease" in viewer_ui, "The viewer must release its PDF lease"
 
+# TASK 34 offline advisor: the "offline" claim must be enforceable, not decorative.
+advisor = (root / "core/data/src/main/kotlin/com/knoux/crypt/data/SecurityAdvisor.kt").read_text(encoding="utf-8")
+adapters = (root / "core/data/src/main/kotlin/com/knoux/crypt/data/AdvisorAdapters.kt").read_text(encoding="utf-8")
+advisor_ui = (root / "app/src/main/kotlin/com/knoux/crypt/ui/SecurityAdvisorScreen.kt").read_text(encoding="utf-8")
+for forbidden in ("java.net", "HttpURL", "OkHttp", "Socket", "WorkManager", "PackageManager.GET_INSTALLED_PACKAGES",
+                  "getInstalledPackages", "getInstalledApplications", "queryIntentActivities"):
+    assert forbidden not in advisor, f"Advisor rules must not use {forbidden}"
+    assert forbidden not in adapters, f"Advisor adapters must not use {forbidden}"
+assert "appContext.packageName" in adapters, "Permission scan must be limited to this package"
+assert "getPackageInfo" in adapters
+assert '"networkUsed=false"' in advisor and '"intrusionDetection=false"' in advisor
+assert "AdvisorStatus.UNAVAILABLE" in advisor, "Unreadable signals must stay unreadable"
+assert "judgedByApp=false" in advisor, "Patch level must be reported, not judged offline"
+assert "otherAppsEnumerated=false" in advisor
+assert "not an intrusion-detection system" in advisor_ui.lower(), "The disclaimer must stay on screen"
+
 codec = (root / "core/security/src/main/kotlin/com/knoux/crypt/security/AuthenticatedEnvelope.kt").read_text(encoding="utf-8")
 assert codec.count("cipher.updateAAD(header)") == 2
 assert "AES/GCM/NoPadding" in codec

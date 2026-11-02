@@ -58,6 +58,11 @@ class CatalogTest {
         assertEquals(ServiceStatus.IMPLEMENTED, Catalog.byId("NOTES")?.status)
         assertEquals("document_viewer", Catalog.byId("DOCUMENT_VIEWER")?.route)
         assertEquals(ServiceStatus.IMPLEMENTED, Catalog.byId("DOCUMENT_VIEWER")?.status)
+        assertEquals("security_advisor", Catalog.byId("OFFLINE_ADVISOR")?.route)
+        assertEquals(ServiceStatus.IMPLEMENTED, Catalog.byId("OFFLINE_ADVISOR")?.status)
+        // The advisor runs with a locked vault and reports unavailable rules, so it
+        // must not be gated behind unlock.
+        assertEquals(false, Catalog.byId("OFFLINE_ADVISOR")?.requiresUnlock)
     }
 
     @Test
