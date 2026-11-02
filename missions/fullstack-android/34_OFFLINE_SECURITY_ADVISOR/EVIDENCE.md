@@ -5,6 +5,14 @@ State: **SOURCE_IMPLEMENTED, JVM_TESTED, DEVICE_TESTED=NO (BLOCKED_DEVICE), VISU
 - Baseline commit: `2745fc2da03451c6cb25465e36e8be445d800744` (`origin/main`, tree verified clean and
   `gh pr list --state open` returned `[]` before branching)
 - Implementation branch: `feature/android-task34-security-advisor-20261102`
+- Implementation commit: `31ca1cca699731739c8d344d0a48919df2489427` (single commit)
+- Merged into `main` as `f47644db0612f136691d3f2d2dd3a02893b9ae09` (merge commit, parents
+  `2745fc2` + `31ca1cc`) via PR #43. No squash, no rebase, no force-push.
+- CI: "Android Native CI" run `41482612535` on the PR head `31ca1cc` = **success**, 16/16 steps.
+  Conclusion read back from `gh run view --json conclusion,headSha` and the step list, not from a
+  watcher exit code.
+- Post-merge: "Android Native CI" run `41484148473` on `main` at `f47644d` = **success**, 16/16
+  steps (source boundary check, compile, JVM tests, lint, debug APK, SHA-256, evidence upload).
 - Prerequisites already on `main` and reused, not re-implemented: TASK 14 Privacy
   (`privacy` route + enforced settings), TASK 39 Local Security Activity (`37b6fef` lineage),
   TASK 31 key rotation, TASK 05 vault.

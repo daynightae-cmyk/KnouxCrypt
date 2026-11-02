@@ -1,6 +1,6 @@
 # KNOUX Crypt — Native Android Status Ledger (current HEAD)
 
-Generated for hardening branch. Source baseline: c219849. TASK 39 repair implementation: 7c0c8c0 (see `39_LOCAL_SECURITY_ACTIVITY/EVIDENCE.md`). TASK 05 implementation: ab0424a. TASK 07 implementation: 6ebcf96. CI/source-guard repair: fd54f27. TASK 29 implementation branch: 0997afd (`feature/android-task29-vault-collections-20261102`, base main `619a1e3`). TASK 30 implementation branch: `feature/android-task30-document-viewer-20261102` (`e144b18`..`2ac26c3`, base main `354f8f4`, merged `37b6fef`, see `30_DOCUMENT_VIEWER/EVIDENCE.md`). TASK 34 implementation branch: `feature/android-task34-security-advisor-20261102` (base main `2745fc2`, see `34_OFFLINE_SECURITY_ADVISOR/EVIDENCE.md`). This ledger does not delete historical reports.
+Generated for hardening branch. Source baseline: c219849. TASK 39 repair implementation: 7c0c8c0 (see `39_LOCAL_SECURITY_ACTIVITY/EVIDENCE.md`). TASK 05 implementation: ab0424a. TASK 07 implementation: 6ebcf96. CI/source-guard repair: fd54f27. TASK 29 implementation branch: 0997afd (`feature/android-task29-vault-collections-20261102`, base main `619a1e3`). TASK 30 implementation branch: `feature/android-task30-document-viewer-20261102` (`e144b18`..`2ac26c3`, base main `354f8f4`, merged `37b6fef`, see `30_DOCUMENT_VIEWER/EVIDENCE.md`). TASK 34 implementation branch: `feature/android-task34-security-advisor-20261102` (`31ca1cc`, base main `2745fc2`, merged `f47644d`, see `34_OFFLINE_SECURITY_ADVISOR/EVIDENCE.md`). This ledger does not delete historical reports.
 
 Status vocabulary: PLANNED, DESIGN_ONLY, BLOCKED, SOURCE_IMPLEMENTED, JVM_TESTED, DEVICE_TESTED, VISUAL_VERIFIED, SECURITY_REVIEWED, RELEASE_READY, RELEASED.
 
@@ -40,7 +40,7 @@ Status vocabulary: PLANNED, DESIGN_ONLY, BLOCKED, SOURCE_IMPLEMENTED, JVM_TESTED
 | 31 | Vault Key Rotation | key_rotation | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 32 | Package Inspector | package_inspector | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 33 | Android Autofill | (none) | DESIGN_ONLY | PLANNED | none | |
-| 34 | Offline Security Advisor | security_advisor | IMPLEMENTED | SOURCE_IMPLEMENTED (branch `feature/android-task34-security-advisor-20261102`, base main `2745fc2`) | JVM_TESTED (16 rule tests) | 13 deterministic rules over real KeyguardManager/Build/PackageManager/Settings/UnlockManager/rotation-inventory/timeline signals; patch level reported not judged; no network and no other-app enumeration enforced by check-source.py; UNAVAILABLE never counts as pass; no new permission, no Room migration; BLOCKED_DEVICE; see 34 evidence |
+| 34 | Offline Security Advisor | security_advisor | IMPLEMENTED | SOURCE_IMPLEMENTED (MERGED `f47644d`, CI green on PR head `31ca1cc` run 41482612535 and on main run 41484148473) | JVM_TESTED (16 rule tests) | 13 deterministic rules over real KeyguardManager/Build/PackageManager/Settings/UnlockManager/rotation-inventory/timeline signals; patch level reported not judged; no network and no other-app enumeration enforced by check-source.py; UNAVAILABLE never counts as pass; no new permission, no Room migration; BLOCKED_DEVICE; see 34 evidence |
 | 35 | Multi-Device Pairing | (none) | DESIGN_ONLY | PLANNED | none | |
 | 36 | Password Strength Audit | password_audit | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 37 | Argon2id Key Derivation | key_derivation | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
@@ -85,6 +85,15 @@ reopening the same record overwrote the lease map entry and orphaned the first p
 cache with no owner left to delete it, so the superseded lease is now reclaimed and audited; and
 validation ran outside the try block, so a rejection before any decryption (deleted record,
 wrong kind, oversize) left no DOCUMENT_OPEN_FAILED line at all.
+
+TASK 34 integration note: merged to `main` as `f47644d` via PR #43 (single implementation commit
+`31ca1cc`), with Android CI green on the PR head (run 41482612535) and on merged main (run
+41484148473), 16/16 steps each. The advisor's honesty properties are enforced by tooling rather than
+prose: `scripts/check-source.py` asserts no network class and no package-enumeration API in the rules
+or adapters, that the permission query is limited to this package, and that the disclaimer text
+stays on screen. Two local Gradle invocations failed with `java.net.BindException` inside Gradle's
+own FileLockContentionHandler - a Windows loopback-port conflict, not a build error - were retried
+after a delay and passed; the retries are recorded in the evidence rather than hidden.
 
 Follow-up to TASK 39 (commits ab0424a, fd54f27): generic `DATA_*` audit writes are suppressed
 for the `media` and `note_draft` kinds so Shadow Vault imports and notes autosave cannot
