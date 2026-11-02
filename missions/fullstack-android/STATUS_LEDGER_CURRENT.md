@@ -1,6 +1,6 @@
 # KNOUX Crypt — Native Android Status Ledger (current HEAD)
 
-Generated for hardening branch. Source baseline: c219849. TASK 39 repair implementation: 7c0c8c0 (see `39_LOCAL_SECURITY_ACTIVITY/EVIDENCE.md`). TASK 05 implementation: ab0424a. TASK 07 implementation: 6ebcf96. CI/source-guard repair: fd54f27. TASK 29 implementation branch: 0997afd (`feature/android-task29-vault-collections-20261102`, base main `619a1e3`). TASK 30 implementation branch: `feature/android-task30-document-viewer-20261102` (`e144b18` + `016e9f0`, base main `354f8f4`, see `30_DOCUMENT_VIEWER/EVIDENCE.md`). This ledger does not delete historical reports.
+Generated for hardening branch. Source baseline: c219849. TASK 39 repair implementation: 7c0c8c0 (see `39_LOCAL_SECURITY_ACTIVITY/EVIDENCE.md`). TASK 05 implementation: ab0424a. TASK 07 implementation: 6ebcf96. CI/source-guard repair: fd54f27. TASK 29 implementation branch: 0997afd (`feature/android-task29-vault-collections-20261102`, base main `619a1e3`). TASK 30 implementation branch: `feature/android-task30-document-viewer-20261102` (`e144b18`, `016e9f0`, `c4ff11d`, `a7ce0ea` + docs, base main `354f8f4`, see `30_DOCUMENT_VIEWER/EVIDENCE.md`). This ledger does not delete historical reports.
 
 Status vocabulary: PLANNED, DESIGN_ONLY, BLOCKED, SOURCE_IMPLEMENTED, JVM_TESTED, DEVICE_TESTED, VISUAL_VERIFIED, SECURITY_REVIEWED, RELEASE_READY, RELEASED.
 
@@ -36,7 +36,7 @@ Status vocabulary: PLANNED, DESIGN_ONLY, BLOCKED, SOURCE_IMPLEMENTED, JVM_TESTED
 | 27 | HMAC Authenticity | hmac | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 28 | Public Key QR | public_key_qr | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 29 | Vault Collections | vault_collections | IMPLEMENTED | SOURCE_IMPLEMENTED (MERGED `6b3ef20`, CI green on PR SHA `a92a15b` run 41454942483 and on main run 41456728652) | JVM_TESTED (8 service tests) | encrypted labels + membership on media record; no Room migration; BLOCKED_DEVICE (no emulator/system image) |
-| 30 | Document Viewer | document_viewer | IMPLEMENTED | SOURCE_IMPLEMENTED (branch `feature/android-task30-document-viewer-20261102`, base main `354f8f4`, commits `e144b18` + `016e9f0`) | JVM_TESTED (10 service tests) | in-memory-only text with a self-wiping bounded buffer; PDF staged only as an app-private cache lease reclaimed on close/lock/idle/startup-sweep; no new permission, no Room migration; BLOCKED_DEVICE (PdfRenderer runtime and visual comparison unverified); see 30 evidence |
+| 30 | Document Viewer | document_viewer | IMPLEMENTED | SOURCE_IMPLEMENTED (branch `feature/android-task30-document-viewer-20261102`, base main `354f8f4`, CI green on `a7ce0ea` run 41469323447) | JVM_TESTED (11 service tests) | in-memory-only text with a self-wiping bounded buffer; PDF staged only as an app-private cache lease reclaimed on close/lock/idle/startup-sweep; no new permission, no Room migration; BLOCKED_DEVICE (PdfRenderer runtime and visual comparison unverified); see 30 evidence |
 | 31 | Vault Key Rotation | key_rotation | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 32 | Package Inspector | package_inspector | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 33 | Android Autofill | (none) | DESIGN_ONLY | PLANNED | none | |
@@ -63,14 +63,18 @@ D: (3,824,013,312 → 4,026,585,088 bytes free). No worktree, branch, stash, arc
 cache or visual reference was deleted; the K: preservation snapshots, the two Traycer recovery
 archives and the untracked unique assets in `D:\KnouxCrypt` remain in place.
 
-TASK 30 review note (`016e9f0`): re-reading the execution path after a green suite found four real
-defects, all fixed — `PdfRenderer` is not thread-safe and `page.render()` is a blocking native call,
+TASK 30 review note (`016e9f0`, `c4ff11d`, `a7ce0ea`): re-reading the execution path after a green
+suite found six real defects, all fixed — `PdfRenderer` is not thread-safe and `page.render()` is a blocking native call,
 so rendering and release now share one lock with a render-sequence guard; the renderer handle was
 being opened on the main dispatcher and now runs on `Dispatchers.IO`, with a failed
 `PdfRenderer` construction closing the handle and still reclaiming the staged lease; the lock
 listener fired on the `StateFlow`'s initial emission and claimed a release before any copy existed,
 so it now reacts only to a real unlocked → locked transition; and a vault item that exists but is
-not openable was showing the "Preview is locked" art instead of a truthful not-openable state.
+not openable was showing the "Preview is locked" art instead of a truthful not-openable state;
+reopening the same record overwrote the lease map entry and orphaned the first plaintext file in
+cache with no owner left to delete it, so the superseded lease is now reclaimed and audited; and
+validation ran outside the try block, so a rejection before any decryption (deleted record,
+wrong kind, oversize) left no DOCUMENT_OPEN_FAILED line at all.
 
 Follow-up to TASK 39 (commits ab0424a, fd54f27): generic `DATA_*` audit writes are suppressed
 for the `media` and `note_draft` kinds so Shadow Vault imports and notes autosave cannot

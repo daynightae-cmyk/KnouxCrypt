@@ -179,7 +179,28 @@ on the final head SHA counts as the gate.
 | `e144b18daadb7d383186aa165286115380607497` | 41465619254 | success (compile, JVM tests, lint, debug APK, SHA-256, evidence upload) |
 | `016e9f007375b435bc86946fd099ee9f99d95c80` | 41466855064 | success |
 | `c4ff11dfadd799b58f6425097992ea74299bd0ee` | 41468168540 | **cancelled** by a later push to the same ref — not a pass |
-| final PR head | see below | gate |
+| `a7ce0ea01214048148180b2e247a9cc8474c57a4` | 41469323447 | success (compile, JVM tests, lint, debug APK, SHA-256, evidence upload) |
+| final PR head (accessibility polish) | see merge note | gate |
+
+## Process incident recorded, not hidden
+
+While applying a scripted edit, a Python one-liner opened
+`app/src/main/kotlin/com/knoux/crypt/ui/DocumentViewerScreen.kt` for writing and then threw a
+`UnicodeEncodeError` on a surrogate escape before writing, leaving the file truncated to 0 bytes.
+Nothing was lost: the file had already been committed as `a7ce0ea`, so it was restored with
+`git restore` (51,721 bytes, tree verified clean against the recorded blob `57d164c`) and the same
+edits were then applied with the normal editor path. The episode is why the accessibility polish
+lands in a commit after the green `a7ce0ea` run rather than being folded silently into it.
+
+## Accessibility polish (final commit)
+
+- The overflow control was `tr("⋯", "")`, which a screen reader announces as punctuation with no
+  meaning. It now carries an explicit "More document actions" / "إجراءات إضافية للمستند"
+  content description, hoisted outside the `semantics { }` lambda because `tr()` is a composable
+  function and cannot be called there.
+- The decorative lock emblem in the locked-preview panel and the three protection-row glyphs are now
+  marked `clearAndSetSemantics { }`, so TalkBack reads the real headings and row titles instead of
+  announcing stray symbols.
 
 ## Remaining production blockers (unchanged by this task)
 

@@ -47,6 +47,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
@@ -498,6 +499,7 @@ fun DocumentViewerScreen(
     // silently discard a copy the user is still reading.
     LaunchedEffect(unlocked, recordId) { if (unlocked) viewModel.load() }
 
+    val moreActionsLabel = tr("More document actions", "إجراءات إضافية للمستند")
     var showMenu by remember { mutableStateOf(false) }
     var pendingExport by remember { mutableStateOf(false) }
     var notice by remember { mutableStateOf<BilingualText?>(null) }
@@ -521,7 +523,12 @@ fun DocumentViewerScreen(
             actions = {
                 Box {
                     TextButton(onClick = { showMenu = true }) {
-                        Text(tr("⋯", "⋯"), color = KnouxColors.Violet, fontSize = 20.sp)
+                        Text(
+                            "⋯",
+                            color = KnouxColors.Violet,
+                            fontSize = 20.sp,
+                            modifier = Modifier.semantics { contentDescription = moreActionsLabel },
+                        )
                     }
                     DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
                         DropdownMenuItem(
@@ -812,7 +819,8 @@ private fun LockedPreview(message: BilingualText?, onAuthenticate: () -> Unit) {
                 .background(Brush.radialGradient(listOf(KnouxColors.Violet.copy(alpha = 0.5f), Color.Transparent))),
             contentAlignment = Alignment.Center,
         ) {
-            Text("🔒", fontSize = 30.sp)
+            // Decorative: the heading below already states that the preview is locked.
+            Text("🔒", fontSize = 30.sp, modifier = Modifier.clearAndSetSemantics { })
         }
         Spacer(Modifier.height(12.dp))
         Row {
@@ -1015,7 +1023,11 @@ private fun ProtectionRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            Modifier.size(36.dp).clip(CircleShape).background(KnouxColors.Sealed),
+            Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(KnouxColors.Sealed)
+                .clearAndSetSemantics { },
             contentAlignment = Alignment.Center,
         ) {
             Text(icon, color = KnouxColors.Violet, fontSize = 16.sp)
