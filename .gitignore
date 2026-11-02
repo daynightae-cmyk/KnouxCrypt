@@ -1,6 +1,10 @@
 node_modules/
 build/
 dist/
+# Scratch and preserved build outputs. electron-builder writes win-unpacked plus
+# installers here during QA; none of it is source, and a stray `git add -A` in a
+# packaging run would otherwise commit hundreds of megabytes of binaries.
+dist-*/
 .vercel/
 .env
 .env.local
