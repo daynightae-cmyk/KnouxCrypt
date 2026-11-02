@@ -12,7 +12,7 @@
 
 | Source root / branch | Observed state | Unique candidates and evidence | Main equivalent? | Protection decision |
 |---|---|---|---|---|
-| `D:\KnouxCrypt`; `planning/android-crypt-suite-20261029` HEAD `6c19107c181372bdca307c40b0876fe34270eb89` | **253 UNTRACKED** (tracked clean) | `missions/android-fullstack-01-44` Android implementation contracts, all service task sheets | Not verified, potentially non-trivial | **UNTRACKED_UNBACKED_PROTECT** |
+| `D:\KnouxCrypt`; `planning/android-crypt-suite-20261029` HEAD `6c19107c181372bdca307c40b0876fe34270eb89` | **253 UNTRACKED** (tracked clean) | `missions/android-fullstack-01-44` Android implementation contracts, all service task sheets | Not verified, potentially non-trivial | **UNTRACKED_SNAPSHOT_VERIFIED_AND_ORIGINAL_PRESERVE** |
 | same root + branch | part of 253 | `visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/*.png`: 44 named screen references 01 through 44 in observed output | Pixel/approval/hash equivalence not verified | **APPROVED_OR_CONCEPT_UNDETERMINED_PROTECT** |
 | same root + branch | part of 253 | `visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/alternates/`: observed alternate files for FILE_CIPHER, SHADOW_VAULT, PASSWORDS, AUTHENTICATOR, METADATA_CLEANER | Could contain uniquely approved variants | **UNIQUE_PROTECT** |
 | same root + branch | part of 253 | `visuals/ANIMA_MISSIONS_01-44/**`, `visuals/anima_v5/.../prompts/**`, `README_FIRST.md`, `SOURCE_PROVENANCE.md`, handoff scripts, manifests | Semantic/source equivalence not proved | **UNIQUE_PROTECT** |
@@ -44,3 +44,16 @@
 ## Consequence for Android execution
 
 TASK 29 `VAULT_COLLECTIONS` must leverage existing `native-android/core/data/.../ShadowVault.kt` rather than recreate Vault security. Its visual reference is stated by `missions/fullstack-android/29_VAULT_COLLECTIONS/TASK.md` as `visuals/ANIMA_MISSIONS_01-44/29_VAULT_COLLECTIONS/29_VAULT_COLLECTIONS.png`, but actual approval/current accessible tracked path must be established before a fidelity claim. Neither this register nor the forensic checkpoint closes TASK 29.
+
+## Verified local unique-work backup — post-checkpoint update, 2026-11-02
+
+A subsequent **copy-only, non-destructive** preservation operation on the authorized Windows device completed successfully, exit code **0**. Before copying it revalidated the planning HEAD `6c19107c181372bdca307c40b0876fe34270eb89`, canonical remote, exact count 253, path scope (`missions/` and `visuals/` only), and K: free-space reserve. The snapshot destination was required not to preexist (no overwrite).
+
+- Source: `D:\KnouxCrypt` (253 previously untracked files, 149,911,480 source bytes).
+- Destination: `K:\KNOUX_PROJECT_PROMPT_VAULT\KnouxCrypt__ANDROID\UNTRACKED_SNAPSHOT_20261102_6c19107`.
+- File-level result: **253/253 copied and SHA-256 byte-identical** to their source files when checked. 254 destination files including `MANIFEST_SHA256.csv`.
+- Manifest SHA-256: `E9A02A91C894C777CBD55C2003BDFA198A57BD14BEC7D73D44DA2FD915F9CC75`.
+- K: free after operation: **4,346,589,184 bytes**.
+- No original files moved/deleted, no Git checkout or index mutated, no commits made on the local planning branch.
+
+**Limitations:** This is a per-file verified snapshot, not an atomic filesystem snapshot or an off-device/offsite backup. Agent writes to source between file copies are not globally excluded; exact active-agent file leases remain unverified. Revalidate the destination and hashes before any cleanup/recovery. Original untracked files remain high-value and should not be deleted automatically.
