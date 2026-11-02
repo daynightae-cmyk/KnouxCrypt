@@ -31,7 +31,7 @@ data class ToolGroupDef(
 object Catalog {
     val essentials: List<ServiceDef> = listOf(
         ServiceDef("ENCRYPT", "Encrypt Files", "تشفير الملفات", "Keep your files private and secure", "احتفظ بملفاتك خاصة وآمنة", ServiceArt.ENCRYPT, "file_cipher", ServiceStatus.IMPLEMENTED, true),
-        ServiceDef("VAULT", "Vault", "الخزنة", "Access your encrypted vault", "الوصول إلى خزنتك المشفرة", ServiceArt.VAULT, null, ServiceStatus.DESIGN_ONLY, true),
+        ServiceDef("VAULT", "Vault", "الخزنة", "Access your encrypted vault", "الوصول إلى خزنتك المشفرة", ServiceArt.VAULT, "shadow_vault", ServiceStatus.IMPLEMENTED, true),
         ServiceDef("NOTES", "Secure Notes", "ملاحظات آمنة", "Write. Encrypt. Keep it yours.", "اكتب. شفّر. احتفظ بها لنفسك.", ServiceArt.NOTES, "notes", ServiceStatus.IMPLEMENTED, true),
         ServiceDef("PASSWORDS", "Passwords", "كلمات المرور", "Store and manage your passwords", "خزّن وأدر كلمات مرورك", ServiceArt.PASSWORDS, "passwords", ServiceStatus.IMPLEMENTED, true),
         ServiceDef("KEY_FORGE", "Key Forge", "مصنع المفاتيح", "Generate and manage encryption keys", "أنشئ وأدر مفاتيح التشفير", ServiceArt.KEY, "key_forge", ServiceStatus.IMPLEMENTED, true),

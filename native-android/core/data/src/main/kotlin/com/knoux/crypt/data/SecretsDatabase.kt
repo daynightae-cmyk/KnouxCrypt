@@ -167,12 +167,20 @@ class SecretRepository(
         // A lock may have happened while the DAO call was suspended. Never
         // hand back plaintext that was decrypted after revocation.
         session.requireValid(access)
-        if (record?.decryptionFailed == true) {
+        if (record?.decryptionFailed == true && auditable(record.kind)) {
             audit.recordSafely(
                 SecurityAuditEvent(SecurityEventAction.DATA_UNREADABLE, "record kind could not be decrypted"),
             )
         }
         record
+    }
+
+    suspend fun list(access: VaultAccess, kind: String): List<SecretRecord> = withContext(Dispatchers.IO) {
+        session.requireValid(access)
+        val rows = dao.all().filter { it.kind == kind }
+        val records = rows.map { decode(access, it) }
+        session.requireValid(access)
+        records
     }
 
     suspend fun save(access: VaultAccess, kind: String, id: String?, payloadJson: String): String =
@@ -191,22 +199,28 @@ class SecretRepository(
                     dao.upsert(SecretEntity(resolvedId, kind, blob, updatedAt, keyVersion))
                     resolvedId
                 }
-                audit.recordSafely(
-                    SecurityAuditEvent(
-                        SecurityEventAction.DATA_WRITTEN,
-                        "kind=${safeKind(kind)} action=${if (id.isNullOrBlank()) "create" else "update"}",
-                    ),
-                )
+                if (auditable(kind)) {
+                    audit.recordSafely(
+                        SecurityAuditEvent(
+                            SecurityEventAction.DATA_WRITTEN,
+                            "kind=${safeKind(kind)} action=${if (id.isNullOrBlank()) "create" else "update"}",
+                        ),
+                    )
+                }
                 recordId
             } catch (failure: kotlinx.coroutines.CancellationException) {
-                audit.recordSafely(
-                    SecurityAuditEvent(SecurityEventAction.DATA_WRITE_CANCELLED, "kind=${safeKind(kind)}"),
-                )
+                if (auditable(kind)) {
+                    audit.recordSafely(
+                        SecurityAuditEvent(SecurityEventAction.DATA_WRITE_CANCELLED, "kind=${safeKind(kind)}"),
+                    )
+                }
                 throw failure
             } catch (failure: Throwable) {
-                audit.recordSafely(
-                    SecurityAuditEvent(SecurityEventAction.DATA_WRITE_FAILED, "kind=${safeKind(kind)}"),
-                )
+                if (auditable(kind)) {
+                    audit.recordSafely(
+                        SecurityAuditEvent(SecurityEventAction.DATA_WRITE_FAILED, "kind=${safeKind(kind)}"),
+                    )
+                }
                 throw failure
             }
         }
@@ -243,38 +257,51 @@ class SecretRepository(
                 dao.upsertAll(entities)
                 resolved
             }
-            audit.recordSafely(
-                SecurityAuditEvent(
-                    SecurityEventAction.DATA_WRITTEN,
-                    "kind=${safeKind(kind)} count=${ids.size} action=batch",
-                ),
-            )
+            if (auditable(kind)) {
+                audit.recordSafely(
+                    SecurityAuditEvent(
+                        SecurityEventAction.DATA_WRITTEN,
+                        "kind=${safeKind(kind)} count=${ids.size} action=batch",
+                    ),
+                )
+            }
             ids
         } catch (failure: kotlinx.coroutines.CancellationException) {
-            audit.recordSafely(
-                SecurityAuditEvent(SecurityEventAction.DATA_WRITE_CANCELLED, "kind=${safeKind(kind)} action=batch"),
-            )
+            if (auditable(kind)) {
+                audit.recordSafely(
+                    SecurityAuditEvent(SecurityEventAction.DATA_WRITE_CANCELLED, "kind=${safeKind(kind)} action=batch"),
+                )
+            }
             throw failure
         } catch (failure: Throwable) {
-            audit.recordSafely(
-                SecurityAuditEvent(SecurityEventAction.DATA_WRITE_FAILED, "kind=${safeKind(kind)} action=batch"),
-            )
+            if (auditable(kind)) {
+                audit.recordSafely(
+                    SecurityAuditEvent(SecurityEventAction.DATA_WRITE_FAILED, "kind=${safeKind(kind)} action=batch"),
+                )
+            }
             throw failure
         }
     }
 
     suspend fun delete(access: VaultAccess, id: String) = withContext(Dispatchers.IO) {
+        val kind = runCatching { dao.find(id)?.kind }.getOrNull()
         try {
             session.withAuthorizedMutation(access) {
                 session.key(access) // authorize before mutating
                 dao.delete(id)
             }
-            audit.recordSafely(SecurityAuditEvent(SecurityEventAction.DATA_DELETED, "record deleted"))
+            if (auditable(kind)) {
+                audit.recordSafely(SecurityAuditEvent(SecurityEventAction.DATA_DELETED, "record deleted"))
+            }
         } catch (failure: kotlinx.coroutines.CancellationException) {
-            audit.recordSafely(SecurityAuditEvent(SecurityEventAction.DATA_DELETE_CANCELLED, "delete cancelled"))
+            if (auditable(kind)) {
+                audit.recordSafely(SecurityAuditEvent(SecurityEventAction.DATA_DELETE_CANCELLED, "delete cancelled"))
+            }
             throw failure
         } catch (failure: Throwable) {
-            audit.recordSafely(SecurityAuditEvent(SecurityEventAction.DATA_DELETE_FAILED, "delete failed"))
+            if (auditable(kind)) {
+                audit.recordSafely(SecurityAuditEvent(SecurityEventAction.DATA_DELETE_FAILED, "delete failed"))
+            }
             throw failure
         }
     }
@@ -291,45 +318,61 @@ class SecretRepository(
         id: String,
         expectedUpdatedAt: Long,
         payloadJson: String,
+        allowCreate: Boolean = false,
     ): SaveOutcome = withContext(Dispatchers.IO) {
         try {
             val outcome = session.withAuthorizedMutation(access) {
                 val current = dao.find(id)
-                if (current == null) {
-                    SaveOutcome.Missing
-                } else if (current.updatedAt != expectedUpdatedAt) {
-                    SaveOutcome.Conflict(current.updatedAt)
-                } else {
-                    val keyVersion = keys.activeVersion(access)
-                    val codec = SecretCodec(keys.keyFor(access, keyVersion))
-                    val blob = codec.encrypt(kind, id, payloadJson, keyVersion)
-                    val updatedAt = maxOf(System.currentTimeMillis(), current.updatedAt + 1)
-                    dao.upsert(SecretEntity(id, kind, blob, updatedAt, keyVersion))
-                    SaveOutcome.Saved
+                when {
+                    current == null && !allowCreate -> SaveOutcome.Missing
+                    current != null && current.updatedAt != expectedUpdatedAt ->
+                        SaveOutcome.Conflict(current.updatedAt)
+                    else -> {
+                        val keyVersion = keys.activeVersion(access)
+                        val codec = SecretCodec(keys.keyFor(access, keyVersion))
+                        val blob = codec.encrypt(kind, id, payloadJson, keyVersion)
+                        val updatedAt = maxOf(System.currentTimeMillis(), (current?.updatedAt ?: 0L) + 1)
+                        dao.upsert(SecretEntity(id, kind, blob, updatedAt, keyVersion))
+                        SaveOutcome.Saved
+                    }
                 }
             }
             when (outcome) {
-                SaveOutcome.Saved -> audit.recordSafely(
-                    SecurityAuditEvent(
-                        SecurityEventAction.DATA_WRITTEN,
-                        "kind=${safeKind(kind)} action=checked-update",
-                    ),
-                )
+                SaveOutcome.Saved -> if (auditable(kind)) {
+                    audit.recordSafely(
+                        SecurityAuditEvent(
+                            SecurityEventAction.DATA_WRITTEN,
+                            "kind=${safeKind(kind)} action=checked-update",
+                        ),
+                    )
+                }
                 is SaveOutcome.Conflict, SaveOutcome.Missing -> Unit
             }
             outcome
         } catch (failure: kotlinx.coroutines.CancellationException) {
-            audit.recordSafely(
-                SecurityAuditEvent(SecurityEventAction.DATA_WRITE_CANCELLED, "kind=${safeKind(kind)} action=checked-update"),
-            )
+            if (auditable(kind)) {
+                audit.recordSafely(
+                    SecurityAuditEvent(SecurityEventAction.DATA_WRITE_CANCELLED, "kind=${safeKind(kind)} action=checked-update"),
+                )
+            }
             throw failure
         } catch (failure: Throwable) {
-            audit.recordSafely(
-                SecurityAuditEvent(SecurityEventAction.DATA_WRITE_FAILED, "kind=${safeKind(kind)} action=checked-update"),
-            )
+            if (auditable(kind)) {
+                audit.recordSafely(
+                    SecurityAuditEvent(SecurityEventAction.DATA_WRITE_FAILED, "kind=${safeKind(kind)} action=checked-update"),
+                )
+            }
             throw failure
         }
     }
+
+    /**
+     * Draft autosaves and media metadata have dedicated, coarser outcomes (or
+     * intentionally none). Logging each keystroke burst would flood and evict
+     * real security events from the bounded timeline.
+     */
+    private fun auditable(kind: String?): Boolean =
+        kind != null && kind != SecretKinds.NOTE_DRAFT && kind != SecretKinds.MEDIA
 
     /** Bounded, non-secret record-kind token; never a user title or identifier. */
     private fun safeKind(kind: String): String = kind.trim().lowercase().take(24).ifBlank { "unknown" }

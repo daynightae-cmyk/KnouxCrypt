@@ -51,6 +51,9 @@ class CatalogTest {
             }
         }
         assertEquals(34, Catalog.all.map { Catalog.routeFor(it) }.toSet().size)
+        assertEquals("shadow_vault", Catalog.byId("VAULT")?.route)
+        assertEquals(ServiceStatus.IMPLEMENTED, Catalog.byId("VAULT")?.status)
+        assertEquals(ServiceStatus.IMPLEMENTED, Catalog.byId("NOTES")?.status)
     }
 
     @Test

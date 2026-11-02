@@ -279,6 +279,68 @@ class FileEnvelope(
         }
     }
 
+    // --- random access (TASK 05 authenticated media streaming) ---------------
+
+    /** Number of independently authenticated chunks for a plaintext length. */
+    fun chunkCountFor(header: Header): Int = chunkCount(header.plaintextLength)
+
+    /** Plaintext bytes carried by one chunk, including a possibly short final chunk. */
+    fun chunkPlaintextLength(header: Header, index: Int): Int {
+        val total = chunkCount(header.plaintextLength)
+        require(index in 0 until total) { "Chunk index out of bounds" }
+        val start = index.toLong() * header.chunkSize
+        val remaining = header.plaintextLength - start
+        return if (remaining > header.chunkSize) header.chunkSize else remaining.toInt()
+    }
+
+    /** Ciphertext bytes (plaintext + GCM tag) carried by one chunk. */
+    fun chunkCiphertextLength(header: Header, index: Int): Int =
+        chunkPlaintextLength(header, index) + TAG_BYTES
+
+    /** Byte offset of a chunk inside the container, including the authenticated header. */
+    fun chunkOffset(header: Header, index: Int): Long {
+        require(index in 0 until chunkCount(header.plaintextLength)) { "Chunk index out of bounds" }
+        return header.raw.size.toLong() + index.toLong() * (header.chunkSize + TAG_BYTES)
+    }
+
+    /**
+     * Decrypts exactly one authenticated chunk for random-access readers. The
+     * caller is responsible for reading the right ciphertext range from the
+     * container; the header, chunk index and final-chunk flag are all bound as
+     * AAD, so a chunk cannot be reordered, truncated or moved between files.
+     */
+    fun decryptChunk(
+        header: Header,
+        key: SecretKey,
+        context: ByteArray,
+        index: Int,
+        encrypted: ByteArray,
+    ): ByteArray {
+        require(context.size in 1..MAX_CONTEXT_BYTES) { "Context size out of bounds" }
+        requireAes256(key)
+        val total = chunkCount(header.plaintextLength)
+        require(index in 0 until total) { "Chunk index out of bounds" }
+        val expected = chunkCiphertextLength(header, index)
+        require(encrypted.size == expected) { "Chunk ciphertext length mismatch" }
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(
+            Cipher.DECRYPT_MODE,
+            key,
+            GCMParameterSpec(TAG_BYTES * 8, nonceFor(header.baseNonce, index)),
+        )
+        cipher.updateAAD(header.raw + context)
+        updateChunkAad(cipher, index, index == total - 1)
+        val plain = try {
+            cipher.doFinal(encrypted)
+        } catch (failure: GeneralSecurityException) {
+            throw TamperedFileException("Chunk $index failed authentication", failure)
+        }
+        if (plain.size != chunkPlaintextLength(header, index)) {
+            throw TamperedFileException("Chunk $index length mismatch")
+        }
+        return plain
+    }
+
     private fun readKnf1Header(input: InputStream, magic: ByteArray): Header {
         val rest = ByteArray(HEADER_BYTES - 4)
         if (readFully(input, rest, rest.size) != rest.size) throw EOFException("Missing KNF1 header")

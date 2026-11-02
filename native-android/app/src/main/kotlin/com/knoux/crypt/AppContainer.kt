@@ -15,6 +15,7 @@ import com.knoux.crypt.data.SecurityEventAction
 import com.knoux.crypt.data.SecurityEventRepository
 import com.knoux.crypt.data.SessionManager
 import com.knoux.crypt.data.SettingsRepository
+import com.knoux.crypt.data.ShadowVaultService
 import com.knoux.crypt.data.ShareService
 import com.knoux.crypt.data.SignatureStudio
 import com.knoux.crypt.data.SigningService
@@ -55,6 +56,14 @@ class AppContainer(context: Context) {
     val share = ShareService(session, secrets, audit = securityEvents)
     val certificates = CertificateVaultService(session, secrets)
     val vaultFiles = VaultFileCipher(session)
+    /** TASK 05: encrypted media store; no plaintext media or thumbnail files. */
+    val shadowVault = ShadowVaultService(
+        session = session,
+        secrets = secrets,
+        files = vaultFiles,
+        root = java.io.File(appContext.filesDir, "shadow_vault"),
+        audit = securityEvents,
+    )
     val archives = ArchiveService(session, vaultFiles, secrets) { appContext.cacheDir }
     val metadataCleaner = MetadataCleaner()
     val passwordAudit = PasswordAuditService(session, database.secrets(), secrets)
@@ -77,5 +86,7 @@ class AppContainer(context: Context) {
                 securityEvents.recordSafely(SecurityAuditEvent(SecurityEventAction.SESSION_LOCKED))
             }
         }
+        // Drop interrupted import temps; decrypted media never exists on disk.
+        session.addOnLockListener { shadowVault.onLock() }
     }
 }

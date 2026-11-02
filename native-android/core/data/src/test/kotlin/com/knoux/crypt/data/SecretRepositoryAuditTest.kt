@@ -109,4 +109,20 @@ class SecretRepositoryAuditTest {
         assertEquals(SecurityEventAction.DATA_DELETED, event.action)
         assertFalse(event.detail.contains(id))
     }
+
+    @Test
+    fun editorDraftsAndMediaMetadataDoNotFloodTheTimeline() = runBlocking {
+        val vault = TestVault()
+        vault.enroll()
+        val sink = CollectingSink()
+        val repo = repository(vault, sink)
+        val access = vault.access()!!
+        repo.save(access, SecretKinds.NOTE_DRAFT, "draft-id", "{}")
+        repo.save(access, SecretKinds.MEDIA, "media-id", "{}")
+        repo.delete(access, "draft-id")
+        repo.delete(access, "media-id")
+        // Draft autosave is high-frequency and media has dedicated MEDIA_* events;
+        // neither may evict real security outcomes from the bounded timeline.
+        assertTrue(sink.events.isEmpty())
+    }
 }
