@@ -17,6 +17,7 @@
     "audit:report": "npm audit --audit-level=high",
     "check:security": "node scripts/check-dependency-security.cjs",
     "check:capabilities": "node scripts/check-capabilities.cjs",
+    "audit:claims": "node scripts/audit-capability-claims.cjs",
     "icons": "node scripts/generate-icons.cjs",
     "verify:icons": "node scripts/verify-icons.cjs",
     "check:startup": "node scripts/run-startup-acceptance.cjs",
