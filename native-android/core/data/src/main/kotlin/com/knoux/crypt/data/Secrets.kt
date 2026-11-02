@@ -23,6 +23,19 @@ object SecretKinds {
     const val NOTE_DRAFT = "note_draft"
     const val COLLECTION = "collection"
     const val CAPSULE = "capsule"
+
+    /**
+     * Every kind the store may hold, as one enumerable list. This exists so the
+     * ciphertext-at-rest invariant can be swept across all of them instead of the
+     * ones someone remembered. `CiphertextAtRestInvariantTest` reads this source
+     * file and fails if a `const val` is declared here but missing from this list,
+     * so adding a kind without extending the guard cannot go unnoticed.
+     */
+    val ALL: List<String> = listOf(
+        NOTE, PASSWORD, TOTP, SIGNATURE, SIGNING_KEY, PUBLIC_KEY,
+        SHARE_IDENTITY, SHARE_RECIPIENT, SHARE_RECEIPT, CERTIFICATE,
+        ARCHIVE, MEDIA, NOTE_DRAFT, COLLECTION, CAPSULE,
+    )
 }
 
 @Serializable
