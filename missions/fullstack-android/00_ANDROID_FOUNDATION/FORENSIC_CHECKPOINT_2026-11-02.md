@@ -31,7 +31,7 @@ The planning checkout has **253 untracked files** by `git ls-files --others --ex
 - `visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/**`, manifest, source provenance, handoff docs and import scripts.
 - `visuals/KNOUX_CRYPT_ANIMA_V5_DELIVERY.zip`, `visuals/REPO_AGENT_MISSIONS.zip`, backup prompt folders.
 
-Classification: **UNIQUE_PROTECT / UNKNOWN_PRESERVE until hash, semantic equivalence, approval provenance, source and actual integration are independently examined**. Do not call these caches or delete them. No copying/staging/pushing of these 253 files was performed by this checkpoint; there is **no backup/protection completeness proof**. A safe follow-up must inventory sizes and hashes, identify irreplaceable artwork, and checkpoint appropriately without overwriting active agent work.
+Classification: **UNIQUE_PROTECT / UNKNOWN_PRESERVE until hash, semantic equivalence, approval provenance, source and actual integration are independently examined**. Do not call these caches or delete them. The initial checkpoint did not copy these files; see the verified subsequent preservation appendix below for actual per-file backup evidence. A safe follow-up must inventory sizes and hashes, identify irreplaceable artwork, and checkpoint appropriately without overwriting active agent work.
 
 Observed drive free bytes (not a substitute for folder-level accounting): C = 6,421,397,504; D = 4,517,560,320; K = 4,497,653,760. Cleanup mission remains **READ-ONLY**.
 
@@ -83,3 +83,16 @@ TASK 39 source evidence `missions/fullstack-android/39_LOCAL_SECURITY_ACTIVITY/E
 - Work **not** performed: code mutation, build, instrumentation, screenshot parity, local asset backup, merge, release, deletion, workspace cleanup, Android device installation, file owner lease.
 - Main/source remains at recorded baseline; every mutable fact must be revalidated.
 - **Next safe ready task:** unique-work asset backup/inventory (TASK 000 outstanding) and then TASK 29, after exclusive ownership and Android device/security test plan. Inability to install device tests blocks closure, not independent source implementation.
+
+## Verified local unique-work backup — post-checkpoint update, 2026-11-02
+
+A subsequent **copy-only, non-destructive** preservation operation on the authorized Windows device completed successfully, exit code **0**. Before copying it revalidated the planning HEAD `6c19107c181372bdca307c40b0876fe34270eb89`, canonical remote, exact count 253, path scope (`missions/` and `visuals/` only), and K: free-space reserve. The snapshot destination was required not to preexist (no overwrite).
+
+- Source: `D:\KnouxCrypt` (253 previously untracked files, 149,911,480 source bytes).
+- Destination: `K:\KNOUX_PROJECT_PROMPT_VAULT\KnouxCrypt__ANDROID\UNTRACKED_SNAPSHOT_20261102_6c19107`.
+- File-level result: **253/253 copied and SHA-256 byte-identical** to their source files when checked. 254 destination files including `MANIFEST_SHA256.csv`.
+- Manifest SHA-256: `E9A02A91C894C777CBD55C2003BDFA198A57BD14BEC7D73D44DA2FD915F9CC75`.
+- K: free after operation: **4,346,589,184 bytes**.
+- No original files moved/deleted, no Git checkout or index mutated, no commits made on the local planning branch.
+
+**Limitations:** This is a per-file verified snapshot, not an atomic filesystem snapshot or an off-device/offsite backup. Agent writes to source between file copies are not globally excluded; exact active-agent file leases remain unverified. Revalidate the destination and hashes before any cleanup/recovery. Original untracked files remain high-value and should not be deleted automatically.
