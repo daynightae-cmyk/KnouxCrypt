@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
+import { StagEmblem } from "../entry/StagEmblem";
 
 interface NavigationItem {
   path: string;
@@ -186,8 +187,10 @@ export const ModernSidebar: React.FC = () => {
           className="flex items-center gap-3"
           animate={{ scale: collapsed ? 0.8 : 1 }}
         >
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-xl">
-            🔐
+          {/* Official emblem instead of a lock emoji on a blue gradient square —
+              that combination was the generic identity this repair removes. */}
+          <div className="w-10 h-10 shrink-0">
+            <StagEmblem />
           </div>
           <AnimatePresence>
             {!collapsed && (
@@ -197,8 +200,8 @@ export const ModernSidebar: React.FC = () => {
                 exit={{ opacity: 0, width: 0 }}
                 transition={{ duration: 0.2 }}
               >
-                <div className="text-lg font-bold text-white">KnouxCrypt™</div>
-                <div className="text-xs text-white/60">2025 Pro</div>
+                <div className="text-lg font-bold text-white">KNOUX CRYPT</div>
+                <div className="text-xs text-white/60">Private Encryption Suite</div>
               </motion.div>
             )}
           </AnimatePresence>

@@ -4,6 +4,7 @@ import { SCREENS, SERVICES } from '../../config/screens';
 import { useLanguage } from '../../i18n/Language';
 import { StagEmblem } from '../entry/StagEmblem';
 import { Mark } from '../security/ScreenUI';
+import { KnouxServiceIcon } from '../icons/KnouxServiceIcon';
 import { ServiceGrid, ToolsDirectory } from '../home/Home';
 import { useNotes, NOTE_CATEGORIES, SAMPLE_NOTES } from '../notes/NotesContext';
 import './desktop.css';
@@ -55,7 +56,7 @@ export function PageHeading({title,caption,children}) {const {t}=useLanguage();r
 export function StagBanner({title,caption}) {const {t}=useLanguage();return <section className="dw-stag-banner">{(title||caption)&&<div><h2>{t(title)}</h2><p>{t(caption)}</p></div>}<StagEmblem ignite/><i aria-hidden="true"/></section>;}
 export function DesktopHome() {
   const {t}=useLanguage();
-  return <main className="dw-page dw-home" data-screen="HOME"><div className="dw-home-center"><section className="dw-home-hero"><h1>KNOUX <em>CRYPT</em></h1><p>{t('Private Encryption Suite')}</p><div className="dw-brand-line"/><h2>{t('Your private workspace')}</h2><small>{t('Choose a service to begin')}</small></section><ServiceGrid/></div><aside className="dw-inspector"><Panel title="System Status"><dl>{['Encryption Engine','Vault Protection','Key Management','2FA Services'].map(label=><div key={label}><dt>{t(label)}</dt><dd>{t('Not verified')}</dd></div>)}</dl><p className="dw-muted">{t('Protection is reported only after a real service succeeds.')}</p></Panel><Panel title="Quick Actions">{[['FILE_CIPHER','New Encrypted File','file'],['SHADOW_VAULT','Open Vault','folder'],['NOTES','Create Secure Note','file'],['KEY_FORGE','Generate Key','key']].map(([id,label,icon])=><Link className="dw-action-row" key={id} to={SCREENS[id]}><Mark name={icon}/>{t(label)}<span>›</span></Link>)}</Panel><StagBanner title="Privacy. Security. Control." caption="Your data stays local."/></aside></main>;
+  return <main className="dw-page dw-home" data-screen="HOME"><div className="dw-home-center"><section className="dw-home-hero"><h1>KNOUX <em>CRYPT</em></h1><p>{t('Private Encryption Suite')}</p><div className="dw-brand-line"/><h2>{t('Your private workspace')}</h2><small>{t('Choose a service to begin')}</small></section><ServiceGrid/></div><aside className="dw-inspector"><Panel title="System Status"><dl>{['Encryption Engine','Vault Protection','Key Management','2FA Services'].map(label=><div key={label}><dt>{t(label)}</dt><dd>{t('Not verified')}</dd></div>)}</dl><p className="dw-muted">{t('Protection is reported only after a real service succeeds.')}</p></Panel><Panel title="Quick Actions">{[['FILE_CIPHER','New Encrypted File'],['SHADOW_VAULT','Open Vault'],['NOTES','Create Secure Note'],['KEY_FORGE','Generate Key']].map(([id,label])=><Link className="dw-action-row" key={id} to={SCREENS[id]}><KnouxServiceIcon id={id} size="md"/>{t(label)}<span>›</span></Link>)}</Panel><StagBanner title="Privacy. Security. Control." caption="Your data stays local."/></aside></main>;
 }
 export function DesktopFileCipher() {
   const {t}=useLanguage();

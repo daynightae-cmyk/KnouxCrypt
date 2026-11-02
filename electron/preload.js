@@ -324,9 +324,12 @@ const legacy = {
 
 const electronAPI = {
   app: {
-    getName: () => Promise.resolve("KnouxCrypt™ 2025"),
-    getVersion: () => Promise.resolve("2025.1.0"),
-    isDev: () => Promise.resolve(false),
+    // Sourced from package metadata through the main process. These used to be
+    // literals duplicated from package.json, so a version bump left the bridge
+    // reporting a release that no longer existed.
+    getName: () => invoke("app-info").then((info) => info.name),
+    getVersion: () => invoke("app-info").then((info) => info.version),
+    isDev: () => invoke("app-info").then((info) => info.isDev),
   },
   legacy,
   window: {
@@ -334,6 +337,11 @@ const electronAPI = {
     maximize: () => ipcRenderer.send("window-maximize"),
     close: () => ipcRenderer.send("window-close"),
     isMaximized: () => Promise.resolve(false),
+    // One-shot startup report. The root component calls this after its first
+    // committed render so the boot view ends on evidence rather than on a
+    // timer; the main process only accepts it from this window's own
+    // webContents, and it grants no capability.
+    ready: () => ipcRenderer.send("boot:renderer-ready"),
   },
   vault,
   on: (channel, callback) => subscribe(channel, callback),
@@ -353,10 +361,11 @@ const electronAPI = {
 contextBridge.exposeInMainWorld("electronAPI", electronAPI);
 
 contextBridge.exposeInMainWorld("knouxcrypt", {
-  version: "2025.1.0",
-  name: "KnouxCrypt™ 2025",
-  description: "نظام التشفير العسكري المتقدم",
   isElectron: true,
   platform: process.platform,
   arch: process.arch,
+  // Name, version and description are not repeated here: they come from the
+  // main process, which reads them from package metadata. Only `isElectron` is
+  // consumed synchronously (src/App.jsx picks the router from it).
+  info: () => invoke("app-info"),
 });

@@ -102,63 +102,103 @@ const PROBE = `(async () => {
 
 const SPLASH_PROBE = `(async () => {
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-  const el = document.getElementById('loadingText');
-  const before = el ? el.textContent : null;
-  // The splash animation is driven by the formerly inline script; wait long
-  // enough for at least one 500ms tick to prove externalisation did not break it.
-  await wait(1400);
-  const after = el ? el.textContent : null;
-  const cs = getComputedStyle(document.body);
+  const stage = document.querySelector('.boot-stage');
+  const emblem = document.querySelector('img.boot-stag');
+  // A CSP that silently blocks the emblem is the failure mode worth measuring
+  // here: 'self' for a file:// document is not a guarantee in every Chromium
+  // build, and a blocked image renders as a blank square, not an error.
+  if (emblem && emblem.decode) { try { await emblem.decode(); } catch (e) {} }
+  const state = document.getElementById('bootStateEn');
+  const before = state ? state.textContent : null;
+  await wait(1200);
+  const cs = stage ? getComputedStyle(stage) : {};
+  const aperture = document.querySelector('.boot-eye-aperture');
   return {
     url: location.href,
     metaPolicies: [...document.querySelectorAll('meta[http-equiv="Content-Security-Policy"]')].map((m) => m.content),
     scriptSrc: [...document.querySelectorAll('script[src]')].map((s) => s.getAttribute('src')),
     inlineScriptCount: [...document.querySelectorAll('script:not([src])')].length,
+    inlineStyleCount: [...document.querySelectorAll('style')].length,
     stylesheetCount: document.querySelectorAll('link[rel="stylesheet"]').length,
-    // Stylesheet really applied, not merely referenced: the splash sets a
-    // linear-gradient background (a background *image*, so backgroundColor
-    // stays transparent) and a Segoe UI stack. Neither is a browser default.
-    stylesheetApplied: /linear-gradient/.test(cs.backgroundImage) && /Segoe UI/.test(cs.fontFamily),
-    // script really ran under script-src 'self'
-    loadingTextChanged: before !== after && Boolean(after),
-    loadingTextSample: (after || '').slice(0, 40),
-    particleCount: document.querySelectorAll('.particle').length,
+    // Stylesheet really applied, not merely referenced: the stage paints a
+    // gradient and a 14px radius, neither of which is a browser default.
+    stylesheetApplied: /gradient/.test(cs.backgroundImage || '') && parseFloat(cs.borderTopLeftRadius) > 0,
+    bodyTransparent: getComputedStyle(document.body).backgroundColor === 'rgba(0, 0, 0, 0)',
+    // The official emblem, decoded and painted.
+    emblemLoaded: Boolean(emblem && emblem.naturalWidth > 0),
+    emblemSrc: emblem ? emblem.getAttribute('src') : null,
+    emblemBox: emblem ? emblem.getBoundingClientRect().width : 0,
+    // Eye ignition wiring, shared with StagEmblem.jsx rather than re-invented.
+    eyeLayers: {
+      shutter: document.querySelectorAll('.boot-eye-shutter use').length,
+      envelope: document.querySelectorAll('.boot-eye-envelope').length,
+      core: document.querySelectorAll('.boot-eye-core').length,
+      bloom: document.querySelectorAll('.boot-eye-bloom').length,
+      aperture: aperture ? 1 : 0,
+    },
+    apertureAnimated: aperture ? /boot-eyelid|scaleY/.test(getComputedStyle(aperture).transform + ' ' + (getComputedStyle(aperture).animationName || '')) : false,
+    // Truthfulness: nothing may invent status text or a progress bar.
+    stateUnchanged: before === (state ? state.textContent : null),
+    stateSample: (state ? state.textContent : '').slice(0, 40),
+    progressElements: document.querySelectorAll('.loading-bar, .loading-progress, [class*="progress"]').length,
+    versionText: (document.getElementById('bootVersion') || {}).textContent || '',
+    recoveryHidden: (document.getElementById('bootRecovery') || {}).hidden !== false,
+    audioElements: document.querySelectorAll('audio, video').length,
+    emojiInMarkup: /[\\u{1F50F}\\u{1F510}\\u{1F512}\\u{1F513}\\u{1F6E1}]/u.test(document.body.textContent),
   };
 })()`;
 
 app.whenReady().then(async () => {
   console.log("\nKnouxCrypt CSP runtime check (real Electron, production renderer path)\n");
   try {
-    // --- splash document ---
-    // main.js creates the splash from its own app.whenReady handler, which races
-    // this one, so poll briefly instead of assuming a fixed delay.
-    let splashWin = null;
-    const splashDeadline = Date.now() + 6000;
-    while (Date.now() < splashDeadline) {
-      splashWin = BrowserWindow.getAllWindows().find(
-        (w) => w.webContents.getURL().includes("splash.html") && !w.isDestroyed(),
-      );
-      if (splashWin) break;
-      await new Promise((r) => setTimeout(r, 100));
-    }
-    if (splashWin) {
-      const splash = await splashWin.webContents.executeJavaScript(SPLASH_PROBE, true);
-      check("splash document declares a CSP", splash.metaPolicies.length > 0, `${splash.metaPolicies.length} policy(ies)`);
-      check(
-        "splash CSP forbids inline script and has no unsafe-eval",
-        splash.metaPolicies.length > 0 &&
-          !splash.metaPolicies.some((p) => /unsafe-eval|script-src[^;]*unsafe-inline/.test(p)),
-        splash.metaPolicies[0] ? splash.metaPolicies[0].slice(0, 60) : "none",
-      );
-      check("splash carries no inline <script> left behind", splash.inlineScriptCount === 0, `found ${splash.inlineScriptCount}`);
-      check("splash loads its script externally", splash.scriptSrc.length === 1 && /\.js$/.test(splash.scriptSrc[0]), JSON.stringify(splash.scriptSrc));
-      check("splash links an external stylesheet", splash.stylesheetCount === 1, "");
+    // --- boot document ---
+    // Probed in a window this check owns, not main.js's. The real boot view is
+    // closed by the readiness handoff about a second after it appears, and
+    // evaluating a promise-bearing script in a frame that is destroyed
+    // mid-flight leaves executeJavaScript pending forever — which is how this
+    // check came to time out once the fixed 3-second wait went away. Same file,
+    // same preload, same sandbox, and the state message is pushed here so the
+    // bridge is exercised rather than assumed.
+    const bootWindow = new BrowserWindow({
+      width: 600,
+      height: 400,
+      show: false,
+      webPreferences: {
+        contextIsolation: true,
+        nodeIntegration: false,
+        sandbox: true,
+        preload: path.join(root, "electron", "splash-preload.js"),
+      },
+    });
+    try {
+      await bootWindow.loadFile(path.join(root, "electron", "splash.html"));
+      bootWindow.webContents.send("boot:state", { state: "opening", detail: "", version: "0.0.0-csp-probe" });
+      await new Promise((r) => setTimeout(r, 250));
+      const splash = await bootWindow.webContents.executeJavaScript(SPLASH_PROBE, true);
+      check("boot view is present", true, bootWindow.webContents.getURL());
+      check("boot bridge delivered the state message", /Opening KNOUX CRYPT/.test(splash.stateSample), splash.stateSample);
+      check("boot CSP forbids inline script and has no unsafe-eval", splash.metaPolicies.length > 0 && !splash.metaPolicies.some((p) => /unsafe-eval|script-src[^;]*unsafe-inline/.test(p)), splash.metaPolicies[0] ? splash.metaPolicies[0].slice(0, 60) : "none");
+      check("boot view carries no inline <script>", splash.inlineScriptCount === 0, `found ${splash.inlineScriptCount}`);
+      check("boot view carries no inline <style>", splash.inlineStyleCount === 0, `found ${splash.inlineStyleCount}`);
+      check("boot view loads its script externally", splash.scriptSrc.length === 1 && /\.js$/.test(splash.scriptSrc[0]), JSON.stringify(splash.scriptSrc));
+      check("boot view links an external stylesheet", splash.stylesheetCount === 1, "");
       // Behaviour preservation: externalising must not have broken the document.
-      check("splash stylesheet applied under style-src 'self'", splash.stylesheetApplied === true, `gradient+Segoe UI: ${splash.stylesheetApplied}`);
-      check("splash animation script ran under the CSP", splash.loadingTextChanged === true, `sample: ${splash.loadingTextSample}`);
-      check("splash particles were generated", splash.particleCount > 6, `count ${splash.particleCount}`);
-    } else {
-      check("splash document is present", false, "no splash window found");
+      check("boot stylesheet applied under style-src 'self'", splash.stylesheetApplied === true, `gradient+radius: ${splash.stylesheetApplied}`);
+      check("boot window stays transparent at the body", splash.bodyTransparent === true, "the stage paints, not the body");
+      // The identity claim, measured rather than asserted from source: the
+      // official emblem must actually paint under img-src 'self'.
+      check("official emblem decoded and painted under img-src 'self'", splash.emblemLoaded === true, `src=${splash.emblemSrc} box=${splash.emblemBox}px painted=${splash.emblemLoaded}`);
+      check("no lock/shield emoji anywhere in the boot markup", splash.emojiInMarkup === false, "");
+      check("eye ignition reuses the traced mask layers", splash.eyeLayers.shutter === 2 && splash.eyeLayers.core === 2 && splash.eyeLayers.bloom === 2 && splash.eyeLayers.aperture === 1, JSON.stringify(splash.eyeLayers));
+      check("eyelid aperture is driven by CSS, not a second engine", splash.apertureAnimated === true, "");
+      // Truthfulness of the boot view itself.
+      check("boot view fabricates no status text", splash.stateUnchanged === true, `sample: ${splash.stateSample}`);
+      check("boot view has no progress bar", splash.progressElements === 0, `found ${splash.progressElements}`);
+      check("boot view plays no audio (renderer owns consent)", splash.audioElements === 0, `found ${splash.audioElements}`);
+      check("recovery panel is hidden while startup is healthy", splash.recoveryHidden === true, "");
+      check("boot view shows the version it was told, not a literal", /^Version \d/.test(splash.versionText), JSON.stringify(splash.versionText));
+    } finally {
+      bootWindow.destroy();
     }
 
     // --- main renderer over file:// ---

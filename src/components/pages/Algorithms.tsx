@@ -324,7 +324,7 @@ export const Algorithms: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            اختبر وقارن بين أقوى خوارزميات التشفير العسكرية
+            اختبر وقارن بين خوارزميات التشفير المعتمدة عالميًا
           </motion.p>
           <motion.div
             className="flex justify-center gap-4"

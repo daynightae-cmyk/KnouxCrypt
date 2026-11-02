@@ -113,11 +113,18 @@ export const getSystemInfo = () => {
 
 // Application constants
 export const APP_CONSTANTS = {
-  NAME: "KnouxCrypt™",
-  FULL_NAME: "KnouxCrypt™ 2025 - نظام التشفير العسكري المتقدم",
-  DESCRIPTION: "Advanced Military-Grade Encryption System",
+  NAME: "KNOUX CRYPT",
+  // The old constants described a certified warfighter system with
+  // defence-grade encryption. Those are marketing adjectives, not properties of
+  // this code; the suite is built on published primitives (Argon2id,
+  // AES-256-GCM, X25519) and the constants now say so. The internal
+  // `encryptionLevel: "military"` enum below is a settings identifier and is
+  // deliberately untouched, because renaming it would invalidate stored
+  // preferences for no user-visible gain.
+  FULL_NAME: "KNOUX CRYPT — Private Encryption Suite",
+  DESCRIPTION: "Private Encryption Suite",
   VENDOR: "Knoux Technologies",
-  COPYRIGHT: "© 2025 Knoux Technologies. All rights reserved.",
+  COPYRIGHT: `© ${new Date().getFullYear()} Knoux Technologies. All rights reserved.`,
   WEBSITE: "https://knouxcrypt.com",
   SUPPORT_EMAIL: "support@knouxcrypt.com",
 

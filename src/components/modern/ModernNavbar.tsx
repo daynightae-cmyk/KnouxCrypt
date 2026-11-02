@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { SCREENS } from "../../config/screens";
 import { CryptoTestButton } from "../UI/CryptoTestButton";
+import { StagEmblem } from "../entry/StagEmblem";
 
 interface UserProfile {
   name: string;
@@ -105,16 +106,15 @@ export const ModernNavbar: React.FC = () => {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <motion.div
-          className="text-3xl"
-          animate={{ rotate: [0, 10, -10, 0] }}
-          transition={{ duration: 4, repeat: Infinity }}
-        >
-          🔐
-        </motion.div>
+        {/* The official stag-K, not a lock emoji. The previous mark also rotated
+            on a 4s loop — spinning the emblem would be re-posing the logo, so it
+            stays fixed and only its eyes carry the existing ignition behaviour. */}
+        <div className="w-9 h-9 shrink-0">
+          <StagEmblem />
+        </div>
         <div>
-          <div className="text-xl font-bold">KnouxCrypt™</div>
-          <div className="text-xs text-white/60">Military Grade Encryption</div>
+          <div className="text-xl font-bold">KNOUX CRYPT</div>
+          <div className="text-xs text-white/60">Private Encryption Suite</div>
         </div>
       </motion.div>
 
