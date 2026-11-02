@@ -1,6 +1,6 @@
 # KNOUX Crypt — Native Android Status Ledger (current HEAD)
 
-Generated for hardening branch. Source baseline: c219849. This ledger does not delete historical reports.
+Generated for hardening branch. Source baseline: c219849. TASK 39 repair implementation: 7c0c8c0 (see `39_LOCAL_SECURITY_ACTIVITY/EVIDENCE.md`). This ledger does not delete historical reports.
 
 Status vocabulary: PLANNED, DESIGN_ONLY, BLOCKED, SOURCE_IMPLEMENTED, JVM_TESTED, DEVICE_TESTED, VISUAL_VERIFIED, SECURITY_REVIEWED, RELEASE_READY, RELEASED.
 
@@ -45,10 +45,10 @@ Status vocabulary: PLANNED, DESIGN_ONLY, BLOCKED, SOURCE_IMPLEMENTED, JVM_TESTED
 | 36 | Password Strength Audit | password_audit | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 37 | Argon2id Key Derivation | key_derivation | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 38 | Signature Studio | signature_studio | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | digest mode 2 |
-| 39 | Local Security Activity | security_activity | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | added this pass |
+| 39 | Local Security Activity | security_activity | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED; migration tests compiled not run | real producers + Room Flow; device unverified; see 39 evidence |
 | 40 | Transfer Wizard | (none) | DESIGN_ONLY | PLANNED | none | |
 | 41 | Expiring Secret Capsule | (none) | DESIGN_ONLY | PLANNED | none | |
-| 42 | Session Privacy | session_privacy | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | catalog fixed this pass |
+| 42 | Session Privacy | session_privacy | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | shared PrivacyScreen; settings enforced in MainActivity |
 | 43 | File Integrity | file_integrity | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 44 | Secure Clipboard | secure_clipboard | IMPLEMENTED | SOURCE_IMPLEMENTED | JVM_TESTED | |
 | 45 | Final Integration | n/a | n/a | SOURCE_IMPLEMENTED | JVM_TESTED | |
