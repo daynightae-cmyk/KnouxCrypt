@@ -190,6 +190,19 @@ test("packaging only asks for architectures Electron can actually build", () => 
   }
 });
 
+test("the tray is not created where GTK would abort the process", () => {
+  // A Linux Tray needs a display server and a StatusNotifier host, and a missing
+  // one aborts the process instead of throwing. The old guard only looked at
+  // DISPLAY, but under the headless ozone platform Chromium never opens an X11
+  // connection, so GDK has no default display even when DISPLAY is set. That
+  // killed the Linux CI job with "Can't create a GtkStyleContext without a
+  // display connection" before a single assertion ran.
+  const tray = mainSource.slice(mainSource.indexOf("function setupSystemTray"), mainSource.indexOf("function showNotification"));
+  assert.match(tray, /ozone-platform/, "the guard must know about the ozone platform");
+  assert.match(tray, /headless/, "a headless ozone platform must skip the tray");
+  assert.match(tray, /!process\.env\.DISPLAY && !process\.env\.WAYLAND_DISPLAY/, "a missing display must still skip the tray");
+});
+
 test("the app does not require administrator privileges at runtime", () => {
   assert.doesNotMatch(mainSource, /setUserTasks|runas|elevate/i);
   assert.doesNotMatch(preloadSource, /runas|elevate/i);
