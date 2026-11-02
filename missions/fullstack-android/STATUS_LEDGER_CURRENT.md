@@ -107,7 +107,7 @@ device, a fail-open defect there is catastrophic, and a service that deliberatel
 be fake closure. Prerequisites 08/09 are merged and its reference is hash-verified
 (`f5c8b498999c9fb645f890414376349c6d8aed11c1fe638ff1f2bc0dc0d1d18d`).
 
-Cross-cutting hardening (branch `test/android-ciphertext-at-rest-20261102`, base main `9131ea8`, see
+Cross-cutting hardening (MERGED `bc1e517` via PR #45; CI green on head `78bf91e` run 41497811713 and on main run 41499350324, 17/17 steps each; see
 `CIPHERTEXT_AT_REST_GUARD_20261102.md`): a ciphertext-at-rest sweep now runs over all 15 secret
 kinds, and `SecretKinds.ALL` is checked against the source so a new kind cannot be added without
 extending the guard. Both positive controls were executed and observed to fail before being

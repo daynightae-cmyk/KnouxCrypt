@@ -1,7 +1,10 @@
 # Ciphertext-at-rest sweep across every secret kind — 2026-11-02
 
 Cross-cutting regression guard, not a mission. Added on
-`test/android-ciphertext-at-rest-20261102` from base `main` `9131ea8`.
+`test/android-ciphertext-at-rest-20261102` (`78bf91e`) from base `main` `9131ea8`, and merged to
+`main` as `bc1e517` via PR #45. Android CI green on the PR head (run 41497811713, 17/17 steps) and
+on merged main (run 41499350324, 17/17 steps), each verified through `gh run view --json` rather than
+inferred from a watcher exit code.
 
 ## Why
 
