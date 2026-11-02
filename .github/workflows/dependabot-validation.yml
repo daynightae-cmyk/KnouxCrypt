@@ -1,4 +1,4 @@
-name: Dependabot Validation
+name: CI Validation
 
 on:
   pull_request:
@@ -9,13 +9,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: dependabot-validation-${{ github.event.pull_request.number }}
+  group: ci-validation-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   desktop:
     name: Desktop
-    if: github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -35,7 +34,6 @@ jobs:
 
   android:
     name: Android JVM
-    if: github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
