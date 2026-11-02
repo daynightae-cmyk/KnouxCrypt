@@ -64,6 +64,10 @@ enum class SecurityEventAction(
     MEDIA_EXPORTED(SecurityEventCategory.DATA, SecurityEventSeverity.NOTICE),
     MEDIA_EXPORT_FAILED(SecurityEventCategory.DATA, SecurityEventSeverity.ALERT),
     MEDIA_OPENED(SecurityEventCategory.DATA, SecurityEventSeverity.INFO),
+    COLLECTION_CREATED(SecurityEventCategory.DATA, SecurityEventSeverity.INFO),
+    COLLECTION_RENAMED(SecurityEventCategory.DATA, SecurityEventSeverity.INFO),
+    COLLECTION_DELETED(SecurityEventCategory.DATA, SecurityEventSeverity.NOTICE),
+    COLLECTION_MEMBERSHIP_CHANGED(SecurityEventCategory.DATA, SecurityEventSeverity.INFO),
 
     PRIVACY_SETTING_CHANGED(SecurityEventCategory.PRIVACY, SecurityEventSeverity.NOTICE),
 

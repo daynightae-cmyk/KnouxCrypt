@@ -50,6 +50,8 @@ data class VaultMediaPayload(
     /** EXIF rotation for images (0/90/180/270); 0 for other media. */
     val rotationDegrees: Int = 0,
     val hasThumbnail: Boolean = false,
+    /** Owning collection record id, or blank for uncategorized. Encrypted with the record. */
+    val collectionId: String = "",
     val importedAt: Long,
 )
 
@@ -157,6 +159,7 @@ class ShadowVaultService(
         height: Int = 0,
         durationMs: Long = 0,
         rotationDegrees: Int = 0,
+        collectionId: String = "",
         onProgress: (FileEnvelope.Progress) -> Unit = {},
     ): VaultMediaItem = withContext(Dispatchers.IO) {
         session.requireValid(access)
@@ -225,6 +228,7 @@ class ShadowVaultService(
                     else -> 0
                 },
                 hasThumbnail = thumbTarget != null,
+                collectionId = collectionId.trim(),
                 importedAt = now,
             )
             secrets.save(access, SecretKinds.MEDIA, id, SecretsJson.encodeMedia(payload))

@@ -22,6 +22,7 @@ import com.knoux.crypt.data.SigningService
 import com.knoux.crypt.data.UnlockManager
 import com.knoux.crypt.data.UnlockManagers
 import com.knoux.crypt.data.VaultBackupManager
+import com.knoux.crypt.data.VaultCollectionsService
 import com.knoux.crypt.data.VaultFileCipher
 import com.knoux.crypt.data.VaultKeyManager
 import com.knoux.crypt.data.VaultKeyRotationManager
@@ -64,6 +65,8 @@ class AppContainer(context: Context) {
         root = java.io.File(appContext.filesDir, "shadow_vault"),
         audit = securityEvents,
     )
+    /** TASK 29: encrypted collection labels + membership stored on the media record. */
+    val vaultCollections = VaultCollectionsService(session, secrets, securityEvents)
     val archives = ArchiveService(session, vaultFiles, secrets) { appContext.cacheDir }
     val metadataCleaner = MetadataCleaner()
     val passwordAudit = PasswordAuditService(session, database.secrets(), secrets)

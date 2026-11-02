@@ -21,6 +21,7 @@ object SecretKinds {
     const val ARCHIVE = "archive"
     const val MEDIA = "media"
     const val NOTE_DRAFT = "note_draft"
+    const val COLLECTION = "collection"
 }
 
 @Serializable
@@ -335,6 +336,12 @@ object SecretsJson {
 
     fun decodeDraft(value: String): NoteDraftPayload? =
         runCatching { json.decodeFromString(NoteDraftPayload.serializer(), value) }.getOrNull()
+
+    fun encodeCollection(payload: VaultCollectionPayload): String =
+        json.encodeToString(VaultCollectionPayload.serializer(), payload)
+
+    fun decodeCollection(value: String): VaultCollectionPayload? =
+        runCatching { json.decodeFromString(VaultCollectionPayload.serializer(), value) }.getOrNull()
 
     fun encodeSigningKey(payload: SigningKeyPayload): String =
         json.encodeToString(SigningKeyPayload.serializer(), payload)

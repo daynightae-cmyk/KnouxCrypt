@@ -39,6 +39,7 @@ import com.knoux.crypt.ui.SecureRandomScreen
 import com.knoux.crypt.ui.SecurityActivityScreen
 import com.knoux.crypt.ui.SecureShareScreen
 import com.knoux.crypt.ui.ShadowVaultScreen
+import com.knoux.crypt.ui.VaultCollectionsScreen
 import com.knoux.crypt.ui.SignatureStudioScreen
 import com.knoux.crypt.ui.SplashScreen
 import com.knoux.crypt.ui.TextCipherScreen
@@ -240,6 +241,29 @@ fun KnouxNavHost(
                 container = container,
                 onBack = { nav.popBackStack() },
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+                collectionId = null,
+                onOpenCollections = { nav.navigate("vault_collections") { launchSingleTop = true } },
+            )
+        }
+        composable(
+            route = "shadow_vault/collection/{collectionId}",
+            arguments = listOf(navArgument("collectionId") { type = NavType.StringType }),
+        ) { entry ->
+            ShadowVaultScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+                collectionId = entry.arguments?.getString("collectionId").orEmpty(),
+                onOpenCollections = { nav.navigate("vault_collections") { launchSingleTop = true } },
+            )
+        }
+        composable("vault_collections") {
+            VaultCollectionsScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+                onOpenCollection = { id -> nav.navigate("shadow_vault/collection/$id") },
+                onOpenVault = { nav.navigate("shadow_vault") { launchSingleTop = true } },
             )
         }
         composable("secure_clipboard") {

@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
@@ -42,6 +43,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
@@ -85,7 +87,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.knoux.crypt.AppContainer
+import com.knoux.crypt.data.CollectionFailure
+import com.knoux.crypt.data.CollectionRejectedException
 import com.knoux.crypt.data.ShadowVaultService
+import com.knoux.crypt.data.VaultAccess
+import com.knoux.crypt.data.VaultCollection
+import com.knoux.crypt.data.VaultCollectionsService
 import com.knoux.crypt.data.VaultLockedException
 import com.knoux.crypt.data.VaultMediaItem
 import com.knoux.crypt.data.VaultMediaTooLargeException
@@ -93,6 +100,7 @@ import com.knoux.crypt.data.VaultMediaType
 import com.knoux.crypt.data.VaultMediaUnavailableException
 import com.knoux.crypt.data.VaultUsage
 import com.knoux.crypt.design.BackHeader
+import com.knoux.crypt.design.DividerLine
 import com.knoux.crypt.design.GlassCard
 import com.knoux.crypt.design.KnouxColors
 import com.knoux.crypt.design.KnouxGhostButton
@@ -160,9 +168,20 @@ class ShadowVaultViewModel(
     val items: StateFlow<List<VaultMediaItem>> = _items.asStateFlow()
     private val _category = MutableStateFlow(VaultCategory.PHOTOS)
     val category: StateFlow<VaultCategory> = _category.asStateFlow()
-    val filtered: StateFlow<List<VaultMediaItem>> = combine(_items, _category) { rows, selected ->
-        rows.filter { it.type.code == selected.code }
+    private val _collectionFilter = MutableStateFlow<String?>(null)
+    val collectionFilter: StateFlow<String?> = _collectionFilter.asStateFlow()
+    val filtered: StateFlow<List<VaultMediaItem>> = combine(_items, _category, _collectionFilter) { rows, selected, collection ->
+        rows.filter { item ->
+            item.type.code == selected.code &&
+                (collection.isNullOrEmpty() || item.payload?.collectionId == collection)
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    private val collectionsService: VaultCollectionsService = container.vaultCollections
+    private val _collections = MutableStateFlow<List<VaultCollection>>(emptyList())
+    val collections: StateFlow<List<VaultCollection>> = _collections.asStateFlow()
+    private val _collectionName = MutableStateFlow<String?>(null)
+    val collectionName: StateFlow<String?> = _collectionName.asStateFlow()
 
     private val _usage = MutableStateFlow(VaultUsage(0, 0, 0, emptyMap()))
     val usage: StateFlow<VaultUsage> = _usage.asStateFlow()
@@ -193,6 +212,17 @@ class ShadowVaultViewModel(
                     return@collectLatest
                 }
                 val access = container.session.currentAccess() ?: return@collectLatest
+                launch {
+                    try {
+                        collectionsService.observeCollections(access).collect { rows ->
+                            _collections.value = rows
+                            val filter = _collectionFilter.value
+                            _collectionName.value = filter?.let { id -> rows.firstOrNull { it.id == id }?.label }
+                        }
+                    } catch (_: VaultLockedException) {
+                        clearSensitiveState()
+                    }
+                }
                 try {
                     service.observe(access).collect { rows ->
                         _items.value = rows
@@ -206,6 +236,69 @@ class ShadowVaultViewModel(
                 }
             }
         }
+    }
+
+    fun setCollectionFilter(id: String?) {
+        _collectionFilter.value = id?.takeIf { it.isNotBlank() }
+        val filter = _collectionFilter.value
+        _collectionName.value = filter?.let { fid -> _collections.value.firstOrNull { it.id == fid }?.label }
+    }
+
+    /** Real membership change; the media bytes and container file are untouched. */
+    fun assignToCollection(item: VaultMediaItem, targetCollectionId: String) {
+        val access = container.session.currentAccess() ?: run {
+            _error.value = "The vault locked before the move."
+            return
+        }
+        viewModelScope.launch {
+            runCatching {
+                collectionsService.assign(access, item.id, targetCollectionId, _collections.value)
+            }.onSuccess {
+                _notice.value = if (targetCollectionId.isBlank()) {
+                    "Item moved to uncategorized."
+                } else {
+                    "Item moved into the collection."
+                }
+            }.onFailure { failure ->
+                _error.value = collectionMessage(failure)
+            }
+        }
+    }
+
+    fun createCollectionAndAssign(item: VaultMediaItem, label: String) {
+        val access = container.session.currentAccess() ?: run {
+            _error.value = "The vault locked before the collection was created."
+            return
+        }
+        viewModelScope.launch {
+            runCatching {
+                val created = collectionsService.create(access, label)
+                collectionsService.assign(access, item.id, created.id, _collections.value + created)
+                created
+            }.onSuccess { created ->
+                _notice.value = "Collection created and the item added to it."
+                if (!_collectionFilter.value.isNullOrEmpty()) {
+                    _collectionFilter.value = created.id
+                }
+            }.onFailure { failure ->
+                _error.value = collectionMessage(failure)
+            }
+        }
+    }
+
+    private fun collectionMessage(failure: Throwable): String = when {
+        failure is CollectionRejectedException -> when (failure.failure) {
+            CollectionFailure.COLLECTION_NOT_FOUND -> "That collection no longer exists."
+            CollectionFailure.MEDIA_NOT_FOUND -> "That item is no longer in the vault."
+            CollectionFailure.MEDIA_UNREADABLE -> "The item's encrypted metadata is unreadable; nothing was changed."
+            CollectionFailure.STALE_REVISION -> "The item changed while you were moving it. Try again."
+            CollectionFailure.DUPLICATE_NAME -> "A collection with that name already exists."
+            CollectionFailure.EMPTY_NAME -> "Enter a collection name."
+            CollectionFailure.NAME_TOO_LONG -> "The collection name is too long."
+            CollectionFailure.LIMIT_REACHED -> "The collection limit has been reached."
+        }
+        failure is VaultLockedException -> "The vault locked during the move."
+        else -> failure.message ?: "The collection operation failed."
     }
 
     fun setCategory(value: VaultCategory) {
@@ -260,6 +353,7 @@ class ShadowVaultViewModel(
                             height = prepared.height,
                             durationMs = prepared.durationMs,
                             rotationDegrees = prepared.rotationDegrees,
+                            collectionId = _collectionFilter.value.orEmpty(),
                             onProgress = { progress ->
                                 _importProgress.value = VaultImportProgress(
                                     prepared.displayName,
@@ -472,6 +566,8 @@ class ShadowVaultViewModel(
         _items.value = emptyList()
         _usage.value = VaultUsage(0, 0, 0, emptyMap())
         _thumbs.value = emptyMap()
+        _collections.value = emptyList()
+        _collectionName.value = null
         _importProgress.value = null
         _importFailure.value = null
         closeViewer()
@@ -502,7 +598,13 @@ class ShadowVaultViewModel(
 }
 
 @Composable
-fun ShadowVaultScreen(container: AppContainer, onBack: () -> Unit, onNeedUnlock: () -> Unit) {
+fun ShadowVaultScreen(
+    container: AppContainer,
+    onBack: () -> Unit,
+    onNeedUnlock: () -> Unit,
+    collectionId: String?,
+    onOpenCollections: () -> Unit,
+) {
     val unlocked by container.session.unlocked.collectAsStateWithLifecycle()
     if (!unlocked) {
         LockedScreen(tr("Shadow Vault", "الخزنة الظلية"), onBack, onNeedUnlock)
@@ -516,6 +618,8 @@ fun ShadowVaultScreen(container: AppContainer, onBack: () -> Unit, onNeedUnlock:
     val category by viewModel.category.collectAsStateWithLifecycle()
     val usage by viewModel.usage.collectAsStateWithLifecycle()
     val thumbs by viewModel.thumbs.collectAsStateWithLifecycle()
+    val collections by viewModel.collections.collectAsStateWithLifecycle()
+    val collectionName by viewModel.collectionName.collectAsStateWithLifecycle()
     val importProgress by viewModel.importProgress.collectAsStateWithLifecycle()
     val importFailure by viewModel.importFailure.collectAsStateWithLifecycle()
     val viewer by viewModel.viewer.collectAsStateWithLifecycle()
@@ -524,11 +628,14 @@ fun ShadowVaultScreen(container: AppContainer, onBack: () -> Unit, onNeedUnlock:
     val notice by viewModel.notice.collectAsStateWithLifecycle()
     val reduced = LocalReducedMotion.current
 
+    LaunchedEffect(collectionId) { viewModel.setCollectionFilter(collectionId) }
+
     var showImportOptions by remember { mutableStateOf(false) }
     var details by remember { mutableStateOf<VaultMediaItem?>(null) }
     var pendingDelete by remember { mutableStateOf<VaultMediaItem?>(null) }
     var pendingExport by remember { mutableStateOf<VaultMediaItem?>(null) }
     var pendingExportConfirm by remember { mutableStateOf<VaultMediaItem?>(null) }
+    var collectionPickerFor by remember { mutableStateOf<VaultMediaItem?>(null) }
 
     val pickVisual = rememberLauncherForActivityResult(
         ActivityResultContracts.PickMultipleVisualMedia(),
@@ -582,6 +689,33 @@ fun ShadowVaultScreen(container: AppContainer, onBack: () -> Unit, onNeedUnlock:
                 tr("Local only", "محلي فقط"),
                 tone = KnouxColors.Success,
             )
+        }
+        if (!collectionId.isNullOrEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            GlassCard(
+                Modifier.fillMaxWidth(),
+                borderColor = KnouxColors.Violet.copy(alpha = 0.55f),
+                contentPadding = PaddingValues(10.dp),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            tr("Viewing collection", "عرض مجموعة"),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = KnouxColors.Violet,
+                        )
+                        Text(
+                            collectionName ?: tr("Unreadable collection", "مجموعة غير قابلة للقراءة"),
+                            style = MaterialTheme.typography.titleSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    TextButton(onClick = onOpenCollections) {
+                        Text(tr("All collections", "كل المجموعات"), color = KnouxColors.Violet)
+                    }
+                }
+            }
         }
         Spacer(Modifier.height(10.dp))
         VaultCategoryTabs(category, viewModel::setCategory)
@@ -689,6 +823,10 @@ fun ShadowVaultScreen(container: AppContainer, onBack: () -> Unit, onNeedUnlock:
         Spacer(Modifier.height(8.dp))
         KnouxPrimaryButton(tr("Import securely", "استيراد آمن"), { showImportOptions = true })
         Spacer(Modifier.height(6.dp))
+        if (collectionId.isNullOrEmpty()) {
+            KnouxGhostButton(tr("Collections", "المجموعات"), onOpenCollections)
+            Spacer(Modifier.height(6.dp))
+        }
         Text(
             tr(
                 "Imported files are encrypted with the device vault key. Original files are not automatically removed from your device.",
@@ -740,10 +878,33 @@ fun ShadowVaultScreen(container: AppContainer, onBack: () -> Unit, onNeedUnlock:
     details?.let { item ->
         VaultDetailsDialog(
             item = item,
+            collectionLabel = collections.firstOrNull { it.id == item.payload?.collectionId }?.label,
             onDismiss = { details = null },
             onOpen = { details = null; viewModel.openViewer(item) },
             onExport = { details = null; pendingExportConfirm = item },
             onDelete = { details = null; pendingDelete = item },
+            onCollections = { details = null; collectionPickerFor = item },
+        )
+    }
+
+    collectionPickerFor?.let { item ->
+        CollectionPickerDialog(
+            collections = collections,
+            currentCollectionId = item.payload?.collectionId.orEmpty(),
+            onPick = { targetId ->
+                collectionPickerFor = null
+                viewModel.assignToCollection(item, targetId)
+            },
+            onCreate = { label ->
+                val access = container.session.currentAccess()
+                if (access == null) {
+                    collectionPickerFor = null
+                } else {
+                    viewModel.createCollectionAndAssign(item, label)
+                    collectionPickerFor = null
+                }
+            },
+            onDismiss = { collectionPickerFor = null },
         )
     }
 
@@ -1057,10 +1218,12 @@ private fun VaultTile(
 @Composable
 private fun VaultDetailsDialog(
     item: VaultMediaItem,
+    collectionLabel: String?,
     onDismiss: () -> Unit,
     onOpen: () -> Unit,
     onExport: () -> Unit,
     onDelete: () -> Unit,
+    onCollections: () -> Unit,
 ) {
     val formatter = remember { SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()) }
     val payload = item.payload
@@ -1095,6 +1258,10 @@ private fun VaultDetailsDialog(
                     tr("Imported", "تاريخ الاستيراد"),
                     payload?.let { formatter.format(Date(it.importedAt)) } ?: "—",
                 )
+                DetailRow(
+                    tr("Collection", "المجموعة"),
+                    collectionLabel?.takeIf { it.isNotBlank() } ?: tr("Uncategorized", "بلا تصنيف"),
+                )
                 Spacer(Modifier.height(6.dp))
                 Text(
                     tr(
@@ -1114,11 +1281,99 @@ private fun VaultDetailsDialog(
         dismissButton = {
             Row {
                 if (item.readable) {
+                    TextButton(onClick = onCollections) { Text(tr("Move", "نقل"), color = KnouxColors.Violet) }
                     TextButton(onClick = onExport) { Text(tr("Export", "تصدير"), color = KnouxColors.Warn) }
                 }
                 TextButton(onClick = onDelete) { Text(tr("Delete", "حذف"), color = KnouxColors.Alert) }
                 TextButton(onClick = onDismiss) { Text(tr("Close", "إغلاق")) }
             }
+        },
+    )
+}
+
+/** Assigns an item to an existing collection, to uncategorized, or to a new one. */
+@Composable
+private fun CollectionPickerDialog(
+    collections: List<VaultCollection>,
+    currentCollectionId: String,
+    onPick: (String) -> Unit,
+    onCreate: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var newLabel by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(tr("Move to collection", "نقل إلى مجموعة")) },
+        text = {
+            Column(
+                Modifier
+                    .heightIn(max = 360.dp)
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                if (collections.isEmpty()) {
+                    Text(
+                        tr(
+                            "No collections yet. Create one below, then imported items can be filed into it.",
+                            "لا توجد مجموعات بعد. أنشئ واحدة بالأسفل، ثم يمكن ترتيب العناصر المستوردة فيها.",
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                collections.forEach { collection ->
+                    val current = collection.id == currentCollectionId
+                    TextButton(
+                        onClick = { onPick(collection.id) },
+                        enabled = !current,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            if (current) {
+                                tr("${collection.label} (current)", "${collection.label} (الحالية)")
+                            } else {
+                                collection.label
+                            },
+                            color = if (current) KnouxColors.Faint else KnouxColors.Text,
+                            modifier = Modifier.fillMaxWidth(),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+                if (currentCollectionId.isNotBlank()) {
+                    TextButton(onClick = { onPick("") }, modifier = Modifier.fillMaxWidth()) {
+                        Text(tr("Move to uncategorized", "نقل إلى بلا تصنيف"), color = KnouxColors.Warn, modifier = Modifier.fillMaxWidth())
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                DividerLine()
+                Spacer(Modifier.height(8.dp))
+                SectionLabel(tr("New collection", "مجموعة جديدة"))
+                Spacer(Modifier.height(6.dp))
+                com.knoux.crypt.design.KnouxTextField(
+                    value = newLabel,
+                    onValueChange = { newLabel = it },
+                    label = tr("Collection name", "اسم المجموعة"),
+                    singleLine = true,
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    tr(
+                        "Names are stored encrypted inside the vault. They are never written to the audit timeline.",
+                        "تُحفظ الأسماء مشفرة داخل الخزنة، ولا تُكتب أبدًا في سجل التدقيق.",
+                    ),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = KnouxColors.Faint,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onCreate(newLabel) },
+                enabled = newLabel.isNotBlank(),
+            ) { Text(tr("Create and move", "إنشاء ونقل"), color = KnouxColors.Violet) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(tr("Cancel", "إلغاء")) }
         },
     )
 }
