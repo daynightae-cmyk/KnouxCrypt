@@ -1,0 +1,3 @@
+# Preserve historical recovery content byte-for-byte; do not normalize original text.
+**/* -text whitespace=-trailing-space
+* -text whitespace=-trailing-space

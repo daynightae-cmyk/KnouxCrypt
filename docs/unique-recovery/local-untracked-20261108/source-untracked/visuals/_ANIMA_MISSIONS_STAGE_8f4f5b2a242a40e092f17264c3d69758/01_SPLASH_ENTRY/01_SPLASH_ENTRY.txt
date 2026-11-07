@@ -1,0 +1,30 @@
+ANIMA IMAGE-TO-APP | LINK SCREEN 01 (SPLASH_ENTRY) TO THE CURRENT KNOUX CRYPT APP SHELL FIRST.
+Continue the SAME Anima project, session, component tree and route registry. NEVER build a separate app, clone a website, fetch external images, remove old screens, replace the approved stag-K, or duplicate the shared shell. Upload ONLY 01_SPLASH_ENTRY.png as this screen's visual reference. Match its pixels, then implement accessible local UI interactions.
+Mandatory flow: SPLASH_ENTRY -> SECURE_ACCESS_LOGIN -> HOME, followed by service routes. Touch to Enter opens Auth only, not Home. Sign In on Auth offers an explicit local VISUAL DEMO transition to Home; no real auth, biometrics, encryption, key storage or backend. Every later screen connects to the SAME existing navigation; back returns to the caller.
+
+REFERENCE IS LAW. The SINGLE attached portrait is the pixel-lock reference for this one screen. Reconstruct the actual in-app viewport, not a gallery of mockups. Preserve exact layout, geometry, stag-K, typography, gradients, highlights, proportions, spacing, icons, cards and navigation. The image must NOT become a flattened full-screen bitmap with transparent tap hotspots. Rebuild text, buttons, inputs, toggles, tabs, menus and cards as independent accessible React components; use local image layers only for complex illustrated artwork. Do not render decorative handset frames around the live UI.
+
+SCOPE SEPARATION. ANIMA creates visuals and real local front-end behavior only. Use React state, typed components if supported, local samples, accessible semantic controls and CSS animation. No real encryption, key generation, auth, biometrics, OTP, file system, cloud, QR, native settings, networking, security scan, persistence, production secrets or provider connections. Real Android security services are delegated to another engineering stage. Screenshot success text is sample copy, never a verified live state. For secure actions show a visual-only demo panel.
+
+NO EXTERNAL INPUTS. The supplied image is the only design source. No remote assets, imported sites, tracking, templates or icon substitutes. Reuse local stag logo and assets in the SAME app. Execute UI construction, not planning.
+
+CURRENT SCREEN 01 - SPLASH / ILLUMINATED DEER ENTRANCE
+Screen route ID: SPLASH_ENTRY. Existing mission references: 24, 25.
+
+REFERENCE ANCHORS: Single large central stag-K emblem; KNOUX CRYPT wordmark; fine Private Encryption Suite caption; immense near-black negative space; diagonal violet horizon streaks.
+
+SCREEN INTERACTIONS: Add a low-contrast fingerprint-shaped Touch to Enter control inside available lower negative space, distinct from app branding; button can focus, press, dim, and display a subtle ring ripple.
+
+DISTINCTIVE MOTION: Eyes ignite in left-right timed lavender shimmer, sweep through antlers, then settle; opt-in soft metallic tick; no aggressive flashing.
+
+ROUTING: Touch to Enter opens SECURE_ACCESS_LOGIN (screen 02) in the same existing app, never HOME directly. Returning does not replay the full intro.
+
+
+Entry needs a single accessible labeled action near the lower title without covering brand. Use exactly one primary interaction (fingerprint gate), NOT a Login form or a new Home design. On press: focused biometric halo becomes violet-white then navigate to SECURE_ACCESS_LOGIN or its named route placeholder until screen 02 exists. Eye glow independent of title; preserve their positions and avoid startling flashing. The final frame must retain original large spacing and not introduce navigation bars. Restore the original static logo under reduced motion.
+INTEGRATION CONTRACT. Use one shared AppShell, theme tokens, route registry, back handling, system insets, splash continuity and common bottom-navigation components. Register the NEW screen ID without removing old IDs. Unfinished routes show a labeled local placeholder sheet until added. Keep prior UI state on back. Never duplicate shell or navigation.
+
+MICROINTERACTION QUALITY. Build idle, pressed, focused, selected, loading-preview and disabled UI variants as appropriate, plus a smooth Back exit. Use cinematic violet edge sweeps, small press depth, glass shimmer and screen-specific motion, not generic glow everywhere. Reduced-motion supported; sound OFF by default. Honor accessible touch, mobile safe areas, scrolling, keyboard and RTL.
+
+VISUAL QA: Pixel-compare idle UI, pressed/focus states, Back, narrow Android viewport, keyboard and reduced motion. All buttons, cards and menus respond locally or show clear demo sheet. No fake security status. Preserve brand, layout, insets, previous components and routes.
+
+FINAL ACCEPTANCE. Render the reference's idle frame first, then add local interactions. Check small Android widths for clipping, overlapping bars and unexpected scroll. Every visible control responds locally; routes resolve or show placeholder; previous screens survive. Report changed files and tested UI only. No false security completion.

@@ -1,0 +1,2404 @@
+{
+  "project": "KNOuX Crypt",
+  "status": "historical preserved untracked materials, not current instructions or approved art",
+  "source_worktree": "D:\\KnouxCrypt",
+  "archive_note": "zip packages are expanded and mapped by content SHA256; original zip byte-level metadata is not preserved",
+  "entries": [
+    {
+      "source": "missions/android-fullstack-01-44/00_ANDROID_ENGINEERING_CONTRACT.md",
+      "sha256": "078bfa6230980f4788c256297583785af89ef5e8919abc2fe29766e99b3b2f37",
+      "size": 2952,
+      "preserved_as": "TRACKED:docs/unique-recovery/android-fullstack-01-44/00_ANDROID_ENGINEERING_CONTRACT.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/00_FEATURE_MATRIX.psv",
+      "sha256": "d32013c492b63d29cd637e51e546fac7c23ffa4f9132dd091c3bc1607e3d7d5a",
+      "size": 30542,
+      "preserved_as": "TRACKED:docs/unique-recovery/android-fullstack-01-44/00_FEATURE_MATRIX.psv"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/00_Generate_MissionSheets.ps1",
+      "sha256": "74e8b9a7e0b95bf7767d21e17a739c4c01cb7a1d520c266a151ba3f51b46e156",
+      "size": 10209,
+      "preserved_as": "TRACKED:docs/unique-recovery/android-fullstack-01-44/00_Generate_MissionSheets.ps1"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/00_LOCAL_AGENT_MASTER_PROMPT.md",
+      "sha256": "7df1d30a8e976af1b95bc66271ff8bbb511ca3777d96e8f32ca7495919d6dd3e",
+      "size": 6398,
+      "preserved_as": "TRACKED:docs/unique-recovery/android-fullstack-01-44/00_LOCAL_AGENT_MASTER_PROMPT.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/00_MISSION_INDEX.md",
+      "sha256": "b600422a738ecb4e3029259e493752e55502d44f0ea4446c3af0149fc5140177",
+      "size": 3375,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/00_MISSION_INDEX.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/00_SAFE_SYNC_AND_GATES.md",
+      "sha256": "69ff2c42985a3ef3721c9c1d22b2f6979cce5657747634e574260b9c598618fc",
+      "size": 1727,
+      "preserved_as": "TRACKED:docs/unique-recovery/android-fullstack-01-44/00_SAFE_SYNC_AND_GATES.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/00_START_HERE.md",
+      "sha256": "87e07265d02e3f4a074258a911a98a31d0f5f411fceba70bfb2eb655e8da01b2",
+      "size": 3612,
+      "preserved_as": "TRACKED:docs/unique-recovery/android-fullstack-01-44/00_START_HERE.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/00_SUPPLEMENT_ONLY.txt",
+      "sha256": "d0c4924316a6fbc3ac8e20926ca5b68670fb9c30b62c7a52f1d6f1c006a3e374",
+      "size": 340,
+      "preserved_as": "TRACKED:docs/unique-recovery/android-fullstack-01-44/00_SUPPLEMENT_ONLY.txt"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/01_SPLASH_ENTRY/FULLSTACK_MISSION.md",
+      "sha256": "f6bb991d12d4e664244753205c671de0958ac57593c73becb2f45d869c16b7e3",
+      "size": 7831,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/01_SPLASH_ENTRY/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/02_SECURE_ACCESS_LOGIN/FULLSTACK_MISSION.md",
+      "sha256": "02acf1b96721c533060786c9d6d798c0fc3c458f7e316ac32394b00733cbb8c0",
+      "size": 8109,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/02_SECURE_ACCESS_LOGIN/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/03_HOME/FULLSTACK_MISSION.md",
+      "sha256": "1ca7692d949b789bda3c49e05831c5d021778bdfa52e5afd2b98e02a0acb6c43",
+      "size": 7946,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/03_HOME/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/04_FILE_CIPHER/FULLSTACK_MISSION.md",
+      "sha256": "4e8652795c58a7517c2dfa2ea0051ed292993bdb3835ba7333d7ca9955a7f01c",
+      "size": 8110,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/04_FILE_CIPHER/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/05_SHADOW_VAULT/FULLSTACK_MISSION.md",
+      "sha256": "5135b2b8b2b3ef7c1fcab17b130f0b9421873f9ee0fbd2db8a2fa0ac6a39a67c",
+      "size": 8041,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/05_SHADOW_VAULT/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/06_SECURE_NOTES/FULLSTACK_MISSION.md",
+      "sha256": "935161e0036005c9fdd303c2ae1f1a96af9172162fab1a45c49dd66750e05853",
+      "size": 7918,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/06_SECURE_NOTES/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/07_NOTES_EDITOR/FULLSTACK_MISSION.md",
+      "sha256": "3cb2fd5bee9afbdfba2c12b2ec1cc2f73a3d3969e3561015b0737b9d27315522",
+      "size": 7921,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/07_NOTES_EDITOR/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/08_PASSWORDS/FULLSTACK_MISSION.md",
+      "sha256": "d06029b9372eb0c0064b2f1e063a1279a54015e09f47208813934ed44ea94ce9",
+      "size": 7964,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/08_PASSWORDS/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/09_PASSWORD_DETAIL/FULLSTACK_MISSION.md",
+      "sha256": "906453047005b5ac40e393b024f57f5e0a679a2137f1de4596492a723d4538f8",
+      "size": 7945,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/09_PASSWORD_DETAIL/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/10_AUTHENTICATOR/FULLSTACK_MISSION.md",
+      "sha256": "4d044bc5e4fdce46549785c9b025efd7d4f873372d46045ff38a621b8f2163a9",
+      "size": 7917,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/10_AUTHENTICATOR/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/11_AUTH_IMPORT/FULLSTACK_MISSION.md",
+      "sha256": "c7fdb1101ee0bea8e8f348e9db8f483b65e353a28cd67d85069d6fbaefbb6dc4",
+      "size": 7889,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/11_AUTH_IMPORT/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/12_KEY_FORGE/FULLSTACK_MISSION.md",
+      "sha256": "00a18522d6e4ecb68da1254aeab9631c2c6a2ef423ab40c04a96848486dd6994",
+      "size": 7883,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/12_KEY_FORGE/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/13_KEY_DETAILS/FULLSTACK_MISSION.md",
+      "sha256": "738ae32f8ef90410bd463a392588edece68bcdb257b89e2d491f6c3ed8f0b38b",
+      "size": 7855,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/13_KEY_DETAILS/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/14_PRIVACY/FULLSTACK_MISSION.md",
+      "sha256": "1f97c990245457506acb17ae9d65677767e29d74b04625f6d272ce15f1edb40f",
+      "size": 7908,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/14_PRIVACY/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/15_BACKUP/FULLSTACK_MISSION.md",
+      "sha256": "f793be69100ff4b624bffc5fe72884876f8b4b58f57af2fac2e740b80d51f94c",
+      "size": 7911,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/15_BACKUP/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/16_SECURE_SHARE/FULLSTACK_MISSION.md",
+      "sha256": "9fabfbbd45323287321e70d787f6ddd111138752e788a64c030ada4407cc4e0e",
+      "size": 7905,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/16_SECURE_SHARE/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/17_HASH_INTEGRITY/FULLSTACK_MISSION.md",
+      "sha256": "c165bf714b20abcb377ee39d6a5168c9831e21cdfe5a7bc69a1dfa3fa1d9c497",
+      "size": 7762,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/17_HASH_INTEGRITY/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/18_TEXT_CIPHER/FULLSTACK_MISSION.md",
+      "sha256": "f113460255b1d88f470b58c1e32acdd950b448677289e96ef2d5914f5da6202e",
+      "size": 7803,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/18_TEXT_CIPHER/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/19_DIGITAL_SIGNATURE/FULLSTACK_MISSION.md",
+      "sha256": "3344c91a5a3426775fb836ee88a2dfc84baab2ce0eaef38b49a494549c159c94",
+      "size": 7863,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/19_DIGITAL_SIGNATURE/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/20_CERTIFICATE_INSPECTOR/FULLSTACK_MISSION.md",
+      "sha256": "f27e57059bf619d36f362e968c33bec9468db1d99ba3bddd196538e376fb9279",
+      "size": 7883,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/20_CERTIFICATE_INSPECTOR/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/21_ENCRYPTED_ARCHIVE/FULLSTACK_MISSION.md",
+      "sha256": "423e3e53f16312c41ed73549939d517aa2d62c8ed9b7bf41025a3ecc7bc7b29e",
+      "size": 7860,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/21_ENCRYPTED_ARCHIVE/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/22_LOCAL_TRANSFER/FULLSTACK_MISSION.md",
+      "sha256": "8d877a19a5ba2e7fb561d2d977590ac8ee7883b162e283f52858bf8686621321",
+      "size": 7853,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/22_LOCAL_TRANSFER/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/23_FINGERPRINT_VERIFY/FULLSTACK_MISSION.md",
+      "sha256": "b9ee86e23fc44e3b2e86f48f92d4961d6e0cfa05ce016cd73ee68b2746afe15e",
+      "size": 7846,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/23_FINGERPRINT_VERIFY/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/24_METADATA_CLEANER/FULLSTACK_MISSION.md",
+      "sha256": "5f31983fd5a3a138cc7c1c0b4e1c35937c63ac58ec4ba737581acafe432202e6",
+      "size": 7799,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/24_METADATA_CLEANER/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/25_CLIPBOARD_GUARD/FULLSTACK_MISSION.md",
+      "sha256": "1da12a00c774fb988e312b33adaf12781526a9119047b5a40d72439ab6b8408c",
+      "size": 7826,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/25_CLIPBOARD_GUARD/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/26_SECURE_RANDOM/FULLSTACK_MISSION.md",
+      "sha256": "3156c68e6dc6b62d5008e0bdb3b1b1c0a79e8909699d3d401a136505fe0824e3",
+      "size": 7760,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/26_SECURE_RANDOM/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/27_HMAC_AUTHENTICITY/FULLSTACK_MISSION.md",
+      "sha256": "0a115d6b5e865f7609eb610034aa368ef16264bbf8c002d8365943491908dbf1",
+      "size": 7781,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/27_HMAC_AUTHENTICITY/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/28_PUBLIC_KEY_QR/FULLSTACK_MISSION.md",
+      "sha256": "8fddcb28b8123e356a3b6b3397aa0f17b448c46fb1ec58f4cbc7976dcac282c3",
+      "size": 7783,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/28_PUBLIC_KEY_QR/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/29_VAULT_COLLECTIONS/FULLSTACK_MISSION.md",
+      "sha256": "d43af34f98d57988a3c91d15d3b6e5bc59d8623df8b9d1e322ef977890150595",
+      "size": 7799,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/29_VAULT_COLLECTIONS/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/30_DOCUMENT_VIEWER/FULLSTACK_MISSION.md",
+      "sha256": "027eed6dff8baeb566148ca988cb199b499fad98dc259e0ef117f2ea1f11a2b4",
+      "size": 7847,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/30_DOCUMENT_VIEWER/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/31_VAULT_KEY_ROTATION/FULLSTACK_MISSION.md",
+      "sha256": "9c09ea7a46901e98c9c0b2718bc6a62c7a990c4223a3726cabc72f00b6a947e8",
+      "size": 7814,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/31_VAULT_KEY_ROTATION/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/32_CIPHERTEXT_PACKAGE_INSPECTOR/FULLSTACK_MISSION.md",
+      "sha256": "ff4009dd40c30baeb1601796248ad088d0a2e801e28ab56090d68f0b4826d349",
+      "size": 7894,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/32_CIPHERTEXT_PACKAGE_INSPECTOR/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/33_ANDROID_AUTOFILL/FULLSTACK_MISSION.md",
+      "sha256": "6e33a6f60d0356305c764eea6475bbd53680bfdcabf22d1997a408eaecb7709f",
+      "size": 7856,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/33_ANDROID_AUTOFILL/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/34_OFFLINE_SECURITY_ADVISOR/FULLSTACK_MISSION.md",
+      "sha256": "b9f843b26ece707933e6fa9fa53dab12e0ff4832853ff0c8bc0665f095d683b9",
+      "size": 7867,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/34_OFFLINE_SECURITY_ADVISOR/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/35_MULTI_DEVICE_PAIRING/FULLSTACK_MISSION.md",
+      "sha256": "5ee438e8da06843f9931a9167fc8f543e2b4a47899e30efac301eba5115a328b",
+      "size": 7874,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/35_MULTI_DEVICE_PAIRING/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/36_PASSWORD_STRENGTH_AUDIT/FULLSTACK_MISSION.md",
+      "sha256": "c9fb05be5b521f06bf5a959dd6bd8d20fb89425d4042b1d0b3aed2d2956570f6",
+      "size": 7913,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/36_PASSWORD_STRENGTH_AUDIT/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/37_ARGON2ID_KEY_DERIVATION/FULLSTACK_MISSION.md",
+      "sha256": "02c3140bdf241701e3e99ecfccd17598477a35fb4de10adbc385522d7163264e",
+      "size": 7908,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/37_ARGON2ID_KEY_DERIVATION/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/38_SIGNATURE_STUDIO/FULLSTACK_MISSION.md",
+      "sha256": "b8fc84d96142e4a0502ae67df3d0cfb4d4d1be30fccc5589e814bfba1a9bbf4d",
+      "size": 7854,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/38_SIGNATURE_STUDIO/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/39_LOCAL_SECURITY_ACTIVITY/FULLSTACK_MISSION.md",
+      "sha256": "a197c498de0483da5741f59f30d856bfe5e41ecbe58ccf829c78fe5e0f195853",
+      "size": 7902,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/39_LOCAL_SECURITY_ACTIVITY/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/40_TRANSFER_WIZARD/FULLSTACK_MISSION.md",
+      "sha256": "d6fda923f9ce555c048df283138872450fb85f6124c5f19d2b3ddb33be62d448",
+      "size": 7854,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/40_TRANSFER_WIZARD/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/41_EXPIRING_SECRET_CAPSULE/FULLSTACK_MISSION.md",
+      "sha256": "e0effc8692666945e2623b1f03d4ba8472b48bcc0341ed5eff76806fe97abcfa",
+      "size": 7892,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/41_EXPIRING_SECRET_CAPSULE/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/42_SESSION_PRIVACY_CONTROLS/FULLSTACK_MISSION.md",
+      "sha256": "c7afd3e9871f32ca5b3bc58632179146034275a2055941092f373c2b6e6e55a6",
+      "size": 7912,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/42_SESSION_PRIVACY_CONTROLS/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/43_FILE_INTEGRITY_TOOL/FULLSTACK_MISSION.md",
+      "sha256": "36ba9a1de77d679c587836abca2280d9e57be0efbe7cde4ba2e291321ce0de85",
+      "size": 7888,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/43_FILE_INTEGRITY_TOOL/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "missions/android-fullstack-01-44/44_SECURE_CLIPBOARD/FULLSTACK_MISSION.md",
+      "sha256": "b2201344044d989e235e71178fca5f74b750d955885fd3aa0fa8f9448fe437a6",
+      "size": 7865,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/missions/android-fullstack-01-44/44_SECURE_CLIPBOARD/FULLSTACK_MISSION.md"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/01_SPLASH_ENTRY/01_SPLASH_ENTRY.txt",
+      "sha256": "f781359b93e20ad4de48e535dab49a95aa4c7e89762156c8cd8be3d9d90d9ef1",
+      "size": 4643,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/01_SPLASH_ENTRY/01_SPLASH_ENTRY.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/02_SECURE_ACCESS_LOGIN/02_SECURE_ACCESS_LOGIN.txt",
+      "sha256": "0bba1cb5bc9a167115aee4ed6de0525efc177fa79c4121a8273699edbd3a15b6",
+      "size": 4684,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/02_SECURE_ACCESS_LOGIN/02_SECURE_ACCESS_LOGIN.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/03_HOME/03_HOME.png",
+      "sha256": "47e28ee14ada810b061ff887d4e220c741a66bfb2af3135cf92d430071e33f31",
+      "size": 1748875,
+      "preserved_as": "TRACKED:visuals/reference-review/03_HOME_LOCAL_DIFFERENT_REFERENCE.png"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/03_HOME/03_HOME.txt",
+      "sha256": "3873968ee99c80d1ab608f4b3e8235bff9509084b2c9de983170faaf3ba93f43",
+      "size": 4488,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/03_HOME/03_HOME.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/04_FILE_CIPHER/04_FILE_CIPHER.txt",
+      "sha256": "7b5b1f614acb7e5cef0c2f276220161af808b913f884bfa56b4ae67e283e2950",
+      "size": 8871,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/04_FILE_CIPHER/04_FILE_CIPHER.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/05_SHADOW_VAULT/05_SHADOW_VAULT.txt",
+      "sha256": "c237538679bd5e6e0d5c68da12ee4ef0a7cce8b0ba907f3ce0bc111e0eb4520a",
+      "size": 4388,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/05_SHADOW_VAULT/05_SHADOW_VAULT.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/06_SECURE_NOTES/06_SECURE_NOTES.txt",
+      "sha256": "62c7e74a15e7e31930fd7b15340cddc7c85dd8123f36518124e40a393af18210",
+      "size": 4303,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/06_SECURE_NOTES/06_SECURE_NOTES.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/07_NOTES_EDITOR/07_NOTES_EDITOR.txt",
+      "sha256": "aca9e6bddfb8e8e15e21d8627935cb4752c3a7087da8045fa26119cbd3b33bae",
+      "size": 4336,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/07_NOTES_EDITOR/07_NOTES_EDITOR.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/08_PASSWORDS/08_PASSWORDS.txt",
+      "sha256": "0b1adad02c5a6530b92eafdbaca97a86f2451972a1504844e94cb393ab33eed2",
+      "size": 4301,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/08_PASSWORDS/08_PASSWORDS.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/09_PASSWORD_DETAIL/09_PASSWORD_DETAIL.txt",
+      "sha256": "c0229db9a134c4780e8e3f10152037bcb6fd5339c0ae4883695dbd0a63c97c46",
+      "size": 4368,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/09_PASSWORD_DETAIL/09_PASSWORD_DETAIL.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/10_AUTHENTICATOR/10_AUTHENTICATOR.txt",
+      "sha256": "aaf941bf2ed1f72e654f5acc02382e912ce994444277e7101168ebec848ec6ea",
+      "size": 4345,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/10_AUTHENTICATOR/10_AUTHENTICATOR.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/11_AUTH_IMPORT/11_AUTH_IMPORT.txt",
+      "sha256": "cbf0599ec00b2392b441f16015e8fc7e20ecce04a72879e3d9384f94000d40b7",
+      "size": 4277,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/11_AUTH_IMPORT/11_AUTH_IMPORT.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/12_KEY_FORGE/12_KEY_FORGE.txt",
+      "sha256": "7a73fa27af8836202b7c4ac222c560951e57f8fe9499a01114f5a188aa0dbb54",
+      "size": 4244,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/12_KEY_FORGE/12_KEY_FORGE.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/13_KEY_DETAILS/13_KEY_DETAILS.txt",
+      "sha256": "e391ac68d7b44e48e70d3d11849a42219bd95a53913d8c6c7ffbc1d96ac49663",
+      "size": 4331,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/13_KEY_DETAILS/13_KEY_DETAILS.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/14_PRIVACY/14_PRIVACY.txt",
+      "sha256": "9cbab0ad8c923b0f22bd4525c0869f3060d4da1063b2d3d34327d96c41d092e6",
+      "size": 4390,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/14_PRIVACY/14_PRIVACY.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/15_BACKUP/15_BACKUP.txt",
+      "sha256": "cac6c1c2ebd0679610a2392afc1e2343d3bc437a9bc792e0eb99381bdb595109",
+      "size": 4302,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/15_BACKUP/15_BACKUP.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/16_SECURE_SHARE/16_SECURE_SHARE.txt",
+      "sha256": "a1f0b6a766aecbd37e0c83281d913a8bebfb0b749091c1c605f9d095299663c2",
+      "size": 4267,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/16_SECURE_SHARE/16_SECURE_SHARE.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/17_HASH_INTEGRITY/17_HASH_INTEGRITY.txt",
+      "sha256": "1d6f7071ea6055daa3cc33833ece9a7c890eaca5abb842a83a5ce3836cc517dd",
+      "size": 3919,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/17_HASH_INTEGRITY/17_HASH_INTEGRITY.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/18_TEXT_CIPHER/18_TEXT_CIPHER.txt",
+      "sha256": "ef5d77818d253499c8aac5488f35e60803ce4df8b6ae08deb1a0f71af15c50dd",
+      "size": 3861,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/18_TEXT_CIPHER/18_TEXT_CIPHER.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/19_DIGITAL_SIGNATURE/19_DIGITAL_SIGNATURE.txt",
+      "sha256": "8363badfa374c6aeb6ee9092069c4467fd95417f4604278f5a1cb950c6632307",
+      "size": 3946,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/19_DIGITAL_SIGNATURE/19_DIGITAL_SIGNATURE.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/20_CERTIFICATE_INSPECTOR/20_CERTIFICATE_INSPECTOR.txt",
+      "sha256": "ab2cce1d8e1e19d209217f49e3457c4eaaa29e8b91b3b56b6b8332d6104e82c6",
+      "size": 3915,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/20_CERTIFICATE_INSPECTOR/20_CERTIFICATE_INSPECTOR.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/21_ENCRYPTED_ARCHIVE/21_ENCRYPTED_ARCHIVE.txt",
+      "sha256": "ea668aff5933551e9af2c0d743a411ef04e68ec5f560baadc5ba3bd0a19cd4d6",
+      "size": 3879,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/21_ENCRYPTED_ARCHIVE/21_ENCRYPTED_ARCHIVE.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/22_LOCAL_TRANSFER/22_LOCAL_TRANSFER.txt",
+      "sha256": "301d23f30fcad4859ef22aba9f43c53809892623c743439c131f5ee8e5076f42",
+      "size": 3926,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/22_LOCAL_TRANSFER/22_LOCAL_TRANSFER.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/23_FINGERPRINT_VERIFY/23_FINGERPRINT_VERIFY.txt",
+      "sha256": "1796b6070f482bb2cb7980a60cfefe3246bc610ddec154badfa33660b685d35b",
+      "size": 3909,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/23_FINGERPRINT_VERIFY/23_FINGERPRINT_VERIFY.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/24_METADATA_CLEANER/24_METADATA_CLEANER.txt",
+      "sha256": "6b7758495b5ec652db93dbef41e0a591c8cc1a07c9619c324bdaa2f4d060bfb2",
+      "size": 3859,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/24_METADATA_CLEANER/24_METADATA_CLEANER.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/25_CLIPBOARD_GUARD/25_CLIPBOARD_GUARD.txt",
+      "sha256": "6c308489f0b48a22b8ba2ddcc2ac66286100cf80ac4d4b9596a735a974f8227a",
+      "size": 3978,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/25_CLIPBOARD_GUARD/25_CLIPBOARD_GUARD.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/26_SECURE_RANDOM/26_SECURE_RANDOM.txt",
+      "sha256": "ce254c223e8373d2fea0b3850505b0e08df4ce3d75830498163a4c621adfb7b9",
+      "size": 3890,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/26_SECURE_RANDOM/26_SECURE_RANDOM.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/27_HMAC_AUTHENTICITY/27_HMAC_AUTHENTICITY.txt",
+      "sha256": "8801bb04b55df834478e205b8dca6115a3838d3adc006f209173df3b07370616",
+      "size": 3863,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/27_HMAC_AUTHENTICITY/27_HMAC_AUTHENTICITY.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/28_PUBLIC_KEY_QR/28_PUBLIC_KEY_QR.txt",
+      "sha256": "23c2cf40e547faecc2b0869712ba3b7560310e08a9c01630ac75269cab769aa2",
+      "size": 3897,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/28_PUBLIC_KEY_QR/28_PUBLIC_KEY_QR.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/29_VAULT_COLLECTIONS/29_VAULT_COLLECTIONS.txt",
+      "sha256": "6792ac6b27338bf828f6a4a44ede7595e0894b88f780d8b6d8389fe009ea7ac3",
+      "size": 3901,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/29_VAULT_COLLECTIONS/29_VAULT_COLLECTIONS.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/30_DOCUMENT_VIEWER/30_DOCUMENT_VIEWER.txt",
+      "sha256": "3213eb8f7c17a8ab8a540039663c0e4e4b4fffd1e090da7ec0487ba21ab9d52a",
+      "size": 3925,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/30_DOCUMENT_VIEWER/30_DOCUMENT_VIEWER.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/31_VAULT_KEY_ROTATION/31_VAULT_KEY_ROTATION.txt",
+      "sha256": "8431783f75d7653aa41cc8c170cd13bdab1a81ccc675c8805f811fdd1172f7ad",
+      "size": 3848,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/31_VAULT_KEY_ROTATION/31_VAULT_KEY_ROTATION.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/32_CIPHERTEXT_PACKAGE_INSPECTOR/32_CIPHERTEXT_PACKAGE_INSPECTOR.txt",
+      "sha256": "add6d3f446b3f37542b779aee23e68f0d4a7139081fb3699ba101c0318f0eee6",
+      "size": 3918,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/32_CIPHERTEXT_PACKAGE_INSPECTOR/32_CIPHERTEXT_PACKAGE_INSPECTOR.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/33_ANDROID_AUTOFILL/33_ANDROID_AUTOFILL.txt",
+      "sha256": "44e2c34704cb019ea16264a9fb51ced1eecd43ea33c1039200aadf5fe4327494",
+      "size": 3927,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/33_ANDROID_AUTOFILL/33_ANDROID_AUTOFILL.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/34_OFFLINE_SECURITY_ADVISOR/34_OFFLINE_SECURITY_ADVISOR.txt",
+      "sha256": "825347143359f89994cdf29b4d2a3a764bd9b71267d0b650423a3e0e1287ac68",
+      "size": 3813,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/34_OFFLINE_SECURITY_ADVISOR/34_OFFLINE_SECURITY_ADVISOR.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/35_MULTI_DEVICE_PAIRING/35_MULTI_DEVICE_PAIRING.txt",
+      "sha256": "7f19f63ae0cd1e95a161a67fbe5585357bfcbdecdf9c344aa47023afc2557d4f",
+      "size": 3847,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/35_MULTI_DEVICE_PAIRING/35_MULTI_DEVICE_PAIRING.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/36_PASSWORD_STRENGTH_AUDIT/36_PASSWORD_STRENGTH_AUDIT.txt",
+      "sha256": "49a50fdb0aca1bbb6db0a7387cd325f19fad6bd4db4b6e9bbfa1742b2180a751",
+      "size": 3844,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/36_PASSWORD_STRENGTH_AUDIT/36_PASSWORD_STRENGTH_AUDIT.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/37_ARGON2ID_KEY_DERIVATION/37_ARGON2ID_KEY_DERIVATION.txt",
+      "sha256": "1182752ed953f52fd7b2f86510bd7bd4fa53276219e048f57465310e8d5e7585",
+      "size": 3847,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/37_ARGON2ID_KEY_DERIVATION/37_ARGON2ID_KEY_DERIVATION.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/38_SIGNATURE_STUDIO/38_SIGNATURE_STUDIO.txt",
+      "sha256": "e38b10b20a999e70db2e22acb7fae7941bea3e63e1bcd2b88e30284130be85bf",
+      "size": 3811,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/38_SIGNATURE_STUDIO/38_SIGNATURE_STUDIO.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/39_LOCAL_SECURITY_ACTIVITY/39_LOCAL_SECURITY_ACTIVITY.txt",
+      "sha256": "3425b379a73baeb9600bb6d06435b8a3c7799ef2c922901926b03304bcb391aa",
+      "size": 3836,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/39_LOCAL_SECURITY_ACTIVITY/39_LOCAL_SECURITY_ACTIVITY.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/40_TRANSFER_WIZARD/40_TRANSFER_WIZARD.txt",
+      "sha256": "1b936b3dc59174f3cdf66e6ada177a5dd5bb98c17878fefbc376ddae1ec8db08",
+      "size": 3873,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/40_TRANSFER_WIZARD/40_TRANSFER_WIZARD.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/41_EXPIRING_SECRET_CAPSULE/41_EXPIRING_SECRET_CAPSULE.txt",
+      "sha256": "2a8a10cfd847aab95f00603c8329e99efaf1bae4b4551fe0755d20a039f7bbab",
+      "size": 3841,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/41_EXPIRING_SECRET_CAPSULE/41_EXPIRING_SECRET_CAPSULE.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/42_SESSION_PRIVACY_CONTROLS/42_SESSION_PRIVACY_CONTROLS.txt",
+      "sha256": "9f3ebf6c8e0bbd0f47814a6db0578eef565a677bffcb5f1ab642aa22cce4948f",
+      "size": 3836,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/42_SESSION_PRIVACY_CONTROLS/42_SESSION_PRIVACY_CONTROLS.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/43_FILE_INTEGRITY_TOOL/43_FILE_INTEGRITY_TOOL.txt",
+      "sha256": "dd1887f724794fccff42a370d87fa8738a47dbd9d200ce363bd0a514fc0ce478",
+      "size": 3866,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/43_FILE_INTEGRITY_TOOL/43_FILE_INTEGRITY_TOOL.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/44_SECURE_CLIPBOARD/44_SECURE_CLIPBOARD.txt",
+      "sha256": "b420c80ab276ca859a1f2a0ea2f04cada0a2a8e602a5aa11058ad6ad7bde6a45",
+      "size": 3888,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/44_SECURE_CLIPBOARD/44_SECURE_CLIPBOARD.txt"
+    },
+    {
+      "source": "visuals/ANIMA_MISSIONS_01-44/KNOUX_CRYPT_ANIMA_ALL_44_MISSIONS.txt",
+      "sha256": "5e0038983b8d43358874d3e0c1d3e38169240933c6927cda66d1c99860b679ad",
+      "size": 205073,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/ANIMA_MISSIONS_01-44/KNOUX_CRYPT_ANIMA_ALL_44_MISSIONS.txt"
+    },
+    {
+      "source": "visuals/_ANIMA_MISSIONS_STAGE_8f4f5b2a242a40e092f17264c3d69758/01_SPLASH_ENTRY/01_SPLASH_ENTRY.txt",
+      "sha256": "3804e6cf0666920eed827b3d64b856a528f630372093ce1429fbf0bbca98bbf6",
+      "size": 4980,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/_ANIMA_MISSIONS_STAGE_8f4f5b2a242a40e092f17264c3d69758/01_SPLASH_ENTRY/01_SPLASH_ENTRY.txt"
+    },
+    {
+      "source": "visuals/anima_v5/Build-DirectRepo-AgentMissions.ps1",
+      "sha256": "e0645b4e1fc054848b125656e9e7cc47f685cd26ba4a6a9c8f394e91dc1313f9",
+      "size": 19389,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/Build-DirectRepo-AgentMissions.ps1"
+    },
+    {
+      "source": "visuals/anima_v5/Create-Ordered-AnimaMissions.ps1",
+      "sha256": "6e723690a5d4a154dd048b0720cfad78fe7ae39a61e40ac9f58b74b32c24e7f2",
+      "size": 7144,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/Create-Ordered-AnimaMissions.ps1"
+    },
+    {
+      "source": "visuals/anima_v5/Import-KnouxAnimaPack.ps1",
+      "sha256": "91f9ea256ca09173ca12171c1fa8ede9284c5d00d1fd25affda724f0fff7a711",
+      "size": 4844,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/Import-KnouxAnimaPack.ps1"
+    },
+    {
+      "source": "visuals/anima_v5/Import-KnouxAnimaSplitPack.ps1",
+      "sha256": "38818b74ac10cd1bd21509538d8c00a88f63bc2d3e89f6ad17bde05f82b93769",
+      "size": 4647,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/Import-KnouxAnimaSplitPack.ps1"
+    },
+    {
+      "source": "visuals/anima_v5/Import-KnouxAnimaV5Delivery.ps1",
+      "sha256": "db84e49d47d398d9294164764f5c0cb9a3294bee3451d0a44e47fa9d22c4c36c",
+      "size": 7033,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/Import-KnouxAnimaV5Delivery.ps1"
+    },
+    {
+      "source": "visuals/anima_v5/Import-KnouxCrypt-V5-Delivery-Safe.ps1",
+      "sha256": "045b8dd134a44f1e7603478498e9bff0e21df4f712b2852729d39d59fa2e7d92",
+      "size": 3263,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/Import-KnouxCrypt-V5-Delivery-Safe.ps1"
+    },
+    {
+      "source": "visuals/anima_v5/Inject-Universal-Anima-Rules.ps1",
+      "sha256": "552e1ecb831264d92c6ec27ddcee5c7a04c234f4d59687efc557f43d9b117e03",
+      "size": 8927,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/Inject-Universal-Anima-Rules.ps1"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/FILE_SHA256.txt",
+      "sha256": "6f1ad31478ffacdb1ce45d8198b61fe040470e8e2997b151b33d7f09d56d32da",
+      "size": 10057,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/FILE_SHA256.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/MANIFEST.json",
+      "sha256": "8ad5b2e6f77d86c0c03d3e5f94a6ace404327e8ba767f5dd437a2e04194a9c23",
+      "size": 27444,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/MANIFEST.json"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/README_FIRST.md",
+      "sha256": "ba1b3b34c8f38458695a3e41f38a9384739eaa72d79f1074d2d3c1f8bdbb0cb3",
+      "size": 8220,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/README_FIRST.md"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/docs/INTEGRATION_HANDOFF.md",
+      "sha256": "001409d99051d1a676801531a0505afb43ebab411ca7ca8573f59446b3cb0f48",
+      "size": 1885,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/docs/INTEGRATION_HANDOFF.md"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/docs/SOURCE_PROVENANCE.md",
+      "sha256": "5de21068ece38e70a6b509767a7f898111fb48e224a9cda68df3db6ee3ef7d3a",
+      "size": 4094,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/docs/SOURCE_PROVENANCE.md"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/01_SPLASH_ENTRY.txt",
+      "sha256": "2646d868a5aa264fe479b9ad10651657fef1cccd0cf7b8b6686b8013b1880553",
+      "size": 4938,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/01_SPLASH_ENTRY.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/02_HOME.txt",
+      "sha256": "cdd468a1077aab287d071789cc8eaca036d5b60289fda0d6f08932e0182ab673",
+      "size": 4785,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/02_HOME.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/03_SECURE_ACCESS_LOGIN.txt",
+      "sha256": "4c6f9d8e10ca0061c9e20513272cbea39c2b378375ccaf0af70fe69e468685ff",
+      "size": 4775,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/03_SECURE_ACCESS_LOGIN.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/04_FILE_CIPHER.txt",
+      "sha256": "52425088987d9974e7234a07c1e84fda9f75e27f3c604b5d00420b3ad78ed151",
+      "size": 4739,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/04_FILE_CIPHER.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/05_SHADOW_VAULT.txt",
+      "sha256": "6a08ed8712e54651be171b27569e2f1bc3de65b3b419bad8d1e46b18849bfef9",
+      "size": 4709,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/05_SHADOW_VAULT.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/06_SECURE_NOTES.txt",
+      "sha256": "b1c27ff111a98d536710c40312a235e66cb6df1419e60cd15f441a2180ed8d31",
+      "size": 4624,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/06_SECURE_NOTES.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/07_NOTES_EDITOR.txt",
+      "sha256": "ae81880a6a777bdc9368dd1c98f8abdcb908131b7fea6bc4bd20f9821e596e1f",
+      "size": 4657,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/07_NOTES_EDITOR.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/08_PASSWORDS.txt",
+      "sha256": "122c05a53280c4c1e7997406a9ef1feefdd8ad1a0496785b5416944a72206e13",
+      "size": 4625,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/08_PASSWORDS.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/09_PASSWORD_DETAIL.txt",
+      "sha256": "49393d5d095841360de6e57a438af88e174ef6f688da013bc98a7abe417b203f",
+      "size": 4686,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/09_PASSWORD_DETAIL.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/10_AUTHENTICATOR.txt",
+      "sha256": "85a83cc6d191c29fcf50e981d481abe68eb691ef114a244bd005cd25d990f6fc",
+      "size": 4665,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/10_AUTHENTICATOR.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/11_AUTH_IMPORT.txt",
+      "sha256": "207818590902f30bb2cbe6212c8bbee853e66aa8e5f52b595e19b24c2cfb9f31",
+      "size": 4599,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/11_AUTH_IMPORT.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/12_KEY_FORGE.txt",
+      "sha256": "9b4160cf3d2b2c10a207281be87eb17cb62446ed89279f1b6e410ac0f29dbd4e",
+      "size": 4568,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/12_KEY_FORGE.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/13_KEY_DETAILS.txt",
+      "sha256": "b9bcd0d85eea25bf4102a7a2b578754f1e76f69cc8701c9582edb5f1d85e7926",
+      "size": 4653,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/13_KEY_DETAILS.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/14_PRIVACY.txt",
+      "sha256": "26a496d96ee6ea77f2863ff24282f3d20b915e4c3374564c214e6b9e0f062698",
+      "size": 4716,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/14_PRIVACY.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/15_BACKUP.txt",
+      "sha256": "bc589eb0ca5a690cfb9cbd8231881a80cc6a265f371e6b84bb4afdaa88203e28",
+      "size": 4629,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/15_BACKUP.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/16_SECURE_SHARE.txt",
+      "sha256": "374023f67f132d5b46b7eb9cce28c699e7dc4b41a3c6bf5762e441f00a88b69f",
+      "size": 4588,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/16_SECURE_SHARE.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/17_HASH_INTEGRITY.txt",
+      "sha256": "0cedbf7706400188891e06525fcf83973866bd1c6a256939f4e6f3d8855aa0ea",
+      "size": 4242,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/17_HASH_INTEGRITY.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/18_TEXT_CIPHER.txt",
+      "sha256": "728e958a0d47d9ece8212c6fa4704e41907fbdf4c67eaf863980867a93f1d8e5",
+      "size": 4187,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/18_TEXT_CIPHER.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/19_DIGITAL_SIGNATURE.txt",
+      "sha256": "0b418592aa471e760d4e8aef8c11209a79e096e427f3ba0a03230ce4ec8fd281",
+      "size": 4266,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/19_DIGITAL_SIGNATURE.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/20_CERTIFICATE_INSPECTOR.txt",
+      "sha256": "74cf2c839b4a59a93a4c3aae83815ffee2b22c1b129f3a371c111ee43c2735db",
+      "size": 4231,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/20_CERTIFICATE_INSPECTOR.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/21_ENCRYPTED_ARCHIVE.txt",
+      "sha256": "5b1daba25532d9d0f95eced9ca6ec3acbb318315f0fd3792ed50954a13b8f16b",
+      "size": 4199,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/21_ENCRYPTED_ARCHIVE.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/22_LOCAL_TRANSFER.txt",
+      "sha256": "d060ec4e632e92f5ba98b7aa0e7e68b7f9f7a701ec65a59617fc9aa96e395840",
+      "size": 4249,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/22_LOCAL_TRANSFER.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/23_FINGERPRINT_VERIFY.txt",
+      "sha256": "4746c67c60cdcae62cdfdf189b62a63d6fab3c885deb97e989d54e8fdaaa2aec",
+      "size": 4228,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/23_FINGERPRINT_VERIFY.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/24_METADATA_CLEANER.txt",
+      "sha256": "ef90e47b0519ccfda34577a862c9f882af20e3be56d75efc6152f62f2e77166c",
+      "size": 4180,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/24_METADATA_CLEANER.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/25_CLIPBOARD_GUARD.txt",
+      "sha256": "fae5d69dff2c5eb818fae4575ad174e9684b7922c8d3f4fc66d702bf051c47d0",
+      "size": 4300,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/25_CLIPBOARD_GUARD.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/26_SECURE_RANDOM.txt",
+      "sha256": "70097858759113bd721d96f5296950af56606e046b1038ea20dbfed76c8479ee",
+      "size": 4214,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/26_SECURE_RANDOM.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/27_HMAC_AUTHENTICITY.txt",
+      "sha256": "77aee27314b4a35990bba4e45f4ab6f44216c6d38b25068d525e75348c788113",
+      "size": 4183,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/27_HMAC_AUTHENTICITY.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/28_PUBLIC_KEY_QR.txt",
+      "sha256": "465bc817835bab7208726f0ce97768cf663715bed96e57218c52e39379fad6e3",
+      "size": 4221,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/28_PUBLIC_KEY_QR.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/29_VAULT_COLLECTIONS.txt",
+      "sha256": "8c230c1e0124252cd25dde4759524977ba2b1a3ccb59177f1f0069a0fa345f80",
+      "size": 4221,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/29_VAULT_COLLECTIONS.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/30_DOCUMENT_VIEWER.txt",
+      "sha256": "8f921c96d70389b5bf2a82f9551b4c67211c1e7665e6a2fc79f37aa3489105ac",
+      "size": 4247,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/30_DOCUMENT_VIEWER.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/31_VAULT_KEY_ROTATION.txt",
+      "sha256": "62678119b03121b13d2e5a2909be45bf0f18fa6debf42959941c4b31d7df3323",
+      "size": 4167,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/31_VAULT_KEY_ROTATION.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/32_CIPHERTEXT_PACKAGE_INSPECTOR.txt",
+      "sha256": "0db87df02fdf4d1dd04e74a6bb00ff079faa858e0963cd47d577bf76b64de738",
+      "size": 4227,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/32_CIPHERTEXT_PACKAGE_INSPECTOR.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/33_ANDROID_AUTOFILL.txt",
+      "sha256": "42614909084ad077cbd665c2b77d1cf7c9085dcac56f1b507fe82b435cddfd0d",
+      "size": 4248,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/33_ANDROID_AUTOFILL.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/34_OFFLINE_SECURITY_ADVISOR.txt",
+      "sha256": "3ed07cadfbc6d7083a3f2243811b3efd7a0521fbfd80658c6775d3b5ff113e73",
+      "size": 4126,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/34_OFFLINE_SECURITY_ADVISOR.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/35_MULTI_DEVICE_PAIRING.txt",
+      "sha256": "35c6f7c3d61be38fa0501af2f76331295c293d001b780d67efc42143bb356d7b",
+      "size": 4164,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/35_MULTI_DEVICE_PAIRING.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/36_PASSWORD_STRENGTH_AUDIT.txt",
+      "sha256": "941e4fef2cc559c5b439b3931042c135cae5e706b655601bf8ea0bb400d28864",
+      "size": 4158,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/36_PASSWORD_STRENGTH_AUDIT.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/37_ARGON2ID_KEY_DERIVATION.txt",
+      "sha256": "34f4478758d07abe0a8d164be9c47df605d40933d63ef3629497fa91525c6a3a",
+      "size": 4161,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/37_ARGON2ID_KEY_DERIVATION.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/38_SIGNATURE_STUDIO.txt",
+      "sha256": "7c67091995328dc3908ac5f52bfa23006e3d318582f8b038c02e5c5831ab9904",
+      "size": 4132,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/38_SIGNATURE_STUDIO.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/39_LOCAL_SECURITY_ACTIVITY.txt",
+      "sha256": "b97d57608fae2bf78aa4b6971d7b61292ef00a0d7b115532e0bc377d7990e826",
+      "size": 4150,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/39_LOCAL_SECURITY_ACTIVITY.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/40_TRANSFER_WIZARD.txt",
+      "sha256": "4331fbd66e888a0e3dcb04e315d471e71bc3d6e0f078692a8519a74fa4250432",
+      "size": 4195,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/40_TRANSFER_WIZARD.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/41_EXPIRING_SECRET_CAPSULE.txt",
+      "sha256": "64c5279f69d8c452922b8bf5badd07970f6092543ff80ef6acdd87a21be5b913",
+      "size": 4155,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/41_EXPIRING_SECRET_CAPSULE.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/42_SESSION_PRIVACY_CONTROLS.txt",
+      "sha256": "4263a42bb87aba0589c80d59ca061cc3e715dc75e2cdd04c0353510bd386e325",
+      "size": 4149,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/42_SESSION_PRIVACY_CONTROLS.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/43_FILE_INTEGRITY_TOOL.txt",
+      "sha256": "de197713f4858db4a1d1b5dbbc7bff5d7d6b534bc45b412d2c0823929a459bc0",
+      "size": 4184,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/43_FILE_INTEGRITY_TOOL.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/44_SECURE_CLIPBOARD.txt",
+      "sha256": "74335eed956758dadc7f7deeef8f2a520779faf130f33d7e764fb78c55477bb9",
+      "size": 4209,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/44_SECURE_CLIPBOARD.txt"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/alternates/04_FILE_CIPHER_ALTERNATE.png",
+      "sha256": "db323c58393f200c748282ab0c8d56c2a668dbc92c3543d43a66ce485e0ac2b8",
+      "size": 1593428,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/alternates/04_FILE_CIPHER_ALTERNATE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/alternates/05_SHADOW_VAULT_ALTERNATE.png",
+      "sha256": "e31ffcf6a8f74d612f29be659b0821274cda4f742151148906fd450f8750bde8",
+      "size": 1605710,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/alternates/05_SHADOW_VAULT_ALTERNATE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/alternates/08_PASSWORDS_ALTERNATE.png",
+      "sha256": "10f51339bce982ccb4deeb002c6bde41b294b732e6736135090a65a2273d34b7",
+      "size": 158839,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/alternates/08_PASSWORDS_ALTERNATE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/alternates/10_AUTHENTICATOR_ALTERNATE.png",
+      "sha256": "62ce89fd3fd4b9b71ab3d9960110bd2568ea8e90b1ac636083e10fa2fc616c72",
+      "size": 1592802,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/alternates/10_AUTHENTICATOR_ALTERNATE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/alternates/24_METADATA_CLEANER_ALTERNATE.png",
+      "sha256": "48084e39caba71087af51f6da9effe83ad0f6be6075e9affcca11f2eb6e921fa",
+      "size": 1167192,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/alternates/24_METADATA_CLEANER_ALTERNATE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/01_SPLASH_ENTRY.png",
+      "sha256": "c2e1eb40fd6cb4fdb8092fd981f0eee0ee67f56ece3d92a3dc08587eaf6ba034",
+      "size": 1571115,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/01_SPLASH_ENTRY/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/02_HOME.png",
+      "sha256": "47e28ee14ada810b061ff887d4e220c741a66bfb2af3135cf92d430071e33f31",
+      "size": 1748875,
+      "preserved_as": "TRACKED:visuals/reference-review/03_HOME_LOCAL_DIFFERENT_REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/03_SECURE_ACCESS_LOGIN.png",
+      "sha256": "df03829d7ed45d3f631547412e23b77b3b020c493bb8333d9bce61f5286028de",
+      "size": 1625479,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/02_SECURE_ACCESS_LOGIN/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/04_FILE_CIPHER.png",
+      "sha256": "b6a56544fe6c3669ab4184ba7c353c7acafffe79007ff8b075238bc9a6ea71fc",
+      "size": 1555698,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/01_ENCRYPT_FILES/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/05_SHADOW_VAULT.png",
+      "sha256": "42faa0d78391f5d13a7d3e84a44a0628fb7967bc159849776ba53897b52c0880",
+      "size": 1832981,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/02_VAULT/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/06_SECURE_NOTES.png",
+      "sha256": "50150d2f4bf01c24e9627dfbff3a23f3b7ccff11f7a8a4588f8bf89a43dfc608",
+      "size": 1617234,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/03_SECURE_NOTES/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/07_NOTES_EDITOR.png",
+      "sha256": "e1a91e8173d188a7ec66f41b718df9de0c10b07f5af7a3d3371559037ba3359c",
+      "size": 1700820,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/03_SECURE_NOTES/SERVICES/07_NOTES_EDITOR/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/08_PASSWORDS.png",
+      "sha256": "bd2c8fbce6ef287898ee317a0bc8bb8314e70275fe8b8c328a3ae1748af4eae0",
+      "size": 1499625,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/04_PASSWORDS/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/09_PASSWORD_DETAIL.png",
+      "sha256": "4d38f9335349337d7137feb3fcf24544260fbccd1dbeadfd4389718500f28e35",
+      "size": 1581295,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/04_PASSWORDS/SERVICES/09_PASSWORD_DETAIL/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/10_AUTHENTICATOR.png",
+      "sha256": "051584e8c77d7c75277439aa044bc59cdcdb922c108a7c5463565df78e2829f5",
+      "size": 1639336,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/06_AUTHENTICATOR/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/11_AUTH_IMPORT.png",
+      "sha256": "a8d567b96c3007f7a4fb0fe6e7776ee880deac9b1bd92a1c2d07be19701959ee",
+      "size": 1679367,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/06_AUTHENTICATOR/SERVICES/11_AUTH_IMPORT/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/12_KEY_FORGE.png",
+      "sha256": "4769fab09e242c1138480c04d06cae56b66905fa46527a13aa7e0e497857910c",
+      "size": 1810395,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/13_KEY_DETAILS.png",
+      "sha256": "d2a74c78b7c4221c24ca47a852ec8a956e1ffc5c93ec31f86a31c0d0ab3ff9f4",
+      "size": 1799047,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/SERVICES/13_KEY_DETAILS/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/14_PRIVACY.png",
+      "sha256": "e1e617b2baeb43c02c620534e1e26942a2db23502b794a3c1c4b21fa680a2590",
+      "size": 1661131,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/07_PRIVACY_CENTER/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/15_BACKUP.png",
+      "sha256": "7c1554206b3b6699a6f128af400e174b5b8654130e70a87bf8d79646fcbb12db",
+      "size": 1802819,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/08_RECOVERY/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/16_SECURE_SHARE.png",
+      "sha256": "1cdabdfd44fa1235b3bebfd2e61cdfc0587b17484e7fbd5d435d94b6803a48a7",
+      "size": 1708282,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/17_HASH_INTEGRITY.png",
+      "sha256": "4f91dd21035d57e1b117117b9a541ecade99cd4599c5afbeed618f9cc50483f2",
+      "size": 1663230,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/01_ENCRYPT_FILES/SERVICES/17_HASH_INTEGRITY/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/18_TEXT_CIPHER.png",
+      "sha256": "710450f593fad3eb24e6de022e81944cccb6cdd7551bae8e4d55dddc7cb2e37e",
+      "size": 1670523,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/01_ENCRYPT_FILES/SERVICES/18_TEXT_CIPHER/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/19_DIGITAL_SIGNATURE.png",
+      "sha256": "0da5604d55b4581ebcd07db3da7f643057143c4bfd1a20ab3b260f78a2e830d4",
+      "size": 1751425,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/SERVICES/19_DIGITAL_SIGNATURE/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/20_CERTIFICATE_INSPECTOR.png",
+      "sha256": "df810bdf51160e5318dd327d66f8a098cfcb139393b3e79761fe2dba61090b76",
+      "size": 1667886,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/SERVICES/20_CERTIFICATE_INSPECTOR/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/21_ENCRYPTED_ARCHIVE.png",
+      "sha256": "b2332e455073ce6477cd2f1c0fe0e6c9a11b325f0d0020a5a04b2ad72b5578a9",
+      "size": 1704491,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/01_ENCRYPT_FILES/SERVICES/21_ENCRYPTED_ARCHIVE/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/22_LOCAL_TRANSFER.png",
+      "sha256": "ecacab4c3d953d48f863dd57b8b4c048aa71be7bca6f72cd7791775bf266bc7b",
+      "size": 1661757,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/22_LOCAL_TRANSFER/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/23_FINGERPRINT_VERIFY.png",
+      "sha256": "580aafa15d343bc1f9ee1347cb7c9df7cec696377a071ea4eab4077388b2008c",
+      "size": 1713580,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/SERVICES/23_FINGERPRINT_VERIFY/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/24_METADATA_CLEANER.png",
+      "sha256": "c9268d3a37fc59639e9df2f9cc1b94b48087aed4b6554cec65fb136ead95e510",
+      "size": 1693082,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/07_PRIVACY_CENTER/SERVICES/24_METADATA_CLEANER/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/25_CLIPBOARD_GUARD.png",
+      "sha256": "b5c7466e0428d1aa993832aba56034a61289be8e6f797fa0790536b836fce06c",
+      "size": 1725367,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/07_PRIVACY_CENTER/SERVICES/25_CLIPBOARD_GUARD/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/26_SECURE_RANDOM.png",
+      "sha256": "5a87306d3ee36fa6b7f9e0b63b089aca6a163da935eff5246a0acd4bc622667f",
+      "size": 1676990,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/SERVICES/26_SECURE_RANDOM/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/27_HMAC_AUTHENTICITY.png",
+      "sha256": "1c81131dd3482347033f557e9ce81eb5a7f8a649545c88b62a6a3145c7ce022e",
+      "size": 1687417,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/SERVICES/27_HMAC_AUTHENTICITY/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/28_PUBLIC_KEY_QR.png",
+      "sha256": "26661626f3cc61b9f66debf8a673c04633825583d6a42df6deaebf35e18c12d0",
+      "size": 1694970,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/SERVICES/28_PUBLIC_KEY_QR/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/29_VAULT_COLLECTIONS.png",
+      "sha256": "4a3bb143d81fbaf9c87be888d2a61c417ff45fdfde106874eb745c4750fba105",
+      "size": 1715045,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/02_VAULT/SERVICES/29_VAULT_COLLECTIONS/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/30_DOCUMENT_VIEWER.png",
+      "sha256": "2a01befee13521a0a895e0149e7fe55b3033e84e7fe4106f7b204ce70904d8f0",
+      "size": 1644461,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/02_VAULT/SERVICES/30_DOCUMENT_VIEWER/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/31_VAULT_KEY_ROTATION.png",
+      "sha256": "8054df8c133a8216340ae292498f73b2d36210a7728557b0148459500dcc8ece",
+      "size": 1742116,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/02_VAULT/SERVICES/31_VAULT_KEY_ROTATION/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/32_CIPHERTEXT_PACKAGE_INSPECTOR.png",
+      "sha256": "c0596761dd91da8bdf7b29a03235f8a8435887708c27bf3246d1fcf30b20b4f9",
+      "size": 1754722,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/01_ENCRYPT_FILES/SERVICES/32_CIPHERTEXT_PACKAGE_INSPECTOR/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/33_ANDROID_AUTOFILL.png",
+      "sha256": "f5c8b498999c9fb645f890414376349c6d8aed11c1fe638ff1f2bc0dc0d1d18d",
+      "size": 1701436,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/04_PASSWORDS/SERVICES/33_ANDROID_AUTOFILL/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/34_OFFLINE_SECURITY_ADVISOR.png",
+      "sha256": "d48076917797e486196a841f43b47d7813e72c3f169aec4500c68a4274a0b731",
+      "size": 1757269,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/07_PRIVACY_CENTER/SERVICES/34_OFFLINE_SECURITY_ADVISOR/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/35_MULTI_DEVICE_PAIRING.png",
+      "sha256": "e2f4b8ad43483ff6765a9b548783cfc500a2caf1444841d66c1d2bcdda710e9a",
+      "size": 1780686,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/35_MULTI_DEVICE_PAIRING/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/36_PASSWORD_STRENGTH_AUDIT.png",
+      "sha256": "544b4f6d28a2d0536d9aadd3416bb3071ee6f94a3712e9c442f6a7a12404ee0e",
+      "size": 1191089,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/04_PASSWORDS/SERVICES/36_PASSWORD_STRENGTH_AUDIT/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/37_ARGON2ID_KEY_DERIVATION.png",
+      "sha256": "986321d35a0982d9db3b824c6f76955c1cf80e51a5a37b9ec0b1e73178b20d18",
+      "size": 1180350,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/SERVICES/37_ARGON2ID_KEY_DERIVATION/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/38_SIGNATURE_STUDIO.png",
+      "sha256": "8f13b7e0315ab9bccbf1c5f152cf215672d650fbb22942d4ce4343e88317c055",
+      "size": 1200365,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/SERVICES/38_SIGNATURE_STUDIO/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/39_LOCAL_SECURITY_ACTIVITY.png",
+      "sha256": "1e0099cd3ae5bea9ba56dd1c8da85fdf4f803c82a485225bfa849af1cb77f675",
+      "size": 1169779,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/07_PRIVACY_CENTER/SERVICES/39_LOCAL_SECURITY_ACTIVITY/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/40_TRANSFER_WIZARD.png",
+      "sha256": "beaa93d502ce28b3d842e3266a7048d08c6d1b052eaae2c9ed6e4f110bb03852",
+      "size": 1218771,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/40_TRANSFER_WIZARD/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/41_EXPIRING_SECRET_CAPSULE.png",
+      "sha256": "57600a43793b921b33451db2179a188412f44c9cfe5d4763ba36e3824a400362",
+      "size": 1200517,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/41_EXPIRING_SECRET_CAPSULE/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/42_SESSION_PRIVACY_CONTROLS.png",
+      "sha256": "d438cc84d521cc21072d8de94267a3b22664eafa32e17a4a334759931e53114f",
+      "size": 1159981,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/07_PRIVACY_CENTER/SERVICES/42_SESSION_PRIVACY_CONTROLS/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/43_FILE_INTEGRITY_TOOL.png",
+      "sha256": "52d675172dcd98ff8e972b299683d984ca29bc7556fbd7f9b8a47e7efafc20ca",
+      "size": 1134080,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/01_ENCRYPT_FILES/SERVICES/43_FILE_INTEGRITY_TOOL/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/primary/44_SECURE_CLIPBOARD.png",
+      "sha256": "7bac23084a1fea6bbccb10f7eac37bd27226efdbd0c7060d9a42bc6e041ccb4d",
+      "size": 1713946,
+      "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/07_PRIVACY_CENTER/SERVICES/44_SECURE_CLIPBOARD/REFERENCE.png"
+    },
+    {
+      "source": "visuals/anima_v5/Prepare-Repo-AgentHandoff.ps1",
+      "sha256": "8290fd724b2813dd5ad5e0e21e87fa30763acf45e2f6b3d2ee9b3df6e3b643fa",
+      "size": 8259,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/Prepare-Repo-AgentHandoff.ps1"
+    },
+    {
+      "source": "visuals/anima_v5/README_IMPORT.md",
+      "sha256": "4fc97229a3ae1f3dadb0adec03de6fd39d2f90da6b058f901ad80520e13b99a3",
+      "size": 2356,
+      "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/README_IMPORT.md"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/01_SPLASH_ENTRY/01_SPLASH_ENTRY.txt",
+      "sha256": "1eff66c156ad8356a8e753321c53cf968db7b1ad417eb4fe8077b24549d10cd0",
+      "size": 4891,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/01_SPLASH_ENTRY/01_SPLASH_ENTRY.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/02_SECURE_ACCESS_LOGIN/02_SECURE_ACCESS_LOGIN.txt",
+      "sha256": "8b4389900bdb769c10f9b21118f4d5497f110be4a0ad9c033b9e634a14a72230",
+      "size": 4939,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/02_SECURE_ACCESS_LOGIN/02_SECURE_ACCESS_LOGIN.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/03_HOME/03_HOME.txt",
+      "sha256": "a2db97a377b41402a3d3f0e498afc2060d2eed9b65d7feb5a7cb43e4c447f3df",
+      "size": 4728,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/03_HOME/03_HOME.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/04_FILE_CIPHER/04_FILE_CIPHER.txt",
+      "sha256": "90e90042badce9b712c836a61930536f1d190c8a747b4c948d909e803cc765d4",
+      "size": 4664,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/04_FILE_CIPHER/04_FILE_CIPHER.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/05_SHADOW_VAULT/05_SHADOW_VAULT.txt",
+      "sha256": "cc1d72a5a03622efd6edb3e94741add0c12e1a496f263f91c78c23334acb93e3",
+      "size": 4636,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/05_SHADOW_VAULT/05_SHADOW_VAULT.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/06_SECURE_NOTES/06_SECURE_NOTES.txt",
+      "sha256": "42fa2a91167ebcb9acbd49b7ef7d70e9f311d993b8312ec6ff520b795d3f0f61",
+      "size": 4551,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/06_SECURE_NOTES/06_SECURE_NOTES.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/07_NOTES_EDITOR/07_NOTES_EDITOR.txt",
+      "sha256": "f0a95a5f9581d67d41d23edd0ffa9baf5cb0fb8a371bfba65d75e4c1d16bcb46",
+      "size": 4584,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/07_NOTES_EDITOR/07_NOTES_EDITOR.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/08_PASSWORDS/08_PASSWORDS.txt",
+      "sha256": "90e64f09e3566c5a8836475a461fbc8de2cc74fb504286f7f3ed80d8d7b659de",
+      "size": 4546,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/08_PASSWORDS/08_PASSWORDS.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/09_PASSWORD_DETAIL/09_PASSWORD_DETAIL.txt",
+      "sha256": "ac695982f6a935dfb285a597005dab1f50736592cda7ff47f87342934f6f813a",
+      "size": 4619,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/09_PASSWORD_DETAIL/09_PASSWORD_DETAIL.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/10_AUTHENTICATOR/10_AUTHENTICATOR.txt",
+      "sha256": "8f462eee02628c4329c1d5025d37e267d035d6af8208e826787eefadf2470e8b",
+      "size": 4594,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/10_AUTHENTICATOR/10_AUTHENTICATOR.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/11_AUTH_IMPORT/11_AUTH_IMPORT.txt",
+      "sha256": "8204611e2519a3187ba0777c22b60331ee360f1697a6e5415611ed8207395063",
+      "size": 4524,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/11_AUTH_IMPORT/11_AUTH_IMPORT.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/12_KEY_FORGE/12_KEY_FORGE.txt",
+      "sha256": "b0386a46bd2bad6df3748a0b7227a44dc057e6740ced85ccf85a84c10c83ce69",
+      "size": 4489,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/12_KEY_FORGE/12_KEY_FORGE.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/13_KEY_DETAILS/13_KEY_DETAILS.txt",
+      "sha256": "207fceaff98c7ef77a5a043ba7ea4bbdf36082a1925e6a84e64f8caa5d8ba2ee",
+      "size": 4578,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/13_KEY_DETAILS/13_KEY_DETAILS.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/14_PRIVACY/14_PRIVACY.txt",
+      "sha256": "cc6f1c38cf40e964764c3c799bdd567b583a43726a07e7c3240e5887e20d3c64",
+      "size": 4633,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/14_PRIVACY/14_PRIVACY.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/15_BACKUP/15_BACKUP.txt",
+      "sha256": "e2d1e8a4e34abfc3d8eb0655663807890b068cfa3f414745fc6a2c3be4fbda17",
+      "size": 4544,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/15_BACKUP/15_BACKUP.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/16_SECURE_SHARE/16_SECURE_SHARE.txt",
+      "sha256": "20cc62e19a56b98757e640634b557817abdc9ad23ec43b1ad647b7ff4030fb4c",
+      "size": 4515,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/16_SECURE_SHARE/16_SECURE_SHARE.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/17_HASH_INTEGRITY/17_HASH_INTEGRITY.txt",
+      "sha256": "dd9b883d7de89e51e8a7be07d9568fe5fc3f4ad5c368f69a3e8d554f2cd14c56",
+      "size": 4173,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/17_HASH_INTEGRITY/17_HASH_INTEGRITY.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/18_TEXT_CIPHER/18_TEXT_CIPHER.txt",
+      "sha256": "07bed4306ca1ec3261d4056aef29c9d1cbd996785a0bdab98ee3de255c2432d5",
+      "size": 4112,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/18_TEXT_CIPHER/18_TEXT_CIPHER.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/19_DIGITAL_SIGNATURE/19_DIGITAL_SIGNATURE.txt",
+      "sha256": "88a4c59ad040c200c8366cbfaaead2a124787fed5bf1dc1179b8ed34964a3f5b",
+      "size": 4203,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/19_DIGITAL_SIGNATURE/19_DIGITAL_SIGNATURE.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/20_CERTIFICATE_INSPECTOR/20_CERTIFICATE_INSPECTOR.txt",
+      "sha256": "a2011f03dc4c6c317d65bed8d5966c4767706581b10a12bd46b9efa2c74c712a",
+      "size": 4176,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/20_CERTIFICATE_INSPECTOR/20_CERTIFICATE_INSPECTOR.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/21_ENCRYPTED_ARCHIVE/21_ENCRYPTED_ARCHIVE.txt",
+      "sha256": "931fe23c25a5602da72a4895132083209ec85d43f9712b31351baa58958e624f",
+      "size": 4136,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/21_ENCRYPTED_ARCHIVE/21_ENCRYPTED_ARCHIVE.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/22_LOCAL_TRANSFER/22_LOCAL_TRANSFER.txt",
+      "sha256": "c908bbe96e78ddb11d7358331cb39eb46b9db709dead1f0bae394bcca00e5315",
+      "size": 4180,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/22_LOCAL_TRANSFER/22_LOCAL_TRANSFER.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/23_FINGERPRINT_VERIFY/23_FINGERPRINT_VERIFY.txt",
+      "sha256": "a87b1e6a1e0741b8f30212543d16b86a3551a7c3d9be9dc7d4f8ac409f9644f4",
+      "size": 4167,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/23_FINGERPRINT_VERIFY/23_FINGERPRINT_VERIFY.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/24_METADATA_CLEANER/24_METADATA_CLEANER.txt",
+      "sha256": "b02658647e34687a154a6f4fc230ba19a881a4b3a3d8841a5f4b5b72c38365aa",
+      "size": 4115,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/24_METADATA_CLEANER/24_METADATA_CLEANER.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/25_CLIPBOARD_GUARD/25_CLIPBOARD_GUARD.txt",
+      "sha256": "841858c2e42a8532c25f5cbd877a9251319ca5986accd514595c8e579458dd60",
+      "size": 4233,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/25_CLIPBOARD_GUARD/25_CLIPBOARD_GUARD.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/26_SECURE_RANDOM/26_SECURE_RANDOM.txt",
+      "sha256": "dba61627a133729c7ecf21ba4ec6230c994629c2bb6d91e19bd3f381c47077be",
+      "size": 4143,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/26_SECURE_RANDOM/26_SECURE_RANDOM.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/27_HMAC_AUTHENTICITY/27_HMAC_AUTHENTICITY.txt",
+      "sha256": "4777810fa970f2f2655f1a7d178f4b0413d72944e6f20479799fb5ca999f812e",
+      "size": 4120,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/27_HMAC_AUTHENTICITY/27_HMAC_AUTHENTICITY.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/28_PUBLIC_KEY_QR/28_PUBLIC_KEY_QR.txt",
+      "sha256": "5a7257f5eb4516b8bb867eaf2ef28ebd9cad552eb272269573b4739e1a6b20f8",
+      "size": 4150,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/28_PUBLIC_KEY_QR/28_PUBLIC_KEY_QR.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/29_VAULT_COLLECTIONS/29_VAULT_COLLECTIONS.txt",
+      "sha256": "2428bcec678abd079f481dfe3fad057ae2fc6008358ca8e6898982612b01d533",
+      "size": 4158,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/29_VAULT_COLLECTIONS/29_VAULT_COLLECTIONS.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/30_DOCUMENT_VIEWER/30_DOCUMENT_VIEWER.txt",
+      "sha256": "172be4dac18553f2c1ec84141ca705e00eca3e33e2900744e98c08934fcec9db",
+      "size": 4180,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/30_DOCUMENT_VIEWER/30_DOCUMENT_VIEWER.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/31_VAULT_KEY_ROTATION/31_VAULT_KEY_ROTATION.txt",
+      "sha256": "eb1c5e6b0c666035b744a3fc992dbf54d115cc3b3c5c51e8e932d3fc0064f5d2",
+      "size": 4106,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/31_VAULT_KEY_ROTATION/31_VAULT_KEY_ROTATION.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/32_CIPHERTEXT_PACKAGE_INSPECTOR/32_CIPHERTEXT_PACKAGE_INSPECTOR.txt",
+      "sha256": "c1a06569d96908293c0c1364a406b9e3727a5f08c70ff5e5c7f120213751fe89",
+      "size": 4186,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/32_CIPHERTEXT_PACKAGE_INSPECTOR/32_CIPHERTEXT_PACKAGE_INSPECTOR.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/33_ANDROID_AUTOFILL/33_ANDROID_AUTOFILL.txt",
+      "sha256": "20b413504bad295ed86aa9665f47a24ea886f441f240b4085d3a5df0c792da35",
+      "size": 4183,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/33_ANDROID_AUTOFILL/33_ANDROID_AUTOFILL.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/34_OFFLINE_SECURITY_ADVISOR/34_OFFLINE_SECURITY_ADVISOR.txt",
+      "sha256": "3e701d6eedf582a37e9c4dbb605fa6057377cab27b2c91bb0f394e8ea154a438",
+      "size": 4077,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/34_OFFLINE_SECURITY_ADVISOR/34_OFFLINE_SECURITY_ADVISOR.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/35_MULTI_DEVICE_PAIRING/35_MULTI_DEVICE_PAIRING.txt",
+      "sha256": "72950b2c04dfd3a3712e534c61b5e1f04ec9efc7860bb22d998b892eb054aa9f",
+      "size": 4107,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/35_MULTI_DEVICE_PAIRING/35_MULTI_DEVICE_PAIRING.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/36_PASSWORD_STRENGTH_AUDIT/36_PASSWORD_STRENGTH_AUDIT.txt",
+      "sha256": "9818a3d05d0b20022d888c9b8c97a034aa2fb1cfe9d44d69fc90528bbb174e35",
+      "size": 4107,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/36_PASSWORD_STRENGTH_AUDIT/36_PASSWORD_STRENGTH_AUDIT.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/37_ARGON2ID_KEY_DERIVATION/37_ARGON2ID_KEY_DERIVATION.txt",
+      "sha256": "9cfab8f0371d5d2674bf5df9c5667c8794e90510c21321f9d98cb0a287991704",
+      "size": 4110,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/37_ARGON2ID_KEY_DERIVATION/37_ARGON2ID_KEY_DERIVATION.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/38_SIGNATURE_STUDIO/38_SIGNATURE_STUDIO.txt",
+      "sha256": "e1d6cac927df42f36033161d3c8572bb871298f67410870c85f520adbc662821",
+      "size": 4067,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/38_SIGNATURE_STUDIO/38_SIGNATURE_STUDIO.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/39_LOCAL_SECURITY_ACTIVITY/39_LOCAL_SECURITY_ACTIVITY.txt",
+      "sha256": "14d4783633836c3eb38fb294e0df50aeebd3e9e809496ef8ccf4fe24e35f093b",
+      "size": 4099,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/39_LOCAL_SECURITY_ACTIVITY/39_LOCAL_SECURITY_ACTIVITY.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/40_TRANSFER_WIZARD/40_TRANSFER_WIZARD.txt",
+      "sha256": "f9a07a88fe4c0938494c12d15d954ec1a8ee96950b98d2f2d846777afc4cbb8b",
+      "size": 4128,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/40_TRANSFER_WIZARD/40_TRANSFER_WIZARD.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/41_EXPIRING_SECRET_CAPSULE/41_EXPIRING_SECRET_CAPSULE.txt",
+      "sha256": "ad8e786348586e8e3bdde67ccabb82b4dbbd094111ba8a59b52ebea3d1257d94",
+      "size": 4104,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/41_EXPIRING_SECRET_CAPSULE/41_EXPIRING_SECRET_CAPSULE.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/42_SESSION_PRIVACY_CONTROLS/42_SESSION_PRIVACY_CONTROLS.txt",
+      "sha256": "5b518ef540e6d9c765040adfccc5912c4ce5fd6accef44815e443d20a94ca39e",
+      "size": 4100,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/42_SESSION_PRIVACY_CONTROLS/42_SESSION_PRIVACY_CONTROLS.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/43_FILE_INTEGRITY_TOOL/43_FILE_INTEGRITY_TOOL.txt",
+      "sha256": "630871134220da3dc212730f7ee86c0c8940b976929f8e6347081d717ca2997d",
+      "size": 4125,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/43_FILE_INTEGRITY_TOOL/43_FILE_INTEGRITY_TOOL.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/44_SECURE_CLIPBOARD/44_SECURE_CLIPBOARD.txt",
+      "sha256": "dd68201ce5bd1ce76879476491a5c3d82c039d19be7a4c6007255176c688425c",
+      "size": 4144,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/44_SECURE_CLIPBOARD/44_SECURE_CLIPBOARD.txt"
+    },
+    {
+      "source": "visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/RESULT.txt",
+      "sha256": "98cec0ad92c5870e40c9645970455fc3dc4d6af19c2088234e8e68844a008166",
+      "size": 261,
+      "preserved_as": "docs/unique-recovery/local-untracked-20261108/source-untracked/visuals/anima_v5/_PROMPT_BACKUPS/BeforeUniversal_20261030_054443/RESULT.txt"
+    },
+    {
+      "archive": "KNOUX_CRYPT_ANIMA_V5_DELIVERY.zip",
+      "archive_sha256": "7949fd1283f33faaba77816acd95e455f2d0c9ecaab0042972160171eb2ae0c9",
+      "original_bytes": 70139064,
+      "members": [
+        {
+          "member": "README_FIRST.md",
+          "sha256": "ba1b3b34c8f38458695a3e41f38a9384739eaa72d79f1074d2d3c1f8bdbb0cb3",
+          "size": 8220,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/README_FIRST.md"
+        },
+        {
+          "member": "MANIFEST.json",
+          "sha256": "8ad5b2e6f77d86c0c03d3e5f94a6ace404327e8ba767f5dd437a2e04194a9c23",
+          "size": 27444,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/MANIFEST.json"
+        },
+        {
+          "member": "docs/SOURCE_PROVENANCE.md",
+          "sha256": "5de21068ece38e70a6b509767a7f898111fb48e224a9cda68df3db6ee3ef7d3a",
+          "size": 4094,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/docs/SOURCE_PROVENANCE.md"
+        },
+        {
+          "member": "FILE_SHA256.txt",
+          "sha256": "6f1ad31478ffacdb1ce45d8198b61fe040470e8e2997b151b33d7f09d56d32da",
+          "size": 10057,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/FILE_SHA256.txt"
+        },
+        {
+          "member": "references/primary/01_SPLASH_ENTRY.png",
+          "sha256": "c2e1eb40fd6cb4fdb8092fd981f0eee0ee67f56ece3d92a3dc08587eaf6ba034",
+          "size": 1571115,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/01_SPLASH_ENTRY/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/02_HOME.png",
+          "sha256": "47e28ee14ada810b061ff887d4e220c741a66bfb2af3135cf92d430071e33f31",
+          "size": 1748875,
+          "preserved_as": "TRACKED:visuals/reference-review/03_HOME_LOCAL_DIFFERENT_REFERENCE.png"
+        },
+        {
+          "member": "references/primary/03_SECURE_ACCESS_LOGIN.png",
+          "sha256": "df03829d7ed45d3f631547412e23b77b3b020c493bb8333d9bce61f5286028de",
+          "size": 1625479,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/02_SECURE_ACCESS_LOGIN/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/04_FILE_CIPHER.png",
+          "sha256": "b6a56544fe6c3669ab4184ba7c353c7acafffe79007ff8b075238bc9a6ea71fc",
+          "size": 1555698,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/01_ENCRYPT_FILES/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/05_SHADOW_VAULT.png",
+          "sha256": "42faa0d78391f5d13a7d3e84a44a0628fb7967bc159849776ba53897b52c0880",
+          "size": 1832981,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/02_VAULT/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/06_SECURE_NOTES.png",
+          "sha256": "50150d2f4bf01c24e9627dfbff3a23f3b7ccff11f7a8a4588f8bf89a43dfc608",
+          "size": 1617234,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/03_SECURE_NOTES/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/07_NOTES_EDITOR.png",
+          "sha256": "e1a91e8173d188a7ec66f41b718df9de0c10b07f5af7a3d3371559037ba3359c",
+          "size": 1700820,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/03_SECURE_NOTES/SERVICES/07_NOTES_EDITOR/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/08_PASSWORDS.png",
+          "sha256": "bd2c8fbce6ef287898ee317a0bc8bb8314e70275fe8b8c328a3ae1748af4eae0",
+          "size": 1499625,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/04_PASSWORDS/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/09_PASSWORD_DETAIL.png",
+          "sha256": "4d38f9335349337d7137feb3fcf24544260fbccd1dbeadfd4389718500f28e35",
+          "size": 1581295,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/04_PASSWORDS/SERVICES/09_PASSWORD_DETAIL/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/10_AUTHENTICATOR.png",
+          "sha256": "051584e8c77d7c75277439aa044bc59cdcdb922c108a7c5463565df78e2829f5",
+          "size": 1639336,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/06_AUTHENTICATOR/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/11_AUTH_IMPORT.png",
+          "sha256": "a8d567b96c3007f7a4fb0fe6e7776ee880deac9b1bd92a1c2d07be19701959ee",
+          "size": 1679367,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/06_AUTHENTICATOR/SERVICES/11_AUTH_IMPORT/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/12_KEY_FORGE.png",
+          "sha256": "4769fab09e242c1138480c04d06cae56b66905fa46527a13aa7e0e497857910c",
+          "size": 1810395,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/13_KEY_DETAILS.png",
+          "sha256": "d2a74c78b7c4221c24ca47a852ec8a956e1ffc5c93ec31f86a31c0d0ab3ff9f4",
+          "size": 1799047,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/SERVICES/13_KEY_DETAILS/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/14_PRIVACY.png",
+          "sha256": "e1e617b2baeb43c02c620534e1e26942a2db23502b794a3c1c4b21fa680a2590",
+          "size": 1661131,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/07_PRIVACY_CENTER/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/15_BACKUP.png",
+          "sha256": "7c1554206b3b6699a6f128af400e174b5b8654130e70a87bf8d79646fcbb12db",
+          "size": 1802819,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/08_RECOVERY/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/16_SECURE_SHARE.png",
+          "sha256": "1cdabdfd44fa1235b3bebfd2e61cdfc0587b17484e7fbd5d435d94b6803a48a7",
+          "size": 1708282,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/17_HASH_INTEGRITY.png",
+          "sha256": "4f91dd21035d57e1b117117b9a541ecade99cd4599c5afbeed618f9cc50483f2",
+          "size": 1663230,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/01_ENCRYPT_FILES/SERVICES/17_HASH_INTEGRITY/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/18_TEXT_CIPHER.png",
+          "sha256": "710450f593fad3eb24e6de022e81944cccb6cdd7551bae8e4d55dddc7cb2e37e",
+          "size": 1670523,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/01_ENCRYPT_FILES/SERVICES/18_TEXT_CIPHER/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/19_DIGITAL_SIGNATURE.png",
+          "sha256": "0da5604d55b4581ebcd07db3da7f643057143c4bfd1a20ab3b260f78a2e830d4",
+          "size": 1751425,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/SERVICES/19_DIGITAL_SIGNATURE/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/20_CERTIFICATE_INSPECTOR.png",
+          "sha256": "df810bdf51160e5318dd327d66f8a098cfcb139393b3e79761fe2dba61090b76",
+          "size": 1667886,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/SERVICES/20_CERTIFICATE_INSPECTOR/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/21_ENCRYPTED_ARCHIVE.png",
+          "sha256": "b2332e455073ce6477cd2f1c0fe0e6c9a11b325f0d0020a5a04b2ad72b5578a9",
+          "size": 1704491,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/01_ENCRYPT_FILES/SERVICES/21_ENCRYPTED_ARCHIVE/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/22_LOCAL_TRANSFER.png",
+          "sha256": "ecacab4c3d953d48f863dd57b8b4c048aa71be7bca6f72cd7791775bf266bc7b",
+          "size": 1661757,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/22_LOCAL_TRANSFER/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/23_FINGERPRINT_VERIFY.png",
+          "sha256": "580aafa15d343bc1f9ee1347cb7c9df7cec696377a071ea4eab4077388b2008c",
+          "size": 1713580,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/SERVICES/23_FINGERPRINT_VERIFY/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/24_METADATA_CLEANER.png",
+          "sha256": "c9268d3a37fc59639e9df2f9cc1b94b48087aed4b6554cec65fb136ead95e510",
+          "size": 1693082,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/07_PRIVACY_CENTER/SERVICES/24_METADATA_CLEANER/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/25_CLIPBOARD_GUARD.png",
+          "sha256": "b5c7466e0428d1aa993832aba56034a61289be8e6f797fa0790536b836fce06c",
+          "size": 1725367,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/07_PRIVACY_CENTER/SERVICES/25_CLIPBOARD_GUARD/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/26_SECURE_RANDOM.png",
+          "sha256": "5a87306d3ee36fa6b7f9e0b63b089aca6a163da935eff5246a0acd4bc622667f",
+          "size": 1676990,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/SERVICES/26_SECURE_RANDOM/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/27_HMAC_AUTHENTICITY.png",
+          "sha256": "1c81131dd3482347033f557e9ce81eb5a7f8a649545c88b62a6a3145c7ce022e",
+          "size": 1687417,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/SERVICES/27_HMAC_AUTHENTICITY/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/28_PUBLIC_KEY_QR.png",
+          "sha256": "26661626f3cc61b9f66debf8a673c04633825583d6a42df6deaebf35e18c12d0",
+          "size": 1694970,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/SERVICES/28_PUBLIC_KEY_QR/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/29_VAULT_COLLECTIONS.png",
+          "sha256": "4a3bb143d81fbaf9c87be888d2a61c417ff45fdfde106874eb745c4750fba105",
+          "size": 1715045,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/02_VAULT/SERVICES/29_VAULT_COLLECTIONS/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/30_DOCUMENT_VIEWER.png",
+          "sha256": "2a01befee13521a0a895e0149e7fe55b3033e84e7fe4106f7b204ce70904d8f0",
+          "size": 1644461,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/02_VAULT/SERVICES/30_DOCUMENT_VIEWER/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/31_VAULT_KEY_ROTATION.png",
+          "sha256": "8054df8c133a8216340ae292498f73b2d36210a7728557b0148459500dcc8ece",
+          "size": 1742116,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/02_VAULT/SERVICES/31_VAULT_KEY_ROTATION/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/32_CIPHERTEXT_PACKAGE_INSPECTOR.png",
+          "sha256": "c0596761dd91da8bdf7b29a03235f8a8435887708c27bf3246d1fcf30b20b4f9",
+          "size": 1754722,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/01_ENCRYPT_FILES/SERVICES/32_CIPHERTEXT_PACKAGE_INSPECTOR/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/33_ANDROID_AUTOFILL.png",
+          "sha256": "f5c8b498999c9fb645f890414376349c6d8aed11c1fe638ff1f2bc0dc0d1d18d",
+          "size": 1701436,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/04_PASSWORDS/SERVICES/33_ANDROID_AUTOFILL/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/34_OFFLINE_SECURITY_ADVISOR.png",
+          "sha256": "d48076917797e486196a841f43b47d7813e72c3f169aec4500c68a4274a0b731",
+          "size": 1757269,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/07_PRIVACY_CENTER/SERVICES/34_OFFLINE_SECURITY_ADVISOR/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/35_MULTI_DEVICE_PAIRING.png",
+          "sha256": "e2f4b8ad43483ff6765a9b548783cfc500a2caf1444841d66c1d2bcdda710e9a",
+          "size": 1780686,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/35_MULTI_DEVICE_PAIRING/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/36_PASSWORD_STRENGTH_AUDIT.png",
+          "sha256": "544b4f6d28a2d0536d9aadd3416bb3071ee6f94a3712e9c442f6a7a12404ee0e",
+          "size": 1191089,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/04_PASSWORDS/SERVICES/36_PASSWORD_STRENGTH_AUDIT/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/37_ARGON2ID_KEY_DERIVATION.png",
+          "sha256": "986321d35a0982d9db3b824c6f76955c1cf80e51a5a37b9ec0b1e73178b20d18",
+          "size": 1180350,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/SERVICES/37_ARGON2ID_KEY_DERIVATION/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/38_SIGNATURE_STUDIO.png",
+          "sha256": "8f13b7e0315ab9bccbf1c5f152cf215672d650fbb22942d4ce4343e88317c055",
+          "size": 1200365,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/05_KEY_FORGE/SERVICES/38_SIGNATURE_STUDIO/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/39_LOCAL_SECURITY_ACTIVITY.png",
+          "sha256": "1e0099cd3ae5bea9ba56dd1c8da85fdf4f803c82a485225bfa849af1cb77f675",
+          "size": 1169779,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/07_PRIVACY_CENTER/SERVICES/39_LOCAL_SECURITY_ACTIVITY/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/40_TRANSFER_WIZARD.png",
+          "sha256": "beaa93d502ce28b3d842e3266a7048d08c6d1b052eaae2c9ed6e4f110bb03852",
+          "size": 1218771,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/40_TRANSFER_WIZARD/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/41_EXPIRING_SECRET_CAPSULE.png",
+          "sha256": "57600a43793b921b33451db2179a188412f44c9cfe5d4763ba36e3824a400362",
+          "size": 1200517,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/41_EXPIRING_SECRET_CAPSULE/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/42_SESSION_PRIVACY_CONTROLS.png",
+          "sha256": "d438cc84d521cc21072d8de94267a3b22664eafa32e17a4a334759931e53114f",
+          "size": 1159981,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/07_PRIVACY_CENTER/SERVICES/42_SESSION_PRIVACY_CONTROLS/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/43_FILE_INTEGRITY_TOOL.png",
+          "sha256": "52d675172dcd98ff8e972b299683d984ca29bc7556fbd7f9b8a47e7efafc20ca",
+          "size": 1134080,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/01_ENCRYPT_FILES/SERVICES/43_FILE_INTEGRITY_TOOL/REFERENCE.png"
+        },
+        {
+          "member": "references/primary/44_SECURE_CLIPBOARD.png",
+          "sha256": "7bac23084a1fea6bbccb10f7eac37bd27226efdbd0c7060d9a42bc6e041ccb4d",
+          "size": 1713946,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/07_PRIVACY_CENTER/SERVICES/44_SECURE_CLIPBOARD/REFERENCE.png"
+        },
+        {
+          "member": "references/alternates/04_FILE_CIPHER_ALTERNATE.png",
+          "sha256": "db323c58393f200c748282ab0c8d56c2a668dbc92c3543d43a66ce485e0ac2b8",
+          "size": 1593428,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/alternates/04_FILE_CIPHER_ALTERNATE.png"
+        },
+        {
+          "member": "references/alternates/05_SHADOW_VAULT_ALTERNATE.png",
+          "sha256": "e31ffcf6a8f74d612f29be659b0821274cda4f742151148906fd450f8750bde8",
+          "size": 1605710,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/alternates/05_SHADOW_VAULT_ALTERNATE.png"
+        },
+        {
+          "member": "references/alternates/08_PASSWORDS_ALTERNATE.png",
+          "sha256": "10f51339bce982ccb4deeb002c6bde41b294b732e6736135090a65a2273d34b7",
+          "size": 158839,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/alternates/08_PASSWORDS_ALTERNATE.png"
+        },
+        {
+          "member": "references/alternates/10_AUTHENTICATOR_ALTERNATE.png",
+          "sha256": "62ce89fd3fd4b9b71ab3d9960110bd2568ea8e90b1ac636083e10fa2fc616c72",
+          "size": 1592802,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/alternates/10_AUTHENTICATOR_ALTERNATE.png"
+        },
+        {
+          "member": "references/alternates/24_METADATA_CLEANER_ALTERNATE.png",
+          "sha256": "48084e39caba71087af51f6da9effe83ad0f6be6075e9affcca11f2eb6e921fa",
+          "size": 1167192,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/references/alternates/24_METADATA_CLEANER_ALTERNATE.png"
+        },
+        {
+          "member": "prompts/01_SPLASH_ENTRY.txt",
+          "sha256": "2646d868a5aa264fe479b9ad10651657fef1cccd0cf7b8b6686b8013b1880553",
+          "size": 4938,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/01_SPLASH_ENTRY.txt"
+        },
+        {
+          "member": "prompts/02_HOME.txt",
+          "sha256": "cdd468a1077aab287d071789cc8eaca036d5b60289fda0d6f08932e0182ab673",
+          "size": 4785,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/02_HOME.txt"
+        },
+        {
+          "member": "prompts/03_SECURE_ACCESS_LOGIN.txt",
+          "sha256": "4c6f9d8e10ca0061c9e20513272cbea39c2b378375ccaf0af70fe69e468685ff",
+          "size": 4775,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/03_SECURE_ACCESS_LOGIN.txt"
+        },
+        {
+          "member": "prompts/04_FILE_CIPHER.txt",
+          "sha256": "52425088987d9974e7234a07c1e84fda9f75e27f3c604b5d00420b3ad78ed151",
+          "size": 4739,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/04_FILE_CIPHER.txt"
+        },
+        {
+          "member": "prompts/05_SHADOW_VAULT.txt",
+          "sha256": "6a08ed8712e54651be171b27569e2f1bc3de65b3b419bad8d1e46b18849bfef9",
+          "size": 4709,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/05_SHADOW_VAULT.txt"
+        },
+        {
+          "member": "prompts/06_SECURE_NOTES.txt",
+          "sha256": "b1c27ff111a98d536710c40312a235e66cb6df1419e60cd15f441a2180ed8d31",
+          "size": 4624,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/06_SECURE_NOTES.txt"
+        },
+        {
+          "member": "prompts/07_NOTES_EDITOR.txt",
+          "sha256": "ae81880a6a777bdc9368dd1c98f8abdcb908131b7fea6bc4bd20f9821e596e1f",
+          "size": 4657,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/07_NOTES_EDITOR.txt"
+        },
+        {
+          "member": "prompts/08_PASSWORDS.txt",
+          "sha256": "122c05a53280c4c1e7997406a9ef1feefdd8ad1a0496785b5416944a72206e13",
+          "size": 4625,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/08_PASSWORDS.txt"
+        },
+        {
+          "member": "prompts/09_PASSWORD_DETAIL.txt",
+          "sha256": "49393d5d095841360de6e57a438af88e174ef6f688da013bc98a7abe417b203f",
+          "size": 4686,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/09_PASSWORD_DETAIL.txt"
+        },
+        {
+          "member": "prompts/10_AUTHENTICATOR.txt",
+          "sha256": "85a83cc6d191c29fcf50e981d481abe68eb691ef114a244bd005cd25d990f6fc",
+          "size": 4665,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/10_AUTHENTICATOR.txt"
+        },
+        {
+          "member": "prompts/11_AUTH_IMPORT.txt",
+          "sha256": "207818590902f30bb2cbe6212c8bbee853e66aa8e5f52b595e19b24c2cfb9f31",
+          "size": 4599,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/11_AUTH_IMPORT.txt"
+        },
+        {
+          "member": "prompts/12_KEY_FORGE.txt",
+          "sha256": "9b4160cf3d2b2c10a207281be87eb17cb62446ed89279f1b6e410ac0f29dbd4e",
+          "size": 4568,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/12_KEY_FORGE.txt"
+        },
+        {
+          "member": "prompts/13_KEY_DETAILS.txt",
+          "sha256": "b9bcd0d85eea25bf4102a7a2b578754f1e76f69cc8701c9582edb5f1d85e7926",
+          "size": 4653,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/13_KEY_DETAILS.txt"
+        },
+        {
+          "member": "prompts/14_PRIVACY.txt",
+          "sha256": "26a496d96ee6ea77f2863ff24282f3d20b915e4c3374564c214e6b9e0f062698",
+          "size": 4716,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/14_PRIVACY.txt"
+        },
+        {
+          "member": "prompts/15_BACKUP.txt",
+          "sha256": "bc589eb0ca5a690cfb9cbd8231881a80cc6a265f371e6b84bb4afdaa88203e28",
+          "size": 4629,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/15_BACKUP.txt"
+        },
+        {
+          "member": "prompts/16_SECURE_SHARE.txt",
+          "sha256": "374023f67f132d5b46b7eb9cce28c699e7dc4b41a3c6bf5762e441f00a88b69f",
+          "size": 4588,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/16_SECURE_SHARE.txt"
+        },
+        {
+          "member": "prompts/17_HASH_INTEGRITY.txt",
+          "sha256": "0cedbf7706400188891e06525fcf83973866bd1c6a256939f4e6f3d8855aa0ea",
+          "size": 4242,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/17_HASH_INTEGRITY.txt"
+        },
+        {
+          "member": "prompts/18_TEXT_CIPHER.txt",
+          "sha256": "728e958a0d47d9ece8212c6fa4704e41907fbdf4c67eaf863980867a93f1d8e5",
+          "size": 4187,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/18_TEXT_CIPHER.txt"
+        },
+        {
+          "member": "prompts/19_DIGITAL_SIGNATURE.txt",
+          "sha256": "0b418592aa471e760d4e8aef8c11209a79e096e427f3ba0a03230ce4ec8fd281",
+          "size": 4266,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/19_DIGITAL_SIGNATURE.txt"
+        },
+        {
+          "member": "prompts/20_CERTIFICATE_INSPECTOR.txt",
+          "sha256": "74cf2c839b4a59a93a4c3aae83815ffee2b22c1b129f3a371c111ee43c2735db",
+          "size": 4231,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/20_CERTIFICATE_INSPECTOR.txt"
+        },
+        {
+          "member": "prompts/21_ENCRYPTED_ARCHIVE.txt",
+          "sha256": "5b1daba25532d9d0f95eced9ca6ec3acbb318315f0fd3792ed50954a13b8f16b",
+          "size": 4199,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/21_ENCRYPTED_ARCHIVE.txt"
+        },
+        {
+          "member": "prompts/22_LOCAL_TRANSFER.txt",
+          "sha256": "d060ec4e632e92f5ba98b7aa0e7e68b7f9f7a701ec65a59617fc9aa96e395840",
+          "size": 4249,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/22_LOCAL_TRANSFER.txt"
+        },
+        {
+          "member": "prompts/23_FINGERPRINT_VERIFY.txt",
+          "sha256": "4746c67c60cdcae62cdfdf189b62a63d6fab3c885deb97e989d54e8fdaaa2aec",
+          "size": 4228,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/23_FINGERPRINT_VERIFY.txt"
+        },
+        {
+          "member": "prompts/24_METADATA_CLEANER.txt",
+          "sha256": "ef90e47b0519ccfda34577a862c9f882af20e3be56d75efc6152f62f2e77166c",
+          "size": 4180,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/24_METADATA_CLEANER.txt"
+        },
+        {
+          "member": "prompts/25_CLIPBOARD_GUARD.txt",
+          "sha256": "fae5d69dff2c5eb818fae4575ad174e9684b7922c8d3f4fc66d702bf051c47d0",
+          "size": 4300,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/25_CLIPBOARD_GUARD.txt"
+        },
+        {
+          "member": "prompts/26_SECURE_RANDOM.txt",
+          "sha256": "70097858759113bd721d96f5296950af56606e046b1038ea20dbfed76c8479ee",
+          "size": 4214,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/26_SECURE_RANDOM.txt"
+        },
+        {
+          "member": "prompts/27_HMAC_AUTHENTICITY.txt",
+          "sha256": "77aee27314b4a35990bba4e45f4ab6f44216c6d38b25068d525e75348c788113",
+          "size": 4183,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/27_HMAC_AUTHENTICITY.txt"
+        },
+        {
+          "member": "prompts/28_PUBLIC_KEY_QR.txt",
+          "sha256": "465bc817835bab7208726f0ce97768cf663715bed96e57218c52e39379fad6e3",
+          "size": 4221,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/28_PUBLIC_KEY_QR.txt"
+        },
+        {
+          "member": "prompts/29_VAULT_COLLECTIONS.txt",
+          "sha256": "8c230c1e0124252cd25dde4759524977ba2b1a3ccb59177f1f0069a0fa345f80",
+          "size": 4221,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/29_VAULT_COLLECTIONS.txt"
+        },
+        {
+          "member": "prompts/30_DOCUMENT_VIEWER.txt",
+          "sha256": "8f921c96d70389b5bf2a82f9551b4c67211c1e7665e6a2fc79f37aa3489105ac",
+          "size": 4247,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/30_DOCUMENT_VIEWER.txt"
+        },
+        {
+          "member": "prompts/31_VAULT_KEY_ROTATION.txt",
+          "sha256": "62678119b03121b13d2e5a2909be45bf0f18fa6debf42959941c4b31d7df3323",
+          "size": 4167,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/31_VAULT_KEY_ROTATION.txt"
+        },
+        {
+          "member": "prompts/32_CIPHERTEXT_PACKAGE_INSPECTOR.txt",
+          "sha256": "0db87df02fdf4d1dd04e74a6bb00ff079faa858e0963cd47d577bf76b64de738",
+          "size": 4227,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/32_CIPHERTEXT_PACKAGE_INSPECTOR.txt"
+        },
+        {
+          "member": "prompts/33_ANDROID_AUTOFILL.txt",
+          "sha256": "42614909084ad077cbd665c2b77d1cf7c9085dcac56f1b507fe82b435cddfd0d",
+          "size": 4248,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/33_ANDROID_AUTOFILL.txt"
+        },
+        {
+          "member": "prompts/34_OFFLINE_SECURITY_ADVISOR.txt",
+          "sha256": "3ed07cadfbc6d7083a3f2243811b3efd7a0521fbfd80658c6775d3b5ff113e73",
+          "size": 4126,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/34_OFFLINE_SECURITY_ADVISOR.txt"
+        },
+        {
+          "member": "prompts/35_MULTI_DEVICE_PAIRING.txt",
+          "sha256": "35c6f7c3d61be38fa0501af2f76331295c293d001b780d67efc42143bb356d7b",
+          "size": 4164,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/35_MULTI_DEVICE_PAIRING.txt"
+        },
+        {
+          "member": "prompts/36_PASSWORD_STRENGTH_AUDIT.txt",
+          "sha256": "941e4fef2cc559c5b439b3931042c135cae5e706b655601bf8ea0bb400d28864",
+          "size": 4158,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/36_PASSWORD_STRENGTH_AUDIT.txt"
+        },
+        {
+          "member": "prompts/37_ARGON2ID_KEY_DERIVATION.txt",
+          "sha256": "34f4478758d07abe0a8d164be9c47df605d40933d63ef3629497fa91525c6a3a",
+          "size": 4161,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/37_ARGON2ID_KEY_DERIVATION.txt"
+        },
+        {
+          "member": "prompts/38_SIGNATURE_STUDIO.txt",
+          "sha256": "7c67091995328dc3908ac5f52bfa23006e3d318582f8b038c02e5c5831ab9904",
+          "size": 4132,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/38_SIGNATURE_STUDIO.txt"
+        },
+        {
+          "member": "prompts/39_LOCAL_SECURITY_ACTIVITY.txt",
+          "sha256": "b97d57608fae2bf78aa4b6971d7b61292ef00a0d7b115532e0bc377d7990e826",
+          "size": 4150,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/39_LOCAL_SECURITY_ACTIVITY.txt"
+        },
+        {
+          "member": "prompts/40_TRANSFER_WIZARD.txt",
+          "sha256": "4331fbd66e888a0e3dcb04e315d471e71bc3d6e0f078692a8519a74fa4250432",
+          "size": 4195,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/40_TRANSFER_WIZARD.txt"
+        },
+        {
+          "member": "prompts/41_EXPIRING_SECRET_CAPSULE.txt",
+          "sha256": "64c5279f69d8c452922b8bf5badd07970f6092543ff80ef6acdd87a21be5b913",
+          "size": 4155,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/41_EXPIRING_SECRET_CAPSULE.txt"
+        },
+        {
+          "member": "prompts/42_SESSION_PRIVACY_CONTROLS.txt",
+          "sha256": "4263a42bb87aba0589c80d59ca061cc3e715dc75e2cdd04c0353510bd386e325",
+          "size": 4149,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/42_SESSION_PRIVACY_CONTROLS.txt"
+        },
+        {
+          "member": "prompts/43_FILE_INTEGRITY_TOOL.txt",
+          "sha256": "de197713f4858db4a1d1b5dbbc7bff5d7d6b534bc45b412d2c0823929a459bc0",
+          "size": 4184,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/43_FILE_INTEGRITY_TOOL.txt"
+        },
+        {
+          "member": "prompts/44_SECURE_CLIPBOARD.txt",
+          "sha256": "74335eed956758dadc7f7deeef8f2a520779faf130f33d7e764fb78c55477bb9",
+          "size": 4209,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/prompts/44_SECURE_CLIPBOARD.txt"
+        },
+        {
+          "member": "docs/INTEGRATION_HANDOFF.md",
+          "sha256": "001409d99051d1a676801531a0505afb43ebab411ca7ca8573f59446b3cb0f48",
+          "size": 1885,
+          "preserved_as": "TRACKED:docs/unique-recovery/visual-variations-20261029/anima_v5/KNOUX_CRYPT_ANIMA_V5_DELIVERY/docs/INTEGRATION_HANDOFF.md"
+        }
+      ]
+    },
+    {
+      "archive": "REPO_AGENT_MISSIONS.zip",
+      "archive_sha256": "df9116ed4d489821f51de0cb5bc70e2722bac044950a04e098d355eac6bba757",
+      "original_bytes": 197224,
+      "members": [
+        {
+          "member": "REPO_AGENT_MISSIONS/00_GLOBAL_AGENT_RULES.md",
+          "sha256": "dd347b443d9c38219f584a95bebeb94f55232f4f65989ccfa6b49bdc5a7d4f55",
+          "size": 6204,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/00_GLOBAL_AGENT_RULES.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/00_MISSION_INDEX.csv",
+          "sha256": "dbc6583708527a0120e92100694fcb2f90aa27b1ca43b1d615f07f56d7a0b781",
+          "size": 7214,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/00_MISSION_INDEX.csv"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/00_START_HERE.md",
+          "sha256": "b1ae781c1cf59050cc249d1a660bff384659690b24b29fe76d3b8cfecab5d4c0",
+          "size": 1883,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/00_START_HERE.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/01_SPLASH_ENTRY/TASK.md",
+          "sha256": "81b94111e54157ebd3fdcf63f7ee8b99ae02e047063fee4837195dfe70843019",
+          "size": 7992,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/01_SPLASH_ENTRY/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/02_SECURE_ACCESS_LOGIN/TASK.md",
+          "sha256": "bfa48fd0aefb9f20eb897c99bcac3d181752649e610658a9bcc630b4d80d9660",
+          "size": 8296,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/02_SECURE_ACCESS_LOGIN/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/01_ENCRYPT_FILES/SERVICES/17_HASH_INTEGRITY/TASK.md",
+          "sha256": "cb8b9d4dca2dd5656ee9cb97366badab04f2ee96fe0a97fac0558742958100e8",
+          "size": 7850,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/01_ENCRYPT_FILES/SERVICES/17_HASH_INTEGRITY/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/01_ENCRYPT_FILES/SERVICES/18_TEXT_CIPHER/TASK.md",
+          "sha256": "8b39703209ca554c2069c441b741bc8bb8e3f6c3fe7075c1b3c6913a2f389b5e",
+          "size": 7785,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/01_ENCRYPT_FILES/SERVICES/18_TEXT_CIPHER/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/01_ENCRYPT_FILES/SERVICES/21_ENCRYPTED_ARCHIVE/TASK.md",
+          "sha256": "fb15be82205627c5ebcce372c146de15bd9fcb9b28c3fccb370f43d74ec8559f",
+          "size": 7819,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/01_ENCRYPT_FILES/SERVICES/21_ENCRYPTED_ARCHIVE/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/01_ENCRYPT_FILES/SERVICES/32_CIPHERTEXT_PACKAGE_INSPECTOR/TASK.md",
+          "sha256": "8e9036e4eb6b1d7cafabac00dc88eb5b7761f724c8f7ed80ddc0d633f6154df6",
+          "size": 7880,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/01_ENCRYPT_FILES/SERVICES/32_CIPHERTEXT_PACKAGE_INSPECTOR/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/01_ENCRYPT_FILES/SERVICES/43_FILE_INTEGRITY_TOOL/TASK.md",
+          "sha256": "a70bcdaa812113bbb3b58af95020dc9a9c9d7b1fe5f23ccbd979575c55c049a7",
+          "size": 7807,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/01_ENCRYPT_FILES/SERVICES/43_FILE_INTEGRITY_TOOL/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/01_ENCRYPT_FILES/TASK.md",
+          "sha256": "920c5faeeba06873fcb5df4764f1172fcd038f85e770d71ebe4d5507cc9f1761",
+          "size": 7946,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/01_ENCRYPT_FILES/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/02_VAULT/SERVICES/29_VAULT_COLLECTIONS/TASK.md",
+          "sha256": "88a71e583378f4c67bb0bacf8564a1facef9f882ceb7aa3a25139f44d0e7bbf6",
+          "size": 7822,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/02_VAULT/SERVICES/29_VAULT_COLLECTIONS/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/02_VAULT/SERVICES/30_DOCUMENT_VIEWER/TASK.md",
+          "sha256": "54d40921e8832b184fa35d8f6de613c3122696979fbca3fd0bbe5ec3992b17e6",
+          "size": 7849,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/02_VAULT/SERVICES/30_DOCUMENT_VIEWER/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/02_VAULT/SERVICES/31_VAULT_KEY_ROTATION/TASK.md",
+          "sha256": "efb73fc3742f9bc61e6d4d17a7baa4d751bedf3530ea98b13e3dad59175251d8",
+          "size": 7778,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/02_VAULT/SERVICES/31_VAULT_KEY_ROTATION/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/02_VAULT/TASK.md",
+          "sha256": "02ab63a00b32f9dd739c735912b88b48ae699e18267a0efd6d1b128c4156158e",
+          "size": 7913,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/02_VAULT/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/03_SECURE_NOTES/SERVICES/07_NOTES_EDITOR/TASK.md",
+          "sha256": "9375dfeeaa370516341710f9a4cb97623f8d8cd3cbf8c349b96a14d1ce5ae92b",
+          "size": 7881,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/03_SECURE_NOTES/SERVICES/07_NOTES_EDITOR/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/03_SECURE_NOTES/TASK.md",
+          "sha256": "f8fad89b65b5e180d0dddcfa074c0da1644f60f24c5a828d78cc4be672ab0e1d",
+          "size": 7869,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/03_SECURE_NOTES/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/04_PASSWORDS/SERVICES/09_PASSWORD_DETAIL/TASK.md",
+          "sha256": "17a565eb365c78db92163113077382745e5fffbaa27cee748cb0c2dd4374ad7f",
+          "size": 7935,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/04_PASSWORDS/SERVICES/09_PASSWORD_DETAIL/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/04_PASSWORDS/SERVICES/33_ANDROID_AUTOFILL/TASK.md",
+          "sha256": "d0118e4dcaf6202f7d4f2c5332582f2b7c24bb0cd084cbfdc33e3dc0b5f58fef",
+          "size": 7848,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/04_PASSWORDS/SERVICES/33_ANDROID_AUTOFILL/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/04_PASSWORDS/SERVICES/36_PASSWORD_STRENGTH_AUDIT/TASK.md",
+          "sha256": "115018f1527f83967f9638564f79c917144c51550ae1712615b4837159307b5e",
+          "size": 7796,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/04_PASSWORDS/SERVICES/36_PASSWORD_STRENGTH_AUDIT/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/04_PASSWORDS/TASK.md",
+          "sha256": "d7d64a57bf299f87b36c18d00831d869c79296c9b9ca6d1dd57acf9d3d5066d3",
+          "size": 7873,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/04_PASSWORDS/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/SERVICES/13_KEY_DETAILS/TASK.md",
+          "sha256": "7e41fac2a3421c01dcdbed7ae3fea837b4970bea98042259542352ca4512f8ca",
+          "size": 7950,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/SERVICES/13_KEY_DETAILS/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/SERVICES/19_DIGITAL_SIGNATURE/TASK.md",
+          "sha256": "dcdf73a7fd9b3eaa784b8385795f4a43ac0f746e2d80f2a4a3b44d45a1d92bb4",
+          "size": 7891,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/SERVICES/19_DIGITAL_SIGNATURE/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/SERVICES/20_CERTIFICATE_INSPECTOR/TASK.md",
+          "sha256": "97c06e15c8033060c98886a8764292041cd45afe906ba6839d26c30e71e8ad25",
+          "size": 7863,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/SERVICES/20_CERTIFICATE_INSPECTOR/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/SERVICES/23_FINGERPRINT_VERIFY/TASK.md",
+          "sha256": "d75cbf6ce4c2138cacb4b7552ee8aba7d75177ecdb1b0837c0192714ca0707f4",
+          "size": 7844,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/SERVICES/23_FINGERPRINT_VERIFY/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/SERVICES/26_SECURE_RANDOM/TASK.md",
+          "sha256": "5d469d0f09fbc18978bc8f17dded6d5e5d9681f0df9434dbf1d01c79d086509b",
+          "size": 7814,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/SERVICES/26_SECURE_RANDOM/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/SERVICES/27_HMAC_AUTHENTICITY/TASK.md",
+          "sha256": "719bfd064567dbb8745c082386bd9679e92fd26eee9bd13bc3e4e99abacdd460",
+          "size": 7803,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/SERVICES/27_HMAC_AUTHENTICITY/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/SERVICES/28_PUBLIC_KEY_QR/TASK.md",
+          "sha256": "14febe6e6504c9a9c35abfce23167ee3c3f4ac68f71f2892acaa7e1c27a758ea",
+          "size": 7820,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/SERVICES/28_PUBLIC_KEY_QR/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/SERVICES/37_ARGON2ID_KEY_DERIVATION/TASK.md",
+          "sha256": "faa46a216e45abf43df1d150ded77a2e4f90965986d57531e79b9584b7f0d492",
+          "size": 7798,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/SERVICES/37_ARGON2ID_KEY_DERIVATION/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/SERVICES/38_SIGNATURE_STUDIO/TASK.md",
+          "sha256": "01912dc5807471387c237c612c26c1929a4cf477c640ebba4f354346ac6c4431",
+          "size": 7740,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/SERVICES/38_SIGNATURE_STUDIO/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/TASK.md",
+          "sha256": "f84b112fb7b6f3db7f3c92b380445d8ad401ea02b57b5f64b7681522fd29dc64",
+          "size": 7912,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/05_KEY_FORGE/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/06_AUTHENTICATOR/SERVICES/11_AUTH_IMPORT/TASK.md",
+          "sha256": "8ac33f4687e12b8479d32ed44f9f77890cd2c21059783d0dfd6ca55e212bb902",
+          "size": 7908,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/06_AUTHENTICATOR/SERVICES/11_AUTH_IMPORT/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/06_AUTHENTICATOR/TASK.md",
+          "sha256": "d3321998794a2b2014e1d6b25af4d742cfa6d4e16fc7f697e2fa05fd508932c0",
+          "size": 7927,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/06_AUTHENTICATOR/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/07_PRIVACY_CENTER/SERVICES/24_METADATA_CLEANER/TASK.md",
+          "sha256": "ee7e9c6be2982ef0896d8dd1d2e8a7141d80e80c36d34ecedfdcb69c8d0b4599",
+          "size": 7794,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/07_PRIVACY_CENTER/SERVICES/24_METADATA_CLEANER/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/07_PRIVACY_CENTER/SERVICES/25_CLIPBOARD_GUARD/TASK.md",
+          "sha256": "987d3734b9f7c405ef6f9aa377068dbf7dbd905fb5faa4528ad2cc83affbea38",
+          "size": 7912,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/07_PRIVACY_CENTER/SERVICES/25_CLIPBOARD_GUARD/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/07_PRIVACY_CENTER/SERVICES/34_OFFLINE_SECURITY_ADVISOR/TASK.md",
+          "sha256": "78a71c64a1ce5272b966b257d0ef1bdb40ee90b2b8d4989b6bfe12a9129ee561",
+          "size": 7774,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/07_PRIVACY_CENTER/SERVICES/34_OFFLINE_SECURITY_ADVISOR/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/07_PRIVACY_CENTER/SERVICES/39_LOCAL_SECURITY_ACTIVITY/TASK.md",
+          "sha256": "ee6121082352374f5d75d9de0c00d8f0f158c98e962581f89c7de29b1e0bb444",
+          "size": 7785,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/07_PRIVACY_CENTER/SERVICES/39_LOCAL_SECURITY_ACTIVITY/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/07_PRIVACY_CENTER/SERVICES/42_SESSION_PRIVACY_CONTROLS/TASK.md",
+          "sha256": "c1fbb2a458c56b550a65eda0b0a7ab4b4cde40bb30e7885af2bfc47aa340504b",
+          "size": 7795,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/07_PRIVACY_CENTER/SERVICES/42_SESSION_PRIVACY_CONTROLS/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/07_PRIVACY_CENTER/SERVICES/44_SECURE_CLIPBOARD/TASK.md",
+          "sha256": "b53ffb8282f3929b4e8d2ae03e5f3b03eeb04ef4635d2f518c622cfedddbdf8f",
+          "size": 7829,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/07_PRIVACY_CENTER/SERVICES/44_SECURE_CLIPBOARD/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/07_PRIVACY_CENTER/TASK.md",
+          "sha256": "56e3941734ea15907ec83a79b40975507fadded31a2c1775bfb3efda88ba4576",
+          "size": 7947,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/07_PRIVACY_CENTER/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/08_RECOVERY/TASK.md",
+          "sha256": "46049a82054ef4e5981ab6012e5bd3b4690967b6327ddc29f8b08ac980d0914f",
+          "size": 7889,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/08_RECOVERY/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/22_LOCAL_TRANSFER/TASK.md",
+          "sha256": "ef5dbe1406f49c24a8b43c5280e4dcbfee8758916fb9dce81e750a678bd90c67",
+          "size": 7861,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/22_LOCAL_TRANSFER/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/35_MULTI_DEVICE_PAIRING/TASK.md",
+          "sha256": "53db4bcf681a1765e055366223b8e7ee919a4bf0f6fa0a15c67b28328dee02a2",
+          "size": 7806,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/35_MULTI_DEVICE_PAIRING/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/40_TRANSFER_WIZARD/TASK.md",
+          "sha256": "7d893c2a52e5b3fc4426c5b64feeda5cd531ded6368a0bf187cac96dd6975941",
+          "size": 7802,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/40_TRANSFER_WIZARD/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/41_EXPIRING_SECRET_CAPSULE/TASK.md",
+          "sha256": "0f78019848bf93b619b881a5ee4fc85509a0325afd145eddbd42877ac670f585",
+          "size": 7809,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/SERVICES/41_EXPIRING_SECRET_CAPSULE/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/TASK.md",
+          "sha256": "1cfa58e0fbfae6f7a58a2bd749e1377606a01ae0d012df4e5ce03e5ac4ca7172",
+          "size": 7945,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/09_TOOLS_NAV/01_SECURE_SHARE/TASK.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/09_TOOLS_NAV/NAVIGATION.md",
+          "sha256": "3095e375382c3539abab2304db4d4174bee3917e698f268da7af7a1a910f7da9",
+          "size": 978,
+          "preserved_as": "TRACKED:agent-handoff/KNOUX_CRYPT/03_HOME/09_TOOLS_NAV/NAVIGATION.md"
+        },
+        {
+          "member": "REPO_AGENT_MISSIONS/03_HOME/TASK.md",
+          "sha256": "acd5af31768f34272322175a8abb06869cd8f19714cd11458f5789c0638246f5",
+          "size": 8089,
+          "preserved_as": "docs/unique-recovery/local-untracked-20261108/zip-members/REPO_AGENT_MISSIONS/REPO_AGENT_MISSIONS/03_HOME/TASK.md"
+        }
+      ]
+    }
+  ]
+}
