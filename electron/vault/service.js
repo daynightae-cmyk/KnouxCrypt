@@ -375,7 +375,7 @@ class VaultService {
    */
   _journal(category, action, outcome = "info", detail = null, subject = null) {
     if (!this.journal) return;
-    this.journal.record({ category, action, outcome, detail, subject }).catch(() => {});
+    return this.journal.record({ category, action, outcome, detail, subject }).catch(() => {});
   }
 
   /**
@@ -1692,7 +1692,7 @@ class VaultService {
    */
   async argon2Derive(request = {}) {
     const result = await this.argon2.derive(request);
-    this._journal("Keys", "Argon2id derivation completed", "success", {
+    await this._journal("Keys", "Argon2id derivation completed", "success", {
       profile: result.profile,
       memoryKiB: result.memoryKiB,
       iterations: result.iterations,

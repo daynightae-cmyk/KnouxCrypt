@@ -151,6 +151,14 @@ test("argon2: the service records only non-secret parameters in the journal", as
   assert.equal(JSON.stringify(argon).includes("top secret phrase"), false, "the passphrase never reaches the journal");
 });
 
+test("argon2: a journal I/O failure does not invalidate a completed derivation", async () => {
+  const dir = tmp();
+  const { service } = await unlocked(dir);
+  service.journal.record = async () => { throw new Error("simulated journal I/O failure"); };
+  const result = await service.argon2Derive({ passphrase: "never persist this phrase", params: { profile: "INTERACTIVE" } });
+  assert.equal(result.algorithm, "Argon2id");
+});
+
 // ---------------------------------------------------------------------------
 // Task 38 — Signature Studio
 // ---------------------------------------------------------------------------
