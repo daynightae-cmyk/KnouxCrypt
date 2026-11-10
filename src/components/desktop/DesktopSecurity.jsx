@@ -81,16 +81,16 @@ export function DesktopPasswords() {
     <main className="dw-page" data-screen="PASSWORDS">
       <PageHeading
         title={t('PASSWORD MANAGER')}
-        caption={t('Encrypted credential vault · Zero-knowledge architecture')}
+        caption={t('Encrypted credential vault · AES-256-GCM at rest')}
       >
         <button className="dw-primary" style={{ fontSize: '12px', padding: '8px 14px' }} onClick={createAccount}>
           <Mark name="plus" /> {t('New Credential')}
         </button>
         <Link to={SCREENS.AUTOFILL} className="dw-primary" style={{ fontSize: '12px', padding: '8px 14px' }}>
-          <Mark name="shield" /> {t('Autofill Setup')}
+          <Mark name="shield" /> {t('Autofill Preview')}
         </Link>
         <Link to={SCREENS.PASSWORD_AUDIT} className="dw-primary" style={{ fontSize: '12px', padding: '8px 14px' }}>
-          <Mark name="alert" /> {t('Security Audit')}
+          <Mark name="alert" /> {t('Password Audit')}
         </Link>
       </PageHeading>
 
@@ -114,7 +114,7 @@ export function DesktopPasswords() {
               aria-label={t('Search passwords')}
             />
             <div className="dw-segments" style={{ flexWrap: 'wrap', gap: '6px' }}>
-              {['All', ...PASSWORD_CATEGORIES].map(c => (
+              {PASSWORD_CATEGORIES.map(c => (
                 <button
                   key={c}
                   aria-pressed={category === c}
@@ -186,7 +186,7 @@ export function DesktopPasswords() {
               <Mark name="shield" /> {t('Password audit')} ›
             </Link>
             <Link className="dw-action-row" to={SCREENS.AUTOFILL}>
-              <Mark name="monitor" /> {t('Autofill configuration')} ›
+              <Mark name="monitor" /> {t('Autofill preview')} ›
             </Link>
             <Link className="dw-action-row" to={SCREENS.SECURE_SHARE}>
               <Mark name="share" /> {t('Secure share')} ›
