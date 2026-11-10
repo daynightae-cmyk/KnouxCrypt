@@ -12,6 +12,7 @@ import com.knoux.crypt.ui.AccessScreen
 import com.knoux.crypt.ui.AccountScreen
 import com.knoux.crypt.ui.AuthImportScreen
 import com.knoux.crypt.ui.AuthenticatorScreen
+import com.knoux.crypt.ui.AutofillScreen
 import com.knoux.crypt.ui.CertificateInspectorScreen
 import com.knoux.crypt.ui.ClipboardGuardScreen
 import com.knoux.crypt.ui.DigitalSignatureScreen
@@ -336,6 +337,14 @@ fun KnouxNavHost(
                 onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
                 onOpenAudit = { nav.navigate("password_audit") },
                 onOpenDetail = { id -> nav.navigate("password_detail/$id") },
+            )
+        }
+        composable("autofill") {
+            AutofillScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onNeedUnlock = { nav.navigate("access") { launchSingleTop = true } },
+                onOpenPasswords = { nav.navigate("passwords") },
             )
         }
         composable(

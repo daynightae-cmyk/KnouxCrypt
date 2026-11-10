@@ -57,7 +57,7 @@ object Catalog {
         ServiceDef("COLLECTIONS", "Collections", "المجموعات", "Group vault items by project", "جمّع عناصر الخزنة حسب المشروع", ServiceArt.VAULT, "vault_collections", ServiceStatus.IMPLEMENTED, true),
         ServiceDef("DOCUMENT_VIEWER", "Document Viewer", "عارض المستندات", "Open decrypted documents in memory", "افتح المستندات المفكوكة في الذاكرة", ServiceArt.VAULT, "document_viewer", ServiceStatus.IMPLEMENTED, true),
         ServiceDef("PACKAGE_INSPECTOR", "Package Inspector", "فاحص الحزم", "Inspect KNF/KNP headers without keys", "افحص ترويسات KNF/KNP دون مفاتيح", ServiceArt.ENCRYPT, "package_inspector", ServiceStatus.IMPLEMENTED, false),
-        ServiceDef("AUTOFILL", "Autofill", "الملء التلقائي", "Fill passwords through Android Autofill", "املأ كلمات المرور عبر خدمة أندرويد", ServiceArt.PASSWORDS, null, ServiceStatus.DESIGN_ONLY, true),
+        ServiceDef("AUTOFILL", "Autofill", "الملء التلقائي", "Fill passwords through Android Autofill", "املأ كلمات المرور عبر خدمة أندرويد", ServiceArt.PASSWORDS, "autofill", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("OFFLINE_ADVISOR", "Offline Security Advisor", "مستشار الأمان دون اتصال", "Review local security posture", "راجع الوضع الأمني المحلي", ServiceArt.PRIVACY, "security_advisor", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("KEY_DERIVATION", "Key Derivation", "اشتقاق المفاتيح", "Derive keys with Argon2id", "اشتق المفاتيح باستخدام Argon2id", ServiceArt.KEY, "key_derivation", ServiceStatus.IMPLEMENTED, false),
         ServiceDef("SECURITY_ACTIVITY", "Security Activity", "سجل الأمان", "Review local security events", "راجع أحداث الأمان المحلية", ServiceArt.PRIVACY, "security_activity", ServiceStatus.IMPLEMENTED, false),

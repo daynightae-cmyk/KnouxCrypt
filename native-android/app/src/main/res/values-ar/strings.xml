@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">نوكس كريبت</string>
+    <string name="autofill_service_label">الملء التلقائي من KNOUX Crypt</string>
 </resources>

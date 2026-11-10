@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Knoux Crypt</string>
+    <string name="autofill_service_label">KNOUX Crypt Autofill</string>
 </resources>

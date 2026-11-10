@@ -1,6 +1,6 @@
 # KNOUX Crypt — Native Android
 
-Status: **BUILD_VERIFIED / UNIT_TESTED (local Windows machine, 2026-10-31)**.
+Status: **BUILD_VERIFIED / UNIT_TESTED (local Windows machine, 2026-11-10)**. Autofill is now implemented as a real Android AutofillService (compiled + unit-tested), not device-verified.
 **NOT device-verified, NOT security-audited, NOT released, NOT pixel-certified.**
 The PR #15 Chromium visuals are the accepted design baseline; they are not native runtime evidence.
 
@@ -38,8 +38,9 @@ The PR #15 Chromium visuals are the accepted design baseline; they are not nativ
 - Key Forge: ephemeral 256-bit key + SHA-256 fingerprint.
 - Privacy Center: truthful session/key/backup limits.
 - Recovery: **BLOCKED** honest screen; no fake export, no backup file.
+- Autofill: real `AutofillService` (BIND_AUTOFILL_SERVICE) offering encrypted password suggestions only while the vault session is unlocked; web-domain and android:// package matching; no capture/save; honest locked-state handling.
 
-Design-only (no route, explicit placeholder): Vault, Signature, Secure Share, Certificate Inspector, Archive, Local Transfer, Fingerprint Verify, Metadata Cleaner, Clipboard Guard, HMAC, Public Key QR, Collections, Document Viewer, Package Inspector, Autofill, Offline Advisor, Key Derivation, Security Activity, Secret Capsule, Session Privacy, File Integrity, Secure Clipboard, Device Pairing, Password Audit.
+Design-only (no route, explicit placeholder): Device Pairing.
 
 ## Verified commands and results
 
@@ -58,7 +59,7 @@ Test breakdown: FileEnvelope 13, PassphraseEnvelope 6, TOTP/hash/random 7, PR14 
 - `adb devices` was empty and `HypervisorPresent` is **False**: no emulator/device. APK was not installed or launched. No Compose screenshot, lifecycle, Back, biometric, Keystore, SAF or rotation evidence exists.
 - The two instrumented test classes compile but were **NOT RUN**.
 - Security review/audit, fuzzing, dependency-vulnerability review: **NOT DONE**.
-- PBKDF2 is used instead of Argon2id (mission 37 open). Recovery export, key rotation, cross-device restore, secure clipboard, autofill and pairing are not implemented.
+- PBKDF2 is used instead of Argon2id (mission 37 open). Recovery export, key rotation, cross-device restore, secure clipboard and pairing are not implemented.
 - The master data key is Keystore-protected but **not auth-bound per use**; the in-app session capability gates use. If the device is compromised while unlocked, this boundary is not hardware-proof. Documentation says so in-app.
 - Visual parity is not certified; PR #15 is the accepted implementation baseline. The Preview artifact is a design preview, not the APK.
 

@@ -52,7 +52,7 @@ class MainActivity : FragmentActivity() {
         if (privacySettings.blockScreenshots) {
             window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
-        container = AppContainer(applicationContext)
+        container = (application as KnouxApplication).container
         lifecycleScope.launch {
             container.settings.settings.collect { settings ->
                 privacySettings = settings
