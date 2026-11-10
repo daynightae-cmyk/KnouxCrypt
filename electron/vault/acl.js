@@ -108,12 +108,27 @@ const POWERSHELL = IS_WINDOWS
   ? path.join(process.env.SystemRoot || "C:\\Windows", "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
   : null;
 
+/*
+ * Windows PowerShell 5.1 resolves its own modules through PSModulePath. When a
+ * PowerShell 7 installation precedes the in-box module directory on that path
+ * (common when PWSh 7 is installed machine-wide and the desktop app inherits
+ * the developer's or the user's PATH), `Get-Acl` autoloads the PS7 copy of
+ * Microsoft.PowerShell.Security and fails with "the module could not be
+ * loaded". Observed on Windows 11 with PS 7.4 + in-box PS 5.1, invoked from the
+ * Electron main process. The in-box directory is the only correct module root
+ * for powershell.exe, so it is pinned for these child processes only.
+ */
+const PS_MODULE_PATH = IS_WINDOWS
+  ? path.join(process.env.SystemRoot || "C:\\Windows", "System32", "WindowsPowerShell", "v1.0", "Modules")
+  : null;
+
 function run(file, args, options = {}) {
+  const env = file === POWERSHELL ? { ...process.env, PSModulePath: PS_MODULE_PATH } : null;
   return new Promise((resolve) => {
     cp.execFile(
       file,
       args,
-      { encoding: "utf8", timeout: EXEC_TIMEOUT_MS, windowsHide: true, ...options },
+      { encoding: "utf8", timeout: EXEC_TIMEOUT_MS, windowsHide: true, ...(env ? { env } : {}), ...options },
       (err, stdout, stderr) => {
         resolve({
           ok: !err,
