@@ -227,7 +227,7 @@ export function KeyDetails() {
         if (detail?.ok) setSelected(detail.data);
       }
     }
-  }, [unlocked, vault]);
+  }, [unlocked, vault.keyList, vault.keyGet]);
 
   useEffect(() => {
     refresh();

@@ -384,7 +384,7 @@ export function DigitalSignature() {
     }
     const res = await vault.keyList();
     if (res?.ok) setKeys(res.data.keys || []);
-  }, [unlocked, vault]);
+  }, [unlocked, vault.keyList]);
 
   useEffect(() => {
     loadKeys();

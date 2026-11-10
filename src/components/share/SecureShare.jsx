@@ -50,7 +50,7 @@ export function SecureShare() {
     return () => {
       active = false;
     };
-  }, [unlocked, vault]);
+  }, [unlocked, vault.keyList]);
 
   // Real package creation. shared-secret uses PBKDF2; recipient-key wraps the
   // content key with RSA-OAEP for the chosen public key.
