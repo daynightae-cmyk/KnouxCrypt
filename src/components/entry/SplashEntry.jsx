@@ -4,8 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { SCREENS } from "../../config/screens";
 import { StagEmblem } from "./StagEmblem";
 import "./entry.css";
-import {useMotionPreferences} from "../shell/MotionPreferences";
-import {useKnouxAudio} from "../shell/KnouxAudioProvider";
+import { useMotionPreferences } from "../shell/MotionPreferences";
+import { useKnouxAudio } from "../shell/KnouxAudioProvider";
 
 // In-memory only: Back and route revisits never replay the full ignition.
 let introPlayed = false;
@@ -18,21 +18,22 @@ export function Fingerprint() {
   );
 }
 
+const BUILD_DATE = "November 10, 2026";
+
 export function SplashEntry() {
   const { t, locale, dir } = useLanguage();
-
   const navigate = useNavigate();
   const [playIntro] = useState(() => !introPlayed);
-  const motion=useMotionPreferences();
-  const {cue}=useKnouxAudio();
-  const [skipped,setSkipped]=useState(false);
-  const [phase,setPhase]=useState("dormant");
-  useEffect(()=>{
-    if(!playIntro||!motion.running||skipped){setPhase("idle");return;}
-    const timers=[[350,"awakening"],[950,"ignition"],[1650,"identity"],[2400,"gateway"],[3200,"idle"]].map(([ms,next])=>setTimeout(()=>setPhase(next),ms));
-    return()=>timers.forEach(clearTimeout);
-  },[motion.running,playIntro,skipped]);
-  useEffect(()=>{if(phase==="ignition")cue("ignition");},[phase,cue]);
+  const motion = useMotionPreferences();
+  const { cue } = useKnouxAudio();
+  const [skipped, setSkipped] = useState(false);
+  const [phase, setPhase] = useState("dormant");
+  useEffect(() => {
+    if (!playIntro || !motion.running || skipped) { setPhase("idle"); return; }
+    const timers = [[350, "awakening"], [950, "ignition"], [1650, "identity"], [2400, "gateway"], [3200, "idle"]].map(([ms, next]) => setTimeout(() => setPhase(next), ms));
+    return () => timers.forEach(clearTimeout);
+  }, [motion.running, playIntro, skipped]);
+  useEffect(() => { if (phase === "ignition") cue("ignition"); }, [phase, cue]);
   const [entering, setEntering] = useState(false);
   const timer = useRef();
 
@@ -50,26 +51,63 @@ export function SplashEntry() {
   }
 
   return (
-    <main className={`crypt-entry ${playIntro ? "crypt-ignite" : ""}`} dir={dir} lang={locale} data-entry-scene={entering?"extinguishing":phase} data-screen="SPLASH_ENTRY" aria-labelledby="crypt-brand">
+    <main className={`crypt-entry ${playIntro ? "crypt-ignite" : ""}`} dir={dir} lang={locale} data-entry-scene={entering ? "extinguishing" : phase} data-screen="SPLASH_ENTRY" aria-labelledby="crypt-brand">
       <div className="crypt-atmosphere" aria-hidden="true">
         <i className="crypt-horizon crypt-horizon-top" /><i className="crypt-horizon crypt-horizon-bottom" />
         <i className="crypt-ember" /><i className="crypt-ember" /><i className="crypt-ember" />
-      </div>
-      {playIntro&&!skipped&&phase!=="idle"&&<button className="splash-skip" onClick={()=>setSkipped(true)}>{t("Skip intro")}</button>}
-      <div className="crypt-entry-group" data-entry-phase={entering?"extinguishing":phase}>
-        <div className="crypt-emblem" aria-hidden="true">
-          <div className="splash-energy-wave"/><svg className="splash-antler-light" viewBox="0 0 1254 1254"><path d="M605 550C430 370 180 390 175 195M649 550C824 370 1074 390 1079 195"/></svg><StagEmblem phase={entering?"extinguishing":phase}/>
+        <div className="crypt-starfield" aria-hidden="true">
+          {Array.from({ length: 40 }).map((_, i) => (
+            <i key={i} className="crypt-star" style={{
+              left: `${(i * 37 + 13) % 100}%`,
+              top: `${(i * 53 + 7) % 100}%`,
+              animationDelay: `${(i % 7) * 0.4}s`,
+              animationDuration: `${2 + (i % 5) * 0.6}s`,
+            }} />
+          ))}
         </div>
-        <p className="splash-access-state" role="status">{t(entering?"Opening Secure Access — not authenticated":"Local interface · authentication required")}</p>
+      </div>
+      {playIntro && !skipped && phase !== "idle" && <button className="splash-skip" onClick={() => setSkipped(true)}>{t("Skip intro")}</button>}
+      <div className="crypt-entry-group" data-entry-phase={entering ? "extinguishing" : phase}>
+        <div className="crypt-emblem" aria-hidden="true">
+          <div className="splash-energy-wave" />
+          <svg className="splash-antler-light" viewBox="0 0 1254 1254"><path d="M605 550C430 370 180 390 175 195M649 550C824 370 1074 390 1079 195" /></svg>
+          <StagEmblem phase={entering ? "extinguishing" : phase} />
+        </div>
+        <p className="splash-access-state" role="status">{t(entering ? "Opening Secure Access — not authenticated" : "Local interface · authentication required")}</p>
         <div className="crypt-branding">
           <h1 id="crypt-brand">{t("Knoux ")}<span>{t("Crypt")}</span></h1>
           <p>{t("Private Encryption Suite")}</p>
+          <div className="crypt-build-badge">
+            <span className="crypt-build-label">BUILD</span>
+            <span className="crypt-build-date">{BUILD_DATE}</span>
+          </div>
+        </div>
+        <div className="crypt-meta-strip">
+          <span className="crypt-meta-item">
+            <span className="crypt-meta-dot" />
+            AES-256-GCM
+          </span>
+          <span className="crypt-meta-item">
+            <span className="crypt-meta-dot" />
+            Zero-Trust
+          </span>
+          <span className="crypt-meta-item">
+            <span className="crypt-meta-dot" />
+            Offline-First
+          </span>
         </div>
         <button className={`crypt-gate ${entering ? "crypt-entering" : ""}`} type="button" onClick={enter} disabled={entering} aria-label={t("Touch to Enter — open Secure Access")} aria-busy={entering}>
           <span className="crypt-fingerprint"><Fingerprint /></span>
           <span>{t("Touch to Enter")}</span>
         </button>
       </div>
+      <footer className="crypt-splash-footer">
+        <span>© 2026 Knoux Technologies</span>
+        <span className="crypt-footer-sep">·</span>
+        <span>v2025.1.0</span>
+        <span className="crypt-footer-sep">·</span>
+        <span>Build {BUILD_DATE}</span>
+      </footer>
     </main>
   );
 }
