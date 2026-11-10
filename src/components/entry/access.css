@@ -82,3 +82,33 @@
 .access-notice[data-vault-unavailable] { border-color:#8a6d2f88; color:#e7d3a4; }
 .access-method-unavailable { opacity:.55; }
 .access-method-unavailable small { color:#a68dbb; }
+
+/* Real provider state: GitHub is live in the desktop build, so it must not
+   look like the deliberately unavailable passkey/fingerprint cards. */
+.access-method-ready { border-color:#a86bdc; background:radial-gradient(ellipse at 100% 100%,#6d2dad66,transparent 65%),linear-gradient(120deg,#191126,#100c1c); }
+.access-method-ready small { color:#d5b9ee; }
+.access-method-ready:hover { box-shadow:inset 0 0 18px #a34dff38,0 0 12px #9a41ee44; }
+.access-method[aria-disabled="true"] { cursor:help; }
+
+/* GitHub device-flow panel */
+.access-dialog .access-field { min-height: 52px; padding: 0 14px; }
+.access-dialog .access-field input { font-size: 14px; padding-block: 12px; }
+.access-dialog .access-field > svg { width: 18px; height: 18px; }
+.access-sheet { overflow-y:auto; max-height:85dvh; }
+.access-dismiss { display:block; width:100%; text-align:center; text-decoration:none; }
+.access-fineprint { color:#a99bb9; font-size:12px; line-height:1.6; }
+.access-fineprint a, .access-steps a, .access-docs-link { color:#d6b7ff; text-decoration:underline; text-underline-offset:2px; }
+.access-docs-link { display:block; text-align:center; }
+.access-steps { display:grid; gap:9px; margin:0; padding-inline-start:20px; color:#cbbdda; font-size:13px; line-height:1.6; }
+.access-steps li::marker { color:#b58ae0; }
+.access-identity { display:flex; align-items:center; gap:14px; }
+.access-avatar { flex-shrink:0; width:52px; height:52px; display:grid; place-items:center; border-radius:50%; border:1px solid #b184e0; background:radial-gradient(ellipse at 30% 20%,#a45eff,#4c1d86 70%); color:#fff; font-size:18px; letter-spacing:.04em; box-shadow:0 0 18px #8b3ce055; }
+.access-identity strong { display:block; font-weight:500; font-size:16px; color:#f0e6fb; }
+.access-identity span { color:#b9a6ce; font-size:12px; }
+.access-code { display:flex; align-items:center; justify-content:center; gap:14px; padding:14px 16px; border:1px dashed #a473d1; border-radius:14px; background:linear-gradient(135deg,#1e1233,#120c20); box-shadow:inset 0 0 18px #8d3fe522; }
+.access-code > span { font-family:ui-monospace,"Cascadia Code",Menlo,Consolas,monospace; font-size:27px; letter-spacing:.16em; color:#f4eaff; text-shadow:0 0 14px #b56bff66; user-select:all; }
+.access-code button { padding:7px 12px; border:1px solid #775596; border-radius:9px; background:#160d24; color:#d9c0f0; font:inherit; font-size:11px; cursor:pointer; }
+.access-code button:hover { border-color:#b484e2; }
+.access-wait { display:flex; align-items:center; gap:10px; color:#c8b3df; font-size:12.5px; }
+.access-wait::before { content:""; flex-shrink:0; width:8px; height:8px; border-radius:50%; background:#b57bff; box-shadow:0 0 10px #b57bff; animation:access-pulse 1.3s ease-in-out infinite; }
+@keyframes access-pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.28; transform:scale(.72); } }

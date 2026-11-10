@@ -142,6 +142,18 @@ const VAULT_CHANNELS = Object.freeze({
   REPORT_EXPORT: "vault:report-export",
 });
 
+// GitHub sign-in. The main process holds the device code and the OAuth token;
+// this bridge only carries the public device-flow state and profile identity.
+const AUTH_CHANNELS = Object.freeze({
+  STATUS: "auth:github:status",
+  CONFIGURE: "auth:github:configure",
+  BEGIN: "auth:github:begin",
+  POLL: "auth:github:poll",
+  CANCEL: "auth:github:cancel",
+  SIGN_OUT: "auth:github:sign-out",
+  OPEN: "auth:github:open",
+});
+
 // Only these main -> renderer channels may be subscribed to.
 const ALLOWED_EVENTS = Object.freeze([
   "vault:progress",
@@ -297,6 +309,16 @@ const vault = {
   onClipboardState: (callback) => subscribe("vault:clipboard-state", callback),
 };
 
+const github = {
+  status: () => invoke(AUTH_CHANNELS.STATUS),
+  configure: (clientId) => invoke(AUTH_CHANNELS.CONFIGURE, { clientId }),
+  begin: () => invoke(AUTH_CHANNELS.BEGIN),
+  poll: (sessionId) => invoke(AUTH_CHANNELS.POLL, { sessionId }),
+  cancel: (sessionId) => invoke(AUTH_CHANNELS.CANCEL, { sessionId }),
+  signOut: () => invoke(AUTH_CHANNELS.SIGN_OUT),
+  openVerification: (url) => invoke(AUTH_CHANNELS.OPEN, { url }),
+};
+
 function subscribe(channel, callback) {
   if (!ALLOWED_EVENTS.includes(channel) || typeof callback !== "function") {
     return () => {};
@@ -344,6 +366,7 @@ const electronAPI = {
     ready: () => ipcRenderer.send("boot:renderer-ready"),
   },
   vault,
+  auth: Object.freeze({ github }),
   on: (channel, callback) => subscribe(channel, callback),
   off: (channel, callback) => {
     if (ALLOWED_EVENTS.includes(channel) && typeof callback === "function") {

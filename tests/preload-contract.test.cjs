@@ -103,6 +103,33 @@ test("only allow-listed main-to-renderer events can be subscribed to", () => {
   assert.equal(listeners.has("vault:progress"), false);
 });
 
+test("the GitHub bridge calls the documented auth channels", async () => {
+  const api = exposed.electronAPI;
+  invocations.length = 0;
+
+  assert.equal(typeof api.auth.github, "object");
+  await api.auth.github.status();
+  await api.auth.github.configure("Iv1.0123456789abcdef");
+  await api.auth.github.begin();
+  await api.auth.github.poll("flow-1");
+  await api.auth.github.cancel("flow-1");
+  await api.auth.github.signOut();
+  await api.auth.github.openVerification("https://github.com/login/device");
+
+  assert.deepEqual(invocations.map((i) => i.channel), [
+    "auth:github:status",
+    "auth:github:configure",
+    "auth:github:begin",
+    "auth:github:poll",
+    "auth:github:cancel",
+    "auth:github:sign-out",
+    "auth:github:open",
+  ]);
+  assert.deepEqual(invocations[1].payload, { clientId: "Iv1.0123456789abcdef" });
+  assert.deepEqual(invocations[3].payload, { sessionId: "flow-1" });
+  assert.deepEqual(invocations[6].payload, { url: "https://github.com/login/device" });
+});
+
 test("revocation events are subscribable through the documented surface", () => {
   const api = exposed.electronAPI;
   assert.equal(typeof api.vault.onRevoked, "function");

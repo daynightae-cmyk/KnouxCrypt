@@ -33,6 +33,9 @@ const { pathToFileURL } = require("url");
 
 const { VaultService } = require("./vault/service");
 const { registerVaultIpc } = require("./vault/ipc");
+const { GitHubAuthService, normalizeClientId } = require("./auth/github");
+const { GitHubConfigStore } = require("./auth/config-store");
+const { registerGitHubAuthIpc } = require("./auth/ipc");
 
 /**
  * The version shown to the user is read from package metadata, not repeated
@@ -107,6 +110,8 @@ let isQuitting = false;
 let journalFlushed = false;
 let vaultService = null;
 let unregisterVaultIpc = null;
+let githubAuthService = null;
+let unregisterGitHubAuthIpc = null;
 
 // --- boot handoff state -----------------------------------------------------
 // The boot view ends on evidence, not on a timer: either the app window reports
@@ -746,6 +751,34 @@ if (!gotLock) {
     unregisterVaultIpc = registerVaultIpc(vaultService, () => mainWindow);
     registerWindowControls();
 
+    // Real GitHub sign-in. The OAuth App client ID is public; the optional
+    // KNOUX_GITHUB_CLIENT_ID environment variable is a convenience for
+    // development, while the persisted user-data value is what normal users
+    // configure from the sign-in panel.
+    const githubConfigStore = new GitHubConfigStore({
+      filePath: path.join(app.getPath("userData"), "auth", "github.json"),
+    });
+    let githubClientId = "";
+    const storedClientId = githubConfigStore.read().clientId;
+    if (storedClientId) {
+      try {
+        githubClientId = normalizeClientId(storedClientId);
+      } catch {
+        // A hand-edited or truncated config must not prevent startup. The
+        // panel will show setup again so the user can replace it.
+      }
+    }
+    if (process.env.KNOUX_GITHUB_CLIENT_ID) {
+      try {
+        githubClientId = normalizeClientId(process.env.KNOUX_GITHUB_CLIENT_ID);
+      } catch {
+        // A malformed override must not stop the app from starting; the panel
+        // will report that no valid client ID is configured.
+      }
+    }
+    githubAuthService = new GitHubAuthService({ clientId: githubClientId });
+    unregisterGitHubAuthIpc = registerGitHubAuthIpc({ service: githubAuthService, store: githubConfigStore });
+
     // Remove any decrypted document temp files left behind by a previous
     // crash before the user can open a new one.
     vaultService.viewerSweep().catch(() => {});
@@ -804,6 +837,7 @@ app.on("will-quit", (event) => {
     return;
   }
   if (unregisterVaultIpc) unregisterVaultIpc();
+  if (unregisterGitHubAuthIpc) unregisterGitHubAuthIpc();
 });
 
 // Security-relevant hardening for every renderer that is created.
