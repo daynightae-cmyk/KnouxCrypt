@@ -38,7 +38,7 @@ export function Recovery() {
     }
     const res = await vault.backupList();
     if (res?.ok) setBackups(res.data.backups);
-  }, [unlocked, vault]);
+  }, [unlocked, vault.backupList]);
 
   useEffect(() => {
     refreshBackups();
@@ -61,7 +61,7 @@ export function Recovery() {
     } finally {
       setBusy(false);
     }
-  }, [refreshBackups, t, vault]);
+  }, [refreshBackups, t, vault.backupCreate]);
 
   const inspectBackup = useCallback(
     async (id) => {
