@@ -1077,8 +1077,8 @@
     border: 1px solid #7556FF22;
     border-radius: 18px;
     overflow: hidden;
-    min-height: 220px;
-    padding: 28px;
+    min-height: 140px;
+    padding: 20px 26px;
     background: radial-gradient(ellipse at 85% 50%, #7556FF18 0%, transparent 70%), linear-gradient(135deg, #1A0F2E, #070912);
     isolation: isolate;
   }
@@ -1097,7 +1097,7 @@
   }
   
   .dw-stag-banner h2 {
-    font-size: 30px;
+    font-size: 26px;
     font-weight: 700;
     color: #D8C8F8;
     margin-bottom: 6px;
@@ -1105,15 +1105,15 @@
   
   .dw-stag-banner p {
     letter-spacing: 2px;
-    font-size: 12px;
+    font-size: 11px;
     text-transform: uppercase;
     color: #7556FF;
-    max-width: 240px;
+    max-width: 320px;
   }
   
   .dw-stag-banner .stag-emblem {
-    width: 200px;
-    height: 200px;
+    width: 110px;
+    height: 110px;
     flex-shrink: 0;
     z-index: 1;
     filter: drop-shadow(0 0 24px #7556FF33);
@@ -1182,7 +1182,7 @@
   }
   
   .dw-vault-layout .dw-stag-banner {
-    min-height: 260px;
+    min-height: 160px;
   }
   
   .dw-list-heading {
@@ -1469,12 +1469,22 @@
   /* Filter Row */
   .dw-filter-row {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 12px;
     margin-bottom: 16px;
   }
   
   .dw-filter-row input {
-    flex: 1;
+    flex: 1 1 100%;
+  }
+  
+  .dw-filter-row .dw-segments {
+    flex: 1 1 auto;
+  }
+  
+  .dw-filter-row select {
+    flex: 0 0 170px;
   }
   
   .dw-filter-row button {

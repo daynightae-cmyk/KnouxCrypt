@@ -8,11 +8,10 @@ import { KnouxServiceIcon } from '../icons/KnouxServiceIcon';
 import { ServiceGrid, ToolsDirectory, TOOL_SERVICES, TOOL_CATEGORIES } from '../home/Home';
 import { useNotes, NOTE_CATEGORIES, SAMPLE_NOTES } from '../notes/NotesContext';
 import './desktop.css';
-import { LiveSecurityPreview, ServiceQuickDock, sceneForPath } from './LiveSecurityPreview';
-import { WorkspaceActivityTray, useWorkspaceActivity } from './WorkspaceActivity';
+import { ServiceQuickDock } from './ServiceQuickDock';
+import { WorkspaceActivityTray } from './WorkspaceActivity';
 import { ExperienceSettings } from './ExperienceSettings';
 import { useMotionPreferences } from '../shell/MotionPreferences';
-import { CipherJourney } from './CipherJourney';
 import { DesktopBackup, DesktopTools } from './DesktopUtilities';
 import { useVault, VAULT_STATE } from '../../hooks/useVault';
 import { ERROR_COPY, formatBytes as bytes } from '../security/cipherCopy';
@@ -35,7 +34,6 @@ export function useDesktopWorkspace() {
 export function DesktopChrome({ children }) {
   const { t, dir } = useLanguage();
   const { pathname } = useLocation();
-  const [previewId, setPreviewId] = useState(null);
   const motion = useMotionPreferences();
   const [collapsed, setCollapsed] = useState(false);
   const [query, setQuery] = useState('');
@@ -156,7 +154,7 @@ export function DesktopChrome({ children }) {
         <Link to={SCREENS.TOOLS}>{t('All tools')} ＋</Link>
       </div>
 
-      <ServiceQuickDock onPreview={setPreviewId} />
+      <ServiceQuickDock />
       <div
         className="dw-content"
         ref={content}
@@ -175,8 +173,6 @@ export function DesktopChrome({ children }) {
           }
         }}
       >
-        <LiveSecurityPreview previewId={previewId} />
-        <CipherJourney service={sceneForPath(pathname).id} />
         {children}
       </div>
 
