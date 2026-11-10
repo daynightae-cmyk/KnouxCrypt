@@ -1,8 +1,0 @@
-MISSING java
-MISSING javac
-MISSING gradle
-MISSING ANDROID_HOME / ANDROID_SDK_ROOT
-Filesystem      Size  Used Avail Use% Mounted on
-/dev/vdb         64G  7.0G   58G  11% /
-
-exit=1
