@@ -85,17 +85,18 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
     id: "SHADOW_VAULT",
     title: "Shadow Vault",
     platformCapability:
-      "Reads real record counts from the encrypted vault record store while a session is unlocked. Media/photo import is NOT implemented.",
-    permissionNeeds: [],
+      "Encrypted media file import: files are stream-encrypted with AES-256-GCM (session's vault DEK via HKDF) and stored as opaque blobs. Metadata (original name, category, SHA-256, size) is kept in the encrypted EncryptedStore under a dedicated 'mediavault' collection. Original source files are never modified or deleted. Export decrypts to a user-chosen location. Delete requires explicit confirmation.",
+    permissionNeeds: ["An unlocked vault session"],
     requiresNetwork: false,
-    providerReady: false,
+    providerReady: true,
     realTestEvidence: [
+      "tests/vault-mediavault.test.cjs (import+list, source unchanged, plaintext absent from blob, duplicate filenames, export byte-identical, overwrite refused, wrong-key auth failure, tampered blob detected, session required, cross-key isolation, unsupported type refused, oversized refused, symlink refused, persistence across restart, count by category)",
       "tests/vault-store.test.cjs (encrypted store read/write, tamper and truncation rejection, guest and revoked session refusal)",
       "scripts/electron-runtime-check.cjs (real Electron process: no plaintext secret remains in the store file)",
     ],
-    displayStatus: DISPLAY_STATUS.PARTIAL,
+    displayStatus: DISPLAY_STATUS.ACTIVE,
     displayStatusReason:
-      "The gallery is a labelled reference layout and no media is read. Only the record-store counts are real, and media import remains unavailable rather than simulated.",
+      "Real file import, encrypted persistence, byte-identical export and confirmed delete are implemented and covered by 23 automated tests. The on-disk blob is AES-256-GCM ciphertext; the original filename is stored only in the encrypted metadata record. Media preview (thumbnail generation) is not implemented and is not claimed.",
   },
   {
     id: "NOTES",

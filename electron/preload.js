@@ -140,6 +140,12 @@ const VAULT_CHANNELS = Object.freeze({
   INTEGRITY_COMPARE: "vault:integrity-compare",
   SECURE_CLIPBOARD_STATUS: "vault:secure-clipboard-status",
   REPORT_EXPORT: "vault:report-export",
+  // Shadow Vault media import (task 05 extension).
+  MEDIA_LIST: "vault:media-list",
+  MEDIA_IMPORT: "vault:media-import",
+  MEDIA_EXPORT: "vault:media-export",
+  MEDIA_REMOVE: "vault:media-remove",
+  MEDIA_COUNT: "vault:media-count",
 });
 
 // GitHub sign-in. The main process holds the device code and the OAuth token;
@@ -307,6 +313,12 @@ const vault = {
   integrityCompare: (request) => invoke(VAULT_CHANNELS.INTEGRITY_COMPARE, request || {}),
   secureClipboardStatus: () => invoke(VAULT_CHANNELS.SECURE_CLIPBOARD_STATUS),
   reportExport: (sessionId, report, outputPath, kind) => invoke(VAULT_CHANNELS.REPORT_EXPORT, { sessionId, report, outputPath, kind }),
+  // Shadow Vault media import (task 05 extension).
+  mediaList: (sessionId) => invoke(VAULT_CHANNELS.MEDIA_LIST, { sessionId }),
+  mediaImport: (sessionId) => invoke(VAULT_CHANNELS.MEDIA_IMPORT, { sessionId }),
+  mediaExport: (sessionId, id) => invoke(VAULT_CHANNELS.MEDIA_EXPORT, { sessionId, id }),
+  mediaRemove: (sessionId, id, confirm) => invoke(VAULT_CHANNELS.MEDIA_REMOVE, { sessionId, id, confirm: confirm === true }),
+  mediaCount: (sessionId) => invoke(VAULT_CHANNELS.MEDIA_COUNT, { sessionId }),
   pickInputFile: () => invoke(VAULT_CHANNELS.PICK_INPUT),
   pickInputFiles: (options) => invoke(VAULT_CHANNELS.PICK_INPUTS, options),
   pickOutputFile: (options) => invoke(VAULT_CHANNELS.PICK_OUTPUT, options),

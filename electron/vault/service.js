@@ -38,6 +38,7 @@ const { TransferWizard } = require("./wizard");
 const { IntegrityBaseline } = require("./integrity");
 const { SecretCapsule } = require("./capsule");
 const { SessionPrivacy } = require("./privacy");
+const { MediaVault } = require("./mediavault");
 const labs = require("./labs");
 
 // Explicitly supported key algorithms. Anything absent is refused rather than
@@ -241,6 +242,15 @@ class VaultService {
     // the session manager and the clipboard guard.
     this.capsule = options.capsule || new SecretCapsule();
     this.integrity = options.integrity || new IntegrityBaseline();
+    // Shadow Vault — encrypted media file store (task 05 extension).
+    this.mediaVault =
+      options.mediaVault ||
+      new MediaVault({
+        engine: this.engine,
+        store: this.store,
+        root: path.join(options.userDataPath || ".", "vault-media"),
+      });
+    this.mediaVault.onJournal = (msg) => this._journal("ShadowVault", msg, "success");
     this.sessionPrivacy =
       options.sessionPrivacy ||
       new SessionPrivacy({

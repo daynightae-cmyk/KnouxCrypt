@@ -591,6 +591,29 @@ export function useVault() {
     [run, session],
   );
 
+  // ---- Shadow Vault media import (task 05 extension) ----------------------
+
+  const mediaList = useCallback(
+    () => run((a) => a.mediaList(session?.sessionId)),
+    [run, session],
+  );
+  const mediaImport = useCallback(
+    () => run((a) => a.mediaImport(session?.sessionId)),
+    [run, session],
+  );
+  const mediaExport = useCallback(
+    (id) => run((a) => a.mediaExport(session?.sessionId, id)),
+    [run, session],
+  );
+  const mediaRemove = useCallback(
+    (id, confirm) => run((a) => a.mediaRemove(session?.sessionId, id, confirm)),
+    [run, session],
+  );
+  const mediaCount = useCallback(
+    () => run((a) => a.mediaCount(session?.sessionId)),
+    [run, session],
+  );
+
   const state = !available
     ? VAULT_STATE.UNAVAILABLE
     : session?.guest
@@ -737,6 +760,11 @@ export function useVault() {
     integrityCompare,
     secureClipboardStatus,
     reportExport,
+    mediaList,
+    mediaImport,
+    mediaExport,
+    mediaRemove,
+    mediaCount,
   };
 }
 

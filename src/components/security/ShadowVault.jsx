@@ -1,79 +1,444 @@
-import { useLanguage } from "../../i18n/Language";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { SCREENS } from "../../config/screens";
+import { useLanguage } from "../../i18n/Language";
 import { useVault, VAULT_STATE } from "../../hooks/useVault";
 import { ScreenFrame, ScreenHeader, Mark, IconButton, PreviewSheet, CapabilityCard } from "./ScreenUI";
 
-function VaultCapabilityPanel() {
-  return <CapabilityCard id="SHADOW_VAULT" />;
-}
-const artwork=import.meta.glob('../../assets/vault-thumb-*.webp',{eager:true,import:'default'});
-const samples=[['Photos',24],['Photos',8],['Videos',6],['Photos',12],['Photos',18],['Audio',4],['Files',7],['Videos',9]].map(([category,count],id)=>({id,category,count}));
-const categoryIcon={Photos:'photo',Videos:'video',Audio:'audio',Files:'file'};
-function LockedTile({sample,onOpen}) {
-  const { t, locale, dir } = useLanguage();
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+const categoryIcon = { Photos: "photo", Videos: "video", Audio: "audio", Files: "file" };
+const ALL_CATS = Object.keys(categoryIcon);
 
- const timer=useRef(null);const held=useRef(false);
- useEffect(()=>()=>clearTimeout(timer.current),[]);
- function stop(){clearTimeout(timer.current);}
- return <article className={`vault-tile vault-tile-${sample.id}`}>
-  <button className="vault-tile-main" aria-label={t(`Locked ${sample.category.toLowerCase()} collection ${sample.id+1}, ${sample.count} demo items`)} onPointerDown={e=>{if(e.button!==0)return;held.current=false;timer.current=setTimeout(()=>{held.current=true;onOpen('Collection actions',sample);},600);}} onPointerUp={stop} onPointerCancel={stop} onPointerLeave={stop} onContextMenu={e=>{e.preventDefault();stop();held.current=true;onOpen('Collection actions',sample);}} onClick={()=>{if(held.current){held.current=false;return;}onOpen('Locked preview',sample);}}>
-   <img src={artwork[`../../assets/vault-thumb-${sample.id}.webp`]} alt="" draggable="false"/><span className="vault-shutter" aria-hidden="true"/><span className="vault-lock"><Mark name="lock"/></span><span className="vault-tile-count"><Mark name={categoryIcon[sample.category]}/>{t(sample.count)}</span>
-  </button><button className="vault-tile-menu" aria-label={t(`Actions for collection ${sample.id+1}`)} onClick={()=>onOpen('Collection actions',sample)}><Mark name="dots"/></button>
- </article>;
+// Reference artwork for the gallery background tiles (unchanged visuals).
+const artwork = import.meta.glob("../../assets/vault-thumb-*.webp", { eager: true, import: "default" });
+const refSamples = [
+  ["Photos", 24], ["Photos", 8], ["Videos", 6], ["Photos", 12],
+  ["Photos", 18], ["Audio", 4], ["Files", 7], ["Videos", 9],
+].map(([category, count], id) => ({ id, category, count }));
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+function formatBytes(n) {
+  if (!Number.isFinite(n) || n <= 0) return "—";
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  if (n < 1024 * 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(n / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
+
+function short(isoString) {
+  if (!isoString) return "—";
+  try { return new Date(isoString).toLocaleDateString(); } catch { return "—"; }
+}
+
+function errorMsg(err) {
+  if (!err) return "";
+  if (err.code === "SESSION_REQUIRED") return "Unlock the vault to access Shadow Vault.";
+  if (err.code === "UNAVAILABLE") return "Shadow Vault is not available in this preview.";
+  if (err.code === "CONSENT_REQUIRED") return "Confirmation required.";
+  if (err.code === "BAD_INPUT") return err.message || "Invalid input.";
+  if (err.code === "PATH_CONFLICT") return "A file already exists at that location.";
+  if (err.code === "IO_FAILED") return "A disk operation failed.";
+  if (err.code === "CANCELLED") return "Cancelled.";
+  return err.message || "An error occurred.";
+}
+
+// ---------------------------------------------------------------------------
+// Reference tile (existing demo layout — unchanged visual)
+// ---------------------------------------------------------------------------
+function RefTile({ sample }) {
+  const { t } = useLanguage();
+  return (
+    <article className={`vault-tile vault-tile-${sample.id} vault-tile-ref`} aria-label={t(`Demo ${sample.category} collection`)}>
+      <div className="vault-tile-main">
+        <img
+          src={artwork[`../../assets/vault-thumb-${sample.id}.webp`]}
+          alt=""
+          draggable="false"
+        />
+        <span className="vault-shutter" aria-hidden="true" />
+        <span className="vault-lock"><Mark name="lock" /></span>
+        <span className="vault-tile-count"><Mark name={categoryIcon[sample.category]} />{t(sample.count)}</span>
+      </div>
+      <span className="vault-tile-ref-label">{t("Demo")}</span>
+    </article>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Real imported item tile
+// ---------------------------------------------------------------------------
+function RealTile({ record, onAction }) {
+  const { t } = useLanguage();
+  const icon = categoryIcon[record.category] || "file";
+  return (
+    <article className="vault-tile vault-tile-real" data-category={record.category}>
+      <button
+        className="vault-tile-main vault-tile-real-main"
+        aria-label={t(`Encrypted ${record.category} item: ${record.originalName}`)}
+        onClick={() => onAction("details", record)}
+      >
+        <span className="vault-real-icon" aria-hidden="true"><Mark name={icon} /></span>
+        <span className="vault-shutter vault-shutter-real" aria-hidden="true" />
+        <span className="vault-lock vault-lock-green"><Mark name="lock" /></span>
+        <span className="vault-tile-count"><Mark name={icon} /></span>
+      </button>
+      <button
+        className="vault-tile-menu"
+        aria-label={t(`Actions for ${record.originalName}`)}
+        onClick={() => onAction("menu", record)}
+      >
+        <Mark name="dots" />
+      </button>
+    </article>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main component
+// ---------------------------------------------------------------------------
 export function ShadowVault() {
   const { t, locale, dir } = useLanguage();
   const vault = useVault();
   const persisted = vault.state === VAULT_STATE.UNLOCKED;
-  const sessionKey = vault.session?.sessionId ?? null;
-  const [stored, setStored] = useState(null);
-  // `useVault()` returns a new object on every render, so it must not be an
-  // effect dependency. The ref always points at the current bridge client.
+  const sessionId = vault.session?.sessionId ?? null;
+
+  // The vault object changes identity on every render; use a ref for effects.
   const vaultRef = useRef(vault);
   vaultRef.current = vault;
 
-  // Only a real unlocked session can report real stored-item counts.
-  useEffect(() => {
-    let cancelled = false;
-    if (!persisted) {
-      setStored(null);
-      return () => {
-        cancelled = true;
-      };
-    }
-    Promise.all([vaultRef.current.storeList("notes"), vaultRef.current.storeList("passwords")])
-      .then(([notes, passwords]) => {
-        if (cancelled) return;
-        if (notes?.ok === false || passwords?.ok === false) {
-          setStored(null);
-          return;
-        }
-        setStored((notes?.data?.records?.length || 0) + (passwords?.data?.records?.length || 0));
-      })
-      .catch(() => {
-        if (!cancelled) setStored(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [persisted, sessionKey]);
+  // ---- media records -------------------------------------------------------
+  const [records, setRecords] = useState(null);   // null = not yet loaded
+  const [loadError, setLoadError] = useState(null);
+  const [busy, setBusy] = useState(false);
 
- const [category,setCategory]=useState('Photos');const [filterActive,setFilterActive]=useState(false);const [sheet,setSheet]=useState(null);const [selected,setSelected]=useState(null);const [search,setSearch]=useState('');
- function open(title,sample){setSelected(sample||null);setSheet(title);}
- const visible=filterActive?samples.filter(s=>s.category===category):samples;
- return <ScreenFrame type="vault-screen"><ScreenHeader title={t("SHADOW")} accent="VAULT" caption="BY KNOUX CRYPT"><IconButton icon="search" label="Search vault demos" onClick={()=>open('Search vault')}/><IconButton icon="dots" label="Vault tools" onClick={()=>open('Vault tools')}/></ScreenHeader>
- <p className="vault-tagline">{t("YOUR SECRETS. YOUR SPACE.")}</p>
- <VaultCapabilityPanel/>
- <div className="vault-tabs" role="tablist" aria-label={t("Media category")}>{Object.keys(categoryIcon).map(c=><button role="tab" key={c} aria-selected={category===c} tabIndex={category===c?0:-1} data-category={c} className={category===c?'active':''} onClick={()=>{setCategory(c);setFilterActive(true);}} onKeyDown={e=>{const keys=Object.keys(categoryIcon);let index=keys.indexOf(c);if(e.key==='ArrowRight')index=(index+1)%4;else if(e.key==='ArrowLeft')index=(index+3)%4;else return;e.preventDefault();setCategory(keys[index]);setFilterActive(true);e.currentTarget.parentElement.querySelector(`[data-category="${keys[index]}"]`).focus();}}><Mark name={categoryIcon[c]}/>{t(c)}</button>)}</div>
- <section className={`vault-gallery ${filterActive?'vault-filtered':''}`} aria-label={t(filterActive?`${category} demo collections`:'Reference demo collections')}>{visible.map(s=><LockedTile key={s.id} sample={s} onOpen={open}/>)}</section>
- <section className="vault-usage" data-persisted={persisted}><Mark name="database"/><div><strong>{t(persisted?"Encrypted record store":"Encrypted Vault")}</strong>{persisted?<p>{stored===null?t("Reading the encrypted store…"):`${stored} ${t(stored===1?"encrypted record":"encrypted records")}`}</p>:<p>{t("12 demo items ")}<span>{t("•")}</span>{t(" 3.2 GB")}</p>}</div>{persisted?<small>{t("Media import is not implemented yet.")}</small>:<div className="vault-meter"><div role="meter" aria-label={t("Illustrative vault usage")} aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"><i/></div><small>{t("40% used")}</small></div>}</section>
- <button className="security-primary vault-import" onClick={()=>open('Import securely')}><Mark name="upload"/>{t("Import Securely")}<Mark name="chevron"/></button>
- <p className="vault-disclaimer"><Mark name="info"/>{t("Original files are not automatically removed from your device.")}</p>
- <nav className="vault-bottom" aria-label={t("Vault navigation")}><button aria-current="page" onClick={()=>{setCategory('Photos');setFilterActive(false);}}><Mark name="home"/>{t("Vault")}</button><Link to={SCREENS.TOOLS}><Mark name="shield"/>{t("Secure Tools")}</Link><button onClick={()=>open('Vault settings')}><Mark name="settings"/>{t("Settings")}</button></nav>
- {sheet&&<PreviewSheet title={t(sheet)} onClose={()=>setSheet(null)}>
- {sheet==='Search vault'?<><label className="security-search">{t("Search fictional categories")}<input type="search" value={search} onChange={e=>setSearch(e.target.value)} placeholder={t("Photos, videos, audio, files")}/></label>{samples.filter(s=>`${s.category} ${t(s.category)}`.toLowerCase().includes(search.toLowerCase())).map(s=><button className="security-choice" key={s.id} onClick={()=>open('Locked preview',s)}>{t(s.category)} {t("collection")} {s.id+1} · {s.count} {t("demo items")}</button>)}</>:sheet==='Vault tools'?<><p>{t("Demo navigation only; no media is accessed.")}</p><Link to={SCREENS.COLLECTIONS}>{t("Collections preview")}</Link><Link to={SCREENS.DOCUMENT_VIEWER}>{t("Document viewer preview")}</Link><button className="security-choice" onClick={()=>{setCategory('Photos');setFilterActive(false);setSheet(null);}}>{t("Restore reference collection layout")}</button></>:sheet==='Collection actions'?<><p>{t("Collection ")}{t(selected?.id+1)}{t(" · ")}{t(selected?.category)}{t(" · ")}{t(selected?.count)}{t(" fictional items. Locked thumbnails stay protected in this prototype.")}</p><button className="security-choice" onClick={()=>setSheet('Details')}>{t("Details")}</button><button className="security-choice" onClick={()=>setSheet('Export preview')}>{t("Export preview")}</button></>:<p>{t(sheet==='Import securely'?'Educational import preview only. No browser file access dialog opens. No files are read, copied, encrypted, imported or removed from your device.':sheet==='Export preview'?'Export preview only. No content is unlocked, downloaded or written.':sheet==='Details'?`Fictional ${selected?.category} collection. Counts, storage and security labels are illustrative demo data, not verified protection.`:sheet==='Locked preview'?'This collection remains locked. No full-resolution media, authentication or decryption is available in the visual demo.':'Settings are a visual preview. No real vault exists, and device files are never deleted by this interface.')}</p>}
- {sheet==='Locked preview'&&<Link to={SCREENS.DOCUMENT_VIEWER}>{t('Open document preview')}</Link>}</PreviewSheet>}
- </ScreenFrame>;
+  const loadRecords = useCallback(async () => {
+    if (!persisted) { setRecords(null); setLoadError(null); return; }
+    const res = await vaultRef.current.mediaList();
+    if (res?.ok) {
+      setRecords(Array.isArray(res.data) ? res.data : []);
+      setLoadError(null);
+    } else {
+      setLoadError(res?.error || null);
+      setRecords([]);
+    }
+  }, [persisted]);
+
+  useEffect(() => { loadRecords(); }, [loadRecords, sessionId]);
+
+  // ---- category filter -----------------------------------------------------
+  const [activeCategory, setActiveCategory] = useState("All");
+  const categories = ["All", ...ALL_CATS];
+
+  const visibleRecords = records
+    ? activeCategory === "All"
+      ? records
+      : records.filter((r) => r.category === activeCategory)
+    : [];
+
+  // ---- sheet (action panel) ------------------------------------------------
+  const [sheet, setSheet] = useState(null);   // { kind, record? }
+  const [sheetError, setSheetError] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [importResults, setImportResults] = useState(null);
+
+  function openSheet(kind, record = null) {
+    setSheet({ kind, record });
+    setSheetError(null);
+    setConfirmDelete(false);
+    setImportResults(null);
+  }
+  function closeSheet() {
+    setSheet(null);
+    setSheetError(null);
+    setConfirmDelete(false);
+    setImportResults(null);
+  }
+
+  // ---- import --------------------------------------------------------------
+  const handleImport = useCallback(async () => {
+    setSheetError(null);
+    setImportResults(null);
+    setBusy(true);
+    const res = await vaultRef.current.mediaImport();
+    setBusy(false);
+    if (!res) return;
+    if (res.ok === false) { setSheetError(res.error); return; }
+    const data = res.data;
+    if (data?.cancelled) { closeSheet(); return; }
+    setImportResults(data?.results || []);
+    await loadRecords();
+  }, [loadRecords]);
+
+  // ---- export --------------------------------------------------------------
+  const handleExport = useCallback(async (record) => {
+    setSheetError(null);
+    setBusy(true);
+    const res = await vaultRef.current.mediaExport(record.id);
+    setBusy(false);
+    if (!res) return;
+    if (res.ok === false) { setSheetError(res.error); return; }
+    if (res.data?.cancelled) return;
+    closeSheet();
+  }, []);
+
+  // ---- delete --------------------------------------------------------------
+  const handleDelete = useCallback(async (record) => {
+    if (!confirmDelete) { setConfirmDelete(true); return; }
+    setSheetError(null);
+    setBusy(true);
+    const res = await vaultRef.current.mediaRemove(record.id, true);
+    setBusy(false);
+    if (!res) return;
+    if (res.ok === false) { setSheetError(res.error); return; }
+    closeSheet();
+    await loadRecords();
+  }, [confirmDelete, loadRecords]);
+
+  // ---- search --------------------------------------------------------------
+  const [search, setSearch] = useState("");
+  const searchResults = records
+    ? records.filter((r) => r.originalName.toLowerCase().includes(search.toLowerCase()) || t(r.category).toLowerCase().includes(search.toLowerCase()))
+    : [];
+
+  // ---- render --------------------------------------------------------------
+  return (
+    <ScreenFrame type="vault-screen">
+      <ScreenHeader title={t("SHADOW")} accent="VAULT" caption="BY KNOUX CRYPT">
+        <IconButton icon="search" label={t("Search vault")} onClick={() => openSheet("search")} />
+        <IconButton icon="dots" label={t("Vault tools")} onClick={() => openSheet("tools")} />
+      </ScreenHeader>
+
+      <p className="vault-tagline">{t("YOUR SECRETS. YOUR SPACE.")}</p>
+
+      <CapabilityCard id="SHADOW_VAULT" />
+
+      {/* Category tabs */}
+      <div className="vault-tabs" role="tablist" aria-label={t("Media category")}>
+        {categories.map((c, i) => (
+          <button
+            key={c}
+            role="tab"
+            aria-selected={activeCategory === c}
+            tabIndex={activeCategory === c ? 0 : -1}
+            data-category={c}
+            className={activeCategory === c ? "active" : ""}
+            onClick={() => setActiveCategory(c)}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowRight") setActiveCategory(categories[(i + 1) % categories.length]);
+              else if (e.key === "ArrowLeft") setActiveCategory(categories[(i - 1 + categories.length) % categories.length]);
+            }}
+          >
+            {c !== "All" && <Mark name={categoryIcon[c]} />}
+            {t(c)}
+          </button>
+        ))}
+      </div>
+
+      {/* Gallery */}
+      <section
+        className={`vault-gallery ${activeCategory !== "All" ? "vault-filtered" : ""}`}
+        aria-label={t(persisted ? "Encrypted vault items" : "Reference demo collections")}
+      >
+        {/* Real imported items — shown only when unlocked */}
+        {persisted && visibleRecords.map((r) => (
+          <RealTile key={r.id} record={r} onAction={openSheet} />
+        ))}
+
+        {/* Reference tiles (always visible — clearly labelled as demo) */}
+        {(!persisted || visibleRecords.length === 0) &&
+          refSamples
+            .filter((s) => activeCategory === "All" || s.category === activeCategory)
+            .map((s) => <RefTile key={s.id} sample={s} />)
+        }
+      </section>
+
+      {/* Error / empty state */}
+      {persisted && loadError && (
+        <p className="vault-warning" role="alert">{errorMsg(loadError)}</p>
+      )}
+      {persisted && records !== null && records.length === 0 && !loadError && (
+        <p className="vault-empty">{t("No files imported yet. Use Import Securely to add files.")}</p>
+      )}
+
+      {/* Stats bar */}
+      <section className="vault-usage" data-persisted={persisted}>
+        <Mark name="database" />
+        <div>
+          <strong>{t(persisted ? "Shadow Vault — encrypted storage" : "Shadow Vault")}</strong>
+          {persisted ? (
+            <p>
+              {records === null
+                ? t("Loading encrypted items…")
+                : `${records.length} ${t(records.length === 1 ? "encrypted item" : "encrypted items")}`}
+            </p>
+          ) : (
+            <p>{t("Unlock the vault to import and access your files.")}</p>
+          )}
+        </div>
+        {persisted && records !== null && (
+          <small>{t("Original source files are never modified.")}</small>
+        )}
+      </section>
+
+      {/* Import button */}
+      <button
+        className="security-primary vault-import"
+        disabled={!persisted || busy}
+        onClick={persisted ? () => openSheet("import") : undefined}
+        aria-disabled={!persisted}
+      >
+        <Mark name="upload" />
+        {t(persisted ? "Import Securely" : "Unlock vault to import")}
+        <Mark name="chevron" />
+      </button>
+
+      <p className="vault-disclaimer">
+        <Mark name="info" />
+        {t("Original files are never automatically removed from your device.")}
+      </p>
+
+      {/* Bottom nav */}
+      <nav className="vault-bottom" aria-label={t("Vault navigation")}>
+        <button aria-current="page" onClick={() => setActiveCategory("All")}>
+          <Mark name="home" />{t("Vault")}
+        </button>
+        <Link to={SCREENS.TOOLS}>
+          <Mark name="shield" />{t("Secure Tools")}
+        </Link>
+        <button onClick={() => openSheet("tools")}>
+          <Mark name="settings" />{t("Settings")}
+        </button>
+      </nav>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Action sheets                                                        */}
+      {/* ------------------------------------------------------------------ */}
+
+      {/* Import sheet */}
+      {sheet?.kind === "import" && (
+        <PreviewSheet title={t("Import Securely")} onClose={closeSheet}>
+          {!importResults ? (
+            <>
+              <p>{t("Select one or more files to encrypt and store in Shadow Vault. Original files are never moved or deleted.")}</p>
+              {sheetError && <p className="device-warning" role="alert">{errorMsg(sheetError)}</p>}
+              <button className="security-primary" disabled={busy} onClick={handleImport}>
+                {t(busy ? "Importing…" : "Select files…")}
+              </button>
+            </>
+          ) : (
+            <>
+              <p>{t(`${importResults.filter((r) => r.ok).length} of ${importResults.length} file(s) imported successfully.`)}</p>
+              {importResults.map((r, i) => (
+                <p key={i} className={r.ok ? "vault-import-ok" : "device-warning"}>
+                  {r.ok ? "✓" : "✗"} {r.sourcePath.split(/[\\/]/).pop()}
+                  {!r.ok && ` — ${errorMsg(r.error)}`}
+                </p>
+              ))}
+              <button className="security-primary" onClick={closeSheet}>{t("Done")}</button>
+            </>
+          )}
+        </PreviewSheet>
+      )}
+
+      {/* Item detail / actions sheet */}
+      {sheet?.kind === "details" && sheet.record && (
+        <PreviewSheet title={sheet.record.originalName} onClose={closeSheet}>
+          <dl className="vault-detail">
+            <dt>{t("Category")}</dt><dd>{t(sheet.record.category)}</dd>
+            <dt>{t("Original size")}</dt><dd dir="ltr">{formatBytes(sheet.record.sizeBytes)}</dd>
+            <dt>{t("Imported")}</dt><dd>{short(sheet.record.importedAt)}</dd>
+            <dt>{t("SHA-256")}</dt><dd dir="ltr" className="vault-hash">{sheet.record.plaintextSha256?.slice(0, 32)}…</dd>
+            <dt>{t("Encryption")}</dt><dd>AES-256-GCM</dd>
+          </dl>
+          {sheetError && <p className="device-warning" role="alert">{errorMsg(sheetError)}</p>}
+          <button className="security-choice" disabled={busy} onClick={() => handleExport(sheet.record)}>
+            <Mark name="upload" />{t(busy ? "Exporting…" : "Export (decrypt to disk)")}
+          </button>
+          <button
+            className={`security-choice vault-delete${confirmDelete ? " vault-delete-confirm" : ""}`}
+            disabled={busy}
+            onClick={() => handleDelete(sheet.record)}
+          >
+            <Mark name="trash" />
+            {t(confirmDelete ? "Tap again to confirm permanent deletion" : "Delete from vault")}
+          </button>
+          {confirmDelete && (
+            <button className="security-choice" onClick={() => setConfirmDelete(false)}>
+              {t("Cancel deletion")}
+            </button>
+          )}
+        </PreviewSheet>
+      )}
+
+      {/* Item context menu */}
+      {sheet?.kind === "menu" && sheet.record && (
+        <PreviewSheet title={sheet.record.originalName} onClose={closeSheet}>
+          <p dir="ltr" className="vault-hash">{sheet.record.originalName}</p>
+          <p>{t(sheet.record.category)} · {formatBytes(sheet.record.sizeBytes)} · {short(sheet.record.importedAt)}</p>
+          {sheetError && <p className="device-warning" role="alert">{errorMsg(sheetError)}</p>}
+          <button className="security-choice" onClick={() => openSheet("details", sheet.record)}>
+            {t("View details")}
+          </button>
+          <button className="security-choice" disabled={busy} onClick={() => handleExport(sheet.record)}>
+            {t(busy ? "Exporting…" : "Export (decrypt)")}
+          </button>
+          <button
+            className={`security-choice vault-delete${confirmDelete ? " vault-delete-confirm" : ""}`}
+            disabled={busy}
+            onClick={() => handleDelete(sheet.record)}
+          >
+            {t(confirmDelete ? "Tap again to confirm" : "Delete")}
+          </button>
+        </PreviewSheet>
+      )}
+
+      {/* Search sheet */}
+      {sheet?.kind === "search" && (
+        <PreviewSheet title={t("Search vault")} onClose={closeSheet}>
+          <label className="security-search">
+            {t("Search encrypted items")}
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t("Filename or category")}
+              autoFocus
+            />
+          </label>
+          {persisted ? (
+            search.length > 0 && searchResults.length === 0 ? (
+              <p>{t("No matching items.")}</p>
+            ) : (
+              searchResults.map((r) => (
+                <button
+                  key={r.id}
+                  className="security-choice"
+                  onClick={() => { openSheet("details", r); }}
+                >
+                  <Mark name={categoryIcon[r.category] || "file"} />
+                  {r.originalName}
+                  <span className="vault-search-meta">{formatBytes(r.sizeBytes)} · {short(r.importedAt)}</span>
+                </button>
+              ))
+            )
+          ) : (
+            <p>{t("Unlock the vault to search your encrypted items.")}</p>
+          )}
+        </PreviewSheet>
+      )}
+
+      {/* Tools / navigation sheet */}
+      {sheet?.kind === "tools" && (
+        <PreviewSheet title={t("Vault tools")} onClose={closeSheet}>
+          <Link to={SCREENS.COLLECTIONS} onClick={closeSheet}>{t("Collections")}</Link>
+          <Link to={SCREENS.DOCUMENT_VIEWER} onClick={closeSheet}>{t("Document viewer")}</Link>
+          <Link to={SCREENS.VAULT_KEY_ROTATION} onClick={closeSheet}>{t("Key rotation")}</Link>
+        </PreviewSheet>
+      )}
+    </ScreenFrame>
+  );
 }

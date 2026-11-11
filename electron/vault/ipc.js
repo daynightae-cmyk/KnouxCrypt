@@ -153,6 +153,12 @@ const CHANNELS = Object.freeze({
   INTEGRITY_COMPARE: "vault:integrity-compare",
   SECURE_CLIPBOARD_STATUS: "vault:secure-clipboard-status",
   REPORT_EXPORT: "vault:report-export",
+  // Shadow Vault media import (task 05 extension).
+  MEDIA_LIST: "vault:media-list",
+  MEDIA_IMPORT: "vault:media-import",
+  MEDIA_EXPORT: "vault:media-export",
+  MEDIA_REMOVE: "vault:media-remove",
+  MEDIA_COUNT: "vault:media-count",
 });
 
 const STORE_COLLECTIONS = Object.freeze(["notes", "passwords", "authenticator", "keys"]);
@@ -1511,6 +1517,72 @@ function registerVaultIpc(service, getWindow) {
         filters: Array.isArray(p.filters) ? p.filters : undefined,
       });
       return { cancelled: result.canceled, path: result.filePath || null };
+    }),
+  );
+
+  // ---------------------------------------------------------------------------
+  // Shadow Vault — encrypted media import (task 05 extension)
+  // ---------------------------------------------------------------------------
+  ipcMain.handle(
+    CHANNELS.MEDIA_LIST,
+    safe(async (event, payload) => {
+      const { sessionId } = requireObject(payload);
+      const { rawKey } = service._engineFor(sessionId);
+      return service.mediaVault.list(rawKey);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.MEDIA_IMPORT,
+    safe(async (event, payload) => {
+      const { sessionId } = requireObject(payload);
+      const { rawKey } = service._engineFor(sessionId);
+      return service.mediaVault.pickAndImport(rawKey, {
+        showDialog: (opts) =>
+          dialog
+            .showOpenDialog(getWindow(), {
+              title: opts.title,
+              properties: opts.properties,
+              filters: opts.filters,
+            })
+            .then((r) => ({ cancelled: r.canceled, paths: r.filePaths || [] })),
+      });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.MEDIA_EXPORT,
+    safe(async (event, payload) => {
+      const { sessionId, id } = requireObject(payload);
+      if (typeof id !== "string" || !id) throw new VaultError(CODES.BAD_INPUT, "id is required");
+      const { rawKey } = service._engineFor(sessionId);
+      // Ask the user where to save.
+      const record = await service.mediaVault._getRecord(rawKey, id);
+      const dlg = await dialog.showSaveDialog(getWindow(), {
+        title: `Export "${record.originalName}"`,
+        defaultPath: record.originalName,
+      });
+      if (dlg.canceled || !dlg.filePath) return { cancelled: true };
+      return service.mediaVault.export(rawKey, { id, targetPath: dlg.filePath });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.MEDIA_REMOVE,
+    safe(async (event, payload) => {
+      const { sessionId, id, confirm } = requireObject(payload);
+      if (typeof id !== "string" || !id) throw new VaultError(CODES.BAD_INPUT, "id is required");
+      const { rawKey } = service._engineFor(sessionId);
+      return service.mediaVault.remove(rawKey, { id, confirm: confirm === true });
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.MEDIA_COUNT,
+    safe(async (event, payload) => {
+      const { sessionId } = requireObject(payload);
+      const { rawKey } = service._engineFor(sessionId);
+      return service.mediaVault.count(rawKey);
     }),
   );
 

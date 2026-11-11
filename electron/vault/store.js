@@ -18,7 +18,7 @@ const path = require("path");
 const { VaultError, CODES, badInput } = require("./errors");
 const { ensureProtected, protectFile, isPermissionDenial } = require("./acl");
 
-const COLLECTIONS = Object.freeze(["notes", "passwords", "authenticator", "keys", "collections"]);
+const COLLECTIONS = Object.freeze(["notes", "passwords", "authenticator", "keys", "collections", "mediavault"]);
 const STORE_VERSION = 1;
 const MAX_RECORDS = 5000;
 const MAX_RECORD_BYTES = 256 * 1024;
