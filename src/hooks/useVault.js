@@ -613,6 +613,22 @@ export function useVault() {
     () => run((a) => a.mediaCount(session?.sessionId)),
     [run, session],
   );
+  const mediaBackupCreate = useCallback(
+    () => run((a) => a.mediaBackupCreate(session?.sessionId)),
+    [run, session],
+  );
+  const mediaBackupList = useCallback(
+    () => (api ? api.mediaBackupList() : { ok: false, error: { code: "UNAVAILABLE" } }),
+    [api],
+  );
+  const mediaBackupInspect = useCallback(
+    (file) => run((a) => a.mediaBackupInspect(session?.sessionId, file)),
+    [run, session],
+  );
+  const mediaBackupRestore = useCallback(
+    (file, confirm) => run((a) => a.mediaBackupRestore(session?.sessionId, file, confirm)),
+    [run, session],
+  );
 
   const state = !available
     ? VAULT_STATE.UNAVAILABLE
@@ -765,6 +781,10 @@ export function useVault() {
     mediaExport,
     mediaRemove,
     mediaCount,
+    mediaBackupCreate,
+    mediaBackupList,
+    mediaBackupInspect,
+    mediaBackupRestore,
   };
 }
 

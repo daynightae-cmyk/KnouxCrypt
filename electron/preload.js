@@ -146,6 +146,10 @@ const VAULT_CHANNELS = Object.freeze({
   MEDIA_EXPORT: "vault:media-export",
   MEDIA_REMOVE: "vault:media-remove",
   MEDIA_COUNT: "vault:media-count",
+  MEDIA_BACKUP_CREATE: "vault:media-backup-create",
+  MEDIA_BACKUP_LIST: "vault:media-backup-list",
+  MEDIA_BACKUP_INSPECT: "vault:media-backup-inspect",
+  MEDIA_BACKUP_RESTORE: "vault:media-backup-restore",
 });
 
 // GitHub sign-in. The main process holds the device code and the OAuth token;
@@ -319,6 +323,10 @@ const vault = {
   mediaExport: (sessionId, id) => invoke(VAULT_CHANNELS.MEDIA_EXPORT, { sessionId, id }),
   mediaRemove: (sessionId, id, confirm) => invoke(VAULT_CHANNELS.MEDIA_REMOVE, { sessionId, id, confirm: confirm === true }),
   mediaCount: (sessionId) => invoke(VAULT_CHANNELS.MEDIA_COUNT, { sessionId }),
+  mediaBackupCreate: (sessionId) => invoke(VAULT_CHANNELS.MEDIA_BACKUP_CREATE, { sessionId }),
+  mediaBackupList: () => invoke(VAULT_CHANNELS.MEDIA_BACKUP_LIST),
+  mediaBackupInspect: (sessionId, file) => invoke(VAULT_CHANNELS.MEDIA_BACKUP_INSPECT, { sessionId, file }),
+  mediaBackupRestore: (sessionId, file, confirm) => invoke(VAULT_CHANNELS.MEDIA_BACKUP_RESTORE, { sessionId, file, confirm: confirm === true }),
   pickInputFile: () => invoke(VAULT_CHANNELS.PICK_INPUT),
   pickInputFiles: (options) => invoke(VAULT_CHANNELS.PICK_INPUTS, options),
   pickOutputFile: (options) => invoke(VAULT_CHANNELS.PICK_OUTPUT, options),

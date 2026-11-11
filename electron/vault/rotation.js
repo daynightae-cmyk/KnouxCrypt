@@ -43,6 +43,8 @@ class RotationService {
     this.engine = options.engine;
     this.journalPath = path.join(options.userDataPath || ".", "vault-rotation-journal.json");
     this.collections = options.collections || null; // optional CollectionService
+    // Optional: path to the vault-media directory for blob re-encryption.
+    this.mediaRoot = options.mediaRoot || null;
   }
 
   /** Read the journal, or null when there is no rotation in progress. */
@@ -121,23 +123,11 @@ class RotationService {
     }
 
     const currentDek = this.manager.getDek(sessionId);
-    // MediaVault ciphertext blobs are not yet included in this rotation's
-    // re-encryption journal. Rotating the DEK with media present would make
-    // every imported file unreadable even though its metadata was rotated.
-    // Refuse BEFORE updating the enrollment wrapper or creating a journal.
-    if (mode === "reencrypt") {
-      const { records } = await this.store.list("mediavault", currentDek);
-      if (records.length > 0) {
-        throw new VaultError(CODES.BAD_INPUT,
-          "Cannot re-encrypt the vault key while Shadow Vault media exists; encrypted media blobs are not yet supported by key rotation");
-      }
-    }
+    // MediaVault blobs are re-encrypted in _reencryptMediaBlobs(), which runs
+    // as part of _reencrypt(). The old guard that refused reencrypt when media
+    // exists has been replaced by the streaming blob rotation implementation.
     const rotationId = crypto.randomBytes(8).toString("hex");
     const startedAt = new Date().toISOString();
-
-    // In reencrypt mode a fresh DEK is generated first, so the enrollment is
-    // wrapped under the key the containers will actually use. In rewrap mode
-    // the existing DEK is kept and only its wrapper changes.
     const nextDek = mode === "reencrypt" ? crypto.randomBytes(32) : currentDek;
 
     // Step 1: wrap the target DEK under the new password and keep the previous
@@ -152,7 +142,9 @@ class RotationService {
       previousEnrollment: rewrap.previous,
       previousDek: mode === "reencrypt" ? currentDek.toString("base64") : null,
       completedCollections: [],
+      completedMediaBlobs: [],
       newDek: mode === "reencrypt" ? nextDek.toString("base64") : null,
+      mediaRoot: this.mediaRoot || null,
       error: null,
     };
     await this._writeJournal(state);
@@ -210,6 +202,11 @@ class RotationService {
       await this._writeJournal(state);
     }
 
+    // Re-encrypt media blobs (ciphertext level, streaming).
+    if (this.mediaRoot) {
+      await this._reencryptMediaBlobs(state, oldDek, newDek);
+    }
+
     // The session must now use the new DEK, or every later read would fail.
     this.manager.replaceDek(sessionId, newDek);
     state.stage = "reencrypted";
@@ -257,6 +254,51 @@ class RotationService {
     await this.manager.restoreEnrollment(state.previousEnrollment);
     await this._clearJournal();
     return { rolledBack: true, rotationId: state.rotationId };
+  }
+
+  /**
+   * Re-encrypt every media blob: stream-decrypt under oldDek, stream-encrypt
+   * under newDek, atomic rename. The old blob stays until the new one is
+   * committed, so a crash leaves the item recoverable under the old DEK.
+   *
+   * Completed blobs are tracked in state.completedMediaBlobs so a resume can
+   * skip already-rotated items.
+   */
+  async _reencryptMediaBlobs(state, oldDek, newDek) {
+    if (!this.mediaRoot) return;
+    if (!state.completedMediaBlobs) state.completedMediaBlobs = [];
+
+    // List current media records. The mediavault collection was already
+    // re-encrypted under newDek by _reencrypt(), so we read with newDek.
+    const { records } = await this.store.list("mediavault", newDek);
+    for (const record of records) {
+      if (state.completedMediaBlobs.includes(record.id)) continue;
+
+      const oldBlobPath = path.join(this.mediaRoot, record.blobName);
+      const newBlobPath = `${oldBlobPath}.rotated`;
+
+      // If the new blob already exists (crash after encryptFile but before
+      // rename), verify it and rename without re-encrypting.
+      const newBlobExists = await fsp.access(newBlobPath).then(() => true).catch(() => false);
+      if (!newBlobExists) {
+        // Stream-decrypt under old DEK, stream-encrypt under new DEK.
+        // The engine writes to a temp path atomically; here we control the
+        // temp suffix ourselves so we can distinguish it on resume.
+        const tmpPath = `${oldBlobPath}.rottemp`;
+        try {
+          await this.engine.decryptFile({ inputPath: oldBlobPath, outputPath: tmpPath, rawKey: oldDek });
+          await this.engine.encryptFile({ inputPath: tmpPath, outputPath: newBlobPath, rawKey: newDek });
+        } finally {
+          await fsp.rm(tmpPath, { force: true }).catch(() => {});
+        }
+      }
+
+      // Atomic swap: rename new blob over old.
+      await fsp.rename(newBlobPath, oldBlobPath);
+
+      state.completedMediaBlobs.push(record.id);
+      await this._writeJournal(state);
+    }
   }
 
   /** Open the enrollment file with the new password in a throwaway manager. */

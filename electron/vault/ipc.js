@@ -159,6 +159,11 @@ const CHANNELS = Object.freeze({
   MEDIA_EXPORT: "vault:media-export",
   MEDIA_REMOVE: "vault:media-remove",
   MEDIA_COUNT: "vault:media-count",
+  // Media backup channels.
+  MEDIA_BACKUP_CREATE: "vault:media-backup-create",
+  MEDIA_BACKUP_LIST: "vault:media-backup-list",
+  MEDIA_BACKUP_INSPECT: "vault:media-backup-inspect",
+  MEDIA_BACKUP_RESTORE: "vault:media-backup-restore",
 });
 
 const STORE_COLLECTIONS = Object.freeze(["notes", "passwords", "authenticator", "keys"]);
@@ -1590,6 +1595,65 @@ function registerVaultIpc(service, getWindow) {
       const { sessionId } = requireObject(payload);
       const { rawKey } = service._engineFor(sessionId);
       return service.mediaVault.count(rawKey);
+    }),
+  );
+
+  // ---------------------------------------------------------------------------
+  // Media backup channels
+  // ---------------------------------------------------------------------------
+  ipcMain.handle(
+    CHANNELS.MEDIA_BACKUP_CREATE,
+    safe(async (event, payload) => {
+      const { sessionId } = requireObject(payload);
+      const { rawKey } = service._engineFor(sessionId);
+      return service.mediaBackup.create(rawKey);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.MEDIA_BACKUP_LIST,
+    safe(async () => {
+      const dir = service.mediaBackup.backupDir;
+      const fsp = require("fs/promises");
+      const path = require("path");
+      try {
+        const entries = await fsp.readdir(dir);
+        const files = entries.filter((n) => n.endsWith(".knxmbak"));
+        const out = [];
+        for (const name of files.sort().reverse()) {
+          const p = path.join(dir, name);
+          const stat = await fsp.stat(p);
+          out.push({ id: name.replace(".knxmbak", ""), file: p, size: stat.size, modifiedAt: stat.mtime.toISOString() });
+        }
+        return { backups: out };
+      } catch (err) {
+        if (err.code === "ENOENT") return { backups: [] };
+        throw err;
+      }
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.MEDIA_BACKUP_INSPECT,
+    safe(async (event, payload) => {
+      const { sessionId, file } = requireObject(payload);
+      if (typeof file !== "string" || !file) throw new VaultError(CODES.BAD_INPUT, "file is required");
+      const { rawKey } = service._engineFor(sessionId);
+      return service.mediaBackup.inspect(file, rawKey);
+    }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.MEDIA_BACKUP_RESTORE,
+    safe(async (event, payload) => {
+      const { sessionId, file, confirm } = requireObject(payload);
+      if (typeof file !== "string" || !file) throw new VaultError(CODES.BAD_INPUT, "file is required");
+      const { rawKey } = service._engineFor(sessionId);
+      return service.mediaBackup.restore(file, rawKey, {
+        targetMediaRoot: service.mediaVault.root,
+        targetStore: service.store,
+        confirm: confirm === true,
+      });
     }),
   );
 

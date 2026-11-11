@@ -39,6 +39,7 @@ const { IntegrityBaseline } = require("./integrity");
 const { SecretCapsule } = require("./capsule");
 const { SessionPrivacy } = require("./privacy");
 const { MediaVault } = require("./mediavault");
+const { MediaBackup } = require("./mediabackup");
 const labs = require("./labs");
 
 // Explicitly supported key algorithms. Anything absent is refused rather than
@@ -197,6 +198,7 @@ class VaultService {
         engine: this.engine,
         userDataPath: options.userDataPath,
         collections: this.collections,
+        mediaRoot: path.join(options.userDataPath || ".", "vault-media"),
       });
 
     // Tasks 33-36: Android Autofill preview, offline advisor, device pairing
@@ -251,6 +253,15 @@ class VaultService {
         root: path.join(options.userDataPath || ".", "vault-media"),
       });
     this.mediaVault.onJournal = (msg) => this._journal("ShadowVault", msg, "success");
+    // Media backup — streams encrypted blobs verbatim, never decrypts.
+    this.mediaBackup =
+      options.mediaBackup ||
+      new MediaBackup({
+        engine: this.engine,
+        store: this.store,
+        mediaRoot: path.join(options.userDataPath || ".", "vault-media"),
+        backupDir: path.join(options.userDataPath || ".", "vault-store", "backups"),
+      });
     this.sessionPrivacy =
       options.sessionPrivacy ||
       new SessionPrivacy({

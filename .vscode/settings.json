@@ -1,0 +1,6 @@
+{
+    "chat.experimental.permissionsSandboxToggle.enabled": true,
+    "workbench.editor.defaultBinaryEditor": "default",
+    "chat.assistedPermissions.enabled": true,
+    "chat.permissions.default": "autopilot"
+}
