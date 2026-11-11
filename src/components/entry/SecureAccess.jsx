@@ -62,7 +62,13 @@ export function SecureAccess() {
   const [method, setMethod] = useState(null);
   const [githubStatus, setGithubStatus] = useState(null);
   const passwordInput = useRef(null);
-  const backTo = location.state?.returnTo === SCREENS.HOME ? SCREENS.HOME : SCREENS.SPLASH_ENTRY;
+  const requestedReturn = location.state?.returnTo;
+  const hasReturnTarget =
+    typeof requestedReturn === "string" &&
+    requestedReturn.startsWith("/") &&
+    !requestedReturn.startsWith("//");
+  const destination = hasReturnTarget ? requestedReturn : SCREENS.HOME;
+  const backTo = hasReturnTarget ? requestedReturn : SCREENS.SPLASH_ENTRY;
 
   const github = useMemo(() => githubBridge(), []);
   const enrolled = !!vault.status?.enrolled;
@@ -75,8 +81,8 @@ export function SecureAccess() {
   }, [vault.error]);
 
   useEffect(() => {
-    if (vault.state === VAULT_STATE.UNLOCKED) navigate(SCREENS.HOME);
-  }, [vault.state, navigate]);
+    if (vault.state === VAULT_STATE.UNLOCKED) navigate(destination);
+  }, [vault.state, navigate, destination]);
 
   // Read the real provider state so the GitHub card reports what is actually
   // possible on this device instead of a hardcoded label.
@@ -110,7 +116,7 @@ export function SecureAccess() {
     if (res?.ok) {
       setPassword("");
       setConfirm("");
-      navigate(SCREENS.HOME);
+      navigate(destination);
     } else {
       cue("warning");
     }
@@ -147,7 +153,7 @@ export function SecureAccess() {
   return <main className="crypt-entry crypt-auth" dir={dir} lang={locale} data-screen="SECURE_ACCESS_LOGIN" data-vault-state={vault.state} data-github-ready={github ? "true" : "false"} aria-labelledby="access-title">
     <div className="crypt-atmosphere" aria-hidden="true"><i className="crypt-horizon crypt-horizon-top"/><i className="crypt-horizon crypt-horizon-bottom"/><i className="crypt-ember"/><i className="crypt-ember"/></div>
     <div className="access-composition">
-      <Link className="access-back" to={backTo} aria-label={t(backTo === SCREENS.HOME ? "Back to Home" : "Back to Splash")}><Icon name="back"/></Link>
+      <Link className="access-back" to={backTo} aria-label={t("Back")}><Icon name="back"/></Link>
       <header className="access-hero">
         <div className="access-art"><img className="access-valley" src={valley} width="882" height="373" alt=""/><StagEmblem className="access-new-stag"/></div>
         <div className="access-brand">{t("Knoux ")}<span>{t("Crypt")}</span></div>

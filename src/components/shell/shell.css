@@ -62,6 +62,53 @@ html,body,#root { background: var(--crypt-obsidian); }
 @keyframes crypt-star-twinkle {0%,100%{opacity:0;transform:translateY(5px) scale(.7);}45%{opacity:.48;transform:translateY(0) scale(1);}70%{opacity:.1;}}
 @media(prefers-reduced-motion:reduce){.app-atmosphere *{animation:none!important;will-change:auto;}.app-starfield i:nth-child(4n){opacity:.12;}.app-nebula{opacity:.2;}}
 
+/* Light theme — premium glass on a soft lavender canvas. */
+[data-theme="light"] {
+  --crypt-obsidian: #f4f1fa;
+  --crypt-violet: #7c3aed;
+  --crypt-ink: #1a1030;
+  --crypt-muted: #5b4a78;
+  --crypt-glass: #ffffffcc;
+  --crypt-edge: #b8a0d880;
+}
+[data-theme="light"] html, [data-theme="light"] body, [data-theme="light"] #root { background: var(--crypt-obsidian); }
+[data-theme="light"] .crypt-app-shell { background: radial-gradient(ellipse at 0% 0%, #e8e0f5 0%, #f4f1fa 50%, #ebe4f7 100%); color: var(--crypt-ink); }
+[data-theme="light"] .app-atmosphere { opacity: .35; }
+[data-theme="light"] .app-code-rain span { color: #7c3aed; text-shadow: none; opacity: .06; }
+[data-theme="light"] .app-nebula-one { background: radial-gradient(ellipse, #7c3aed18, transparent 65%); }
+[data-theme="light"] .app-nebula-two { background: radial-gradient(ellipse, #a855f718, transparent 65%); }
+[data-theme="light"] .app-bottom-nav { background: linear-gradient(135deg, #ffffffee, #f0eaf8ee 60%, #ffffffee); border-color: #b8a0d899; box-shadow: inset 0 1px 3px #ffffff, 0 4px 16px #7c3aed18; }
+[data-theme="light"] .app-bottom-nav a { color: #5b4a78; }
+[data-theme="light"] .app-bottom-nav a.active { color: #1a1030; background: radial-gradient(ellipse at 50% 10%, #7c3aed33, transparent 80%), linear-gradient(135deg, #7c3aed22, #a855f711); }
+[data-theme="light"] .app-bottom-nav a.active>span { background: #7c3aed33; box-shadow: 0 0 10px #7c3aed33, inset 0 1px 2px #ffffff; }
+[data-theme="light"] .app-bottom-nav a.active::after { background: #7c3aed; box-shadow: 0 0 6px #7c3aed66; }
+[data-theme="light"] .app-sound-toggle { background: #ffffffcc; border-color: #b8a0d866; color: #5b4a78; }
+[data-theme="light"] .app-sound-toggle[aria-pressed=true] { color: #1a1030; border-color: #7c3aed88; }
+[data-theme="light"] .app-guest-session { color: #5b4a78; }
+[data-theme="light"] .crypt-app-shell .crypt-entry, [data-theme="light"] .crypt-app-shell .crypt-hub, [data-theme="light"] .crypt-app-shell .security-screen { color: var(--crypt-ink); }
+[data-theme="light"] .hub-service { border-color: var(--crypt-edge); background: #ffffffaa; }
+[data-theme="light"] .hub-button { background: linear-gradient(135deg, #7c3aed, #a855f7); color: #fff; }
+[data-theme="light"] .access-field { background: #ffffffee; border-color: #b8a0d899; }
+[data-theme="light"] .access-field input { color: #1a1030; }
+[data-theme="light"] .access-method { background: #ffffffee; border-color: #b8a0d899; color: #1a1030; }
+[data-theme="light"] .access-dialog { background: #ffffff; color: #1a1030; border-color: #b8a0d899; }
+[data-theme="light"] .access-sheet { color: #1a1030; }
+[data-theme="light"] .access-sheet h2 { color: #1a1030; }
+[data-theme="light"] .access-submit { background: linear-gradient(110deg, #7c3aed, #a855f7); }
+[data-theme="light"] .access-close { color: #5b4a78; }
+[data-theme="light"] .access-dismiss { border-color: #b8a0d899; color: #5b4a78; }
+[data-theme="light"] .access-fineprint { color: #5b4a78; }
+[data-theme="light"] .access-notice { background: #f0eaf8; border-color: #b8a0d899; color: #5b4a78; }
+[data-theme="light"] .access-code { background: #f0eaf8; border-color: #b8a0d899; }
+[data-theme="light"] .access-code > span { color: #1a1030; text-shadow: none; }
+[data-theme="light"] .app-theme-toggle { display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:#ffffffcc; border:1px solid #b8a0d866; color:#5b4a78; cursor:pointer; }
+[data-theme="light"] .app-theme-toggle svg { width:16px; height:16px; }
+[data-theme="light"] .app-theme-toggle:hover { border-color:#7c3aed88; color:#7c3aed; }
+.app-theme-toggle { display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:#12091d80; border:1px solid #75459b44; color:#bda3d4; cursor:pointer; }
+.app-theme-toggle svg { width:16px; height:16px; }
+.app-theme-toggle:hover { border-color:#a466d388; color:#ead5ff; }
+.app-theme-toggle:focus-visible { outline:2px solid #d9b4ff; outline-offset:2px; }
+
 .crypt-app-shell .crypt-entry { min-height:calc(100dvh - 28px); }
 
 .app-guest-session { font:10px var(--crypt-font); color:#b8a0cf; padding-inline:8px; text-align:center; }

@@ -36,6 +36,8 @@ const { registerVaultIpc } = require("./vault/ipc");
 const { GitHubAuthService, normalizeClientId } = require("./auth/github");
 const { GitHubConfigStore } = require("./auth/config-store");
 const { registerGitHubAuthIpc } = require("./auth/ipc");
+const { MaintenanceService } = require("./maintenance/service");
+const { registerMaintenanceIpc } = require("./maintenance/ipc");
 
 /**
  * The version shown to the user is read from package metadata, not repeated
@@ -112,6 +114,8 @@ let vaultService = null;
 let unregisterVaultIpc = null;
 let githubAuthService = null;
 let unregisterGitHubAuthIpc = null;
+let maintenanceService = null;
+let unregisterMaintenanceIpc = null;
 
 // --- boot handoff state -----------------------------------------------------
 // The boot view ends on evidence, not on a timer: either the app window reports
@@ -779,6 +783,15 @@ if (!gotLock) {
     githubAuthService = new GitHubAuthService({ clientId: githubClientId });
     unregisterGitHubAuthIpc = registerGitHubAuthIpc({ service: githubAuthService, store: githubConfigStore });
 
+    // System Care: app-scoped temp/cache measurement and cleanup, plus real
+    // Windows maintenance shortcuts. The service never accepts a path from the
+    // renderer and never edits OS settings.
+    maintenanceService = new MaintenanceService({
+      userDataPath: app.getPath("userData"),
+      openExternal: (uri) => shell.openExternal(uri),
+    });
+    unregisterMaintenanceIpc = registerMaintenanceIpc({ service: maintenanceService });
+
     // Remove any decrypted document temp files left behind by a previous
     // crash before the user can open a new one.
     vaultService.viewerSweep().catch(() => {});
@@ -838,6 +851,7 @@ app.on("will-quit", (event) => {
   }
   if (unregisterVaultIpc) unregisterVaultIpc();
   if (unregisterGitHubAuthIpc) unregisterGitHubAuthIpc();
+  if (unregisterMaintenanceIpc) unregisterMaintenanceIpc();
 });
 
 // Security-relevant hardening for every renderer that is created.

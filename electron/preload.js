@@ -165,6 +165,15 @@ const ALLOWED_EVENTS = Object.freeze([
   "encrypt-new-file",
 ]);
 
+// System Care maintenance. App-scoped only: the renderer can measure and
+// clean the app's own temp/cache folders and open native Windows pages.
+const MAINTENANCE_CHANNELS = Object.freeze({
+  INFO: "maintenance:info",
+  SCAN: "maintenance:scan",
+  CLEAN: "maintenance:clean",
+  OPEN_PANEL: "maintenance:open-panel",
+});
+
 const invoke = (channel, payload) => ipcRenderer.invoke(channel, payload);
 
 const vault = {
@@ -319,6 +328,13 @@ const github = {
   openVerification: (url) => invoke(AUTH_CHANNELS.OPEN, { url }),
 };
 
+const maintenance = {
+  info: () => invoke(MAINTENANCE_CHANNELS.INFO),
+  scan: () => invoke(MAINTENANCE_CHANNELS.SCAN),
+  clean: (confirm) => invoke(MAINTENANCE_CHANNELS.CLEAN, { confirm: confirm === true }),
+  openPanel: (panel) => invoke(MAINTENANCE_CHANNELS.OPEN_PANEL, { panel }),
+};
+
 function subscribe(channel, callback) {
   if (!ALLOWED_EVENTS.includes(channel) || typeof callback !== "function") {
     return () => {};
@@ -367,6 +383,7 @@ const electronAPI = {
   },
   vault,
   auth: Object.freeze({ github }),
+  maintenance,
   on: (channel, callback) => subscribe(channel, callback),
   off: (channel, callback) => {
     if (ALLOWED_EVENTS.includes(channel) && typeof callback === "function") {

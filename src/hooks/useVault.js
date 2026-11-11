@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 /**
  * Client for the Electron vault bridge.
@@ -21,11 +21,49 @@ export const VAULT_STATE = Object.freeze({
   ERROR: "error",
 });
 
+/**
+ * The unlocked session and the last status snapshot are shared by every screen.
+ *
+ * A vault session belongs to this renderer, not to one component: navigating
+ * from Secure Access to Notes (or System Care) unmounts the login screen, and
+ * a component-local session would silently strand the unlocked vault. The
+ * session id still lives only in renderer memory and is never persisted.
+ */
+let sharedStatus = null;
+let sharedSession = null;
+let sharedSnapshot = Object.freeze({ status: sharedStatus, session: sharedSession });
+const sharedListeners = new Set();
+
+function publish() {
+  sharedSnapshot = Object.freeze({ status: sharedStatus, session: sharedSession });
+  for (const listener of sharedListeners) listener();
+}
+function subscribeToShared(listener) {
+  sharedListeners.add(listener);
+  return () => sharedListeners.delete(listener);
+}
+function getSharedSnapshot() {
+  return sharedSnapshot;
+}
+function writeStatus(next) {
+  sharedStatus = next;
+  publish();
+}
+function writeSession(next) {
+  const value = typeof next === "function" ? next(sharedSession) : next;
+  if (value === sharedSession) return;
+  sharedSession = value;
+  publish();
+}
+
 export function useVault() {
   const api = bridge();
   const available = !!api;
-  const [status, setStatus] = useState(null);
-  const [session, setSession] = useState(null); // { sessionId, guest }
+  const { status, session } = useSyncExternalStore(
+    subscribeToShared,
+    getSharedSnapshot,
+    getSharedSnapshot,
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState(null);
@@ -41,7 +79,7 @@ export function useVault() {
   const refresh = useCallback(async () => {
     if (!api) return null;
     const res = await api.status();
-    if (mounted.current && res?.ok) setStatus(res.data);
+    if (res?.ok) writeStatus(res.data);
     return res;
   }, [api]);
 
@@ -63,12 +101,11 @@ export function useVault() {
     if (!api?.onRevoked) return undefined;
     return api.onRevoked((event) => {
       if (!mounted.current) return;
-      setSession((current) => {
-        if (!current) return current;
-        if (event?.sessionId && event.sessionId !== current.sessionId) return current;
-        setError({ code: "SESSION_REVOKED", message: "Your vault session ended. Unlock again to continue." });
-        return null;
-      });
+      const current = getSharedSnapshot().session;
+      if (!current) return;
+      if (event?.sessionId && event.sessionId !== current.sessionId) return;
+      writeSession(null);
+      setError({ code: "SESSION_REVOKED", message: "Your vault session ended. Unlock again to continue." });
       refresh();
     });
   }, [api, refresh]);
@@ -98,7 +135,7 @@ export function useVault() {
     async (password, options) => {
       const res = await run((a) => a.enroll(password, options));
       if (res?.ok) {
-        setSession({ sessionId: res.data.sessionId, guest: false, name: res.data.name });
+        writeSession({ sessionId: res.data.sessionId, guest: false, name: res.data.name });
         await refresh();
       }
       return res;
@@ -110,7 +147,7 @@ export function useVault() {
     async (password) => {
       const res = await run((a) => a.unlock(password));
       if (res?.ok) {
-        setSession({ sessionId: res.data.sessionId, guest: false, name: res.data.name });
+        writeSession({ sessionId: res.data.sessionId, guest: false, name: res.data.name });
         await refresh();
       }
       return res;
@@ -121,7 +158,7 @@ export function useVault() {
   const startGuest = useCallback(async () => {
     const res = await run((a) => a.startGuest());
     if (res?.ok) {
-      setSession({ sessionId: res.data.sessionId, guest: true, name: "Guest preview" });
+      writeSession({ sessionId: res.data.sessionId, guest: true, name: "Guest preview" });
       await refresh();
     }
     return res;
@@ -129,13 +166,13 @@ export function useVault() {
 
   const lock = useCallback(async () => {
     if (session && api) await api.lock(session.sessionId, "user");
-    setSession(null);
+    writeSession(null);
     await refresh();
   }, [session, api, refresh]);
 
   const lockAll = useCallback(async () => {
     if (api) await api.lockAll("user");
-    setSession(null);
+    writeSession(null);
     await refresh();
   }, [api, refresh]);
 

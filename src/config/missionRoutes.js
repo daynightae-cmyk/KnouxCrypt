@@ -43,5 +43,5 @@ export const MISSION_ROUTES = Object.freeze([
   { id: "SECRET_CAPSULE", suffix: "", component: "SecretCapsule", load: () => import("../components/finaltools/FinalTools") },
   { id: "SESSION_PRIVACY", suffix: "", component: "SessionPrivacy", load: () => import("../components/finaltools/FinalTools") },
   { id: "FILE_INTEGRITY", suffix: "", component: "FileIntegrity", load: () => import("../components/finaltools/FinalTools") },
-  { id: "SECURE_CLIPBOARD", suffix: "", component: "SecureClipboard", load: () => import("../components/finaltools/FinalTools") },
+  { id: "SYSTEM_CARE", suffix: "", component: "SystemCare", load: () => import("../components/systemcare/SystemCare") },
 ]);

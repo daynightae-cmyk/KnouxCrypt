@@ -8,6 +8,7 @@ import { NavigationEffects } from "./NavigationEffects";
 import { WorkspaceActivityProvider } from "../desktop/WorkspaceActivity";
 import { DesktopChrome } from "../desktop/DesktopWorkspace";
 import { MotionProvider, useMotionPreferences } from "./MotionPreferences";
+import { ThemeProvider, useTheme } from "./ThemePreferences";
 import { KnouxAudioProvider } from "./KnouxAudioProvider";
 import {StagEyeBehavior} from "../entry/StagEyeBehavior";
 import {PulseLink} from "../desktop/PulseLink";
@@ -49,9 +50,18 @@ export function AppBottomNav() {
     {[['Home',SCREENS.HOME],['Tools',SCREENS.TOOLS],['Account',SCREENS.SECURE_ACCESS_LOGIN]].map(([label,to]) => <NavLink key={label} to={to} end state={label==='Account'?{returnTo:SCREENS.HOME}:undefined}><span><NavIcon name={label}/></span>{t(label)}</NavLink>)}
   </nav>;
 }
-export function AppShell({children}) { return <MotionProvider><KnouxAudioProvider><WorkspaceActivityProvider><ShellContent>{children}</ShellContent></WorkspaceActivityProvider></KnouxAudioProvider></MotionProvider>; }
+function ThemeToggle() {
+  const theme = useTheme();
+  const { t } = useLanguage();
+  const isLight = theme.theme === "light";
+  return <button type="button" className="app-theme-toggle" onClick={theme.toggle} aria-pressed={isLight} aria-label={t(isLight ? "Switch to dark mode" : "Switch to light mode")} title={t(isLight ? "Dark mode" : "Light mode")}>
+    {isLight ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg> : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41"/></svg>}
+  </button>;
+}
+export function AppShell({children}) { return <MotionProvider><ThemeProvider><KnouxAudioProvider><WorkspaceActivityProvider><ShellContent>{children}</ShellContent></WorkspaceActivityProvider></KnouxAudioProvider></ThemeProvider></MotionProvider>; }
 function ShellContent({ children }) {
   const motion=useMotionPreferences();
+  const theme=useTheme();
   const { t, locale, dir } = useLanguage();
 
   const {pathname, state} = useLocation();
@@ -71,7 +81,7 @@ function ShellContent({ children }) {
     <a className="app-skip-link" href="#app-content">{t("Skip to page content")}</a>
     <StagEyeBehavior/><PulseLink/><NavigationEffects/>
     <CipherAtmosphere/>
-    <div className="app-utility-bar"><LanguageToggle/>{guestPreview && <span className="app-guest-session">{t("Guest · visual demo")}</span>}<AmbientSound splash={pathname===SCREENS.SPLASH_ENTRY}/></div>
+    <div className="app-utility-bar"><LanguageToggle/>{guestPreview && <span className="app-guest-session">{t("Guest · visual demo")}</span>}<ThemeToggle/><AmbientSound splash={pathname===SCREENS.SPLASH_ENTRY}/></div>
     <div ref={scroll} className="app-scroll-region" id="app-content" tabIndex={0} role="region" aria-label={t("Page content")}><DesktopChrome>{children}</DesktopChrome></div>
     {primary && <AppBottomNav/>}
   </div>;

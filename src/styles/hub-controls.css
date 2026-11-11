@@ -1,0 +1,398 @@
+/*
+ * Shared control surfaces for the newer hub-style screens (Key Forge and
+ * System Care). Scoped to those screens so the Home hub keeps its own header
+ * and service-grid rules.
+ */
+
+.keys-screen,
+.systemcare-screen {
+  --hub-surface: linear-gradient(155deg, rgba(34, 17, 54, 0.88), rgba(12, 7, 24, 0.92));
+  --hub-surface-2: rgba(255, 255, 255, 0.04);
+  --hub-border: var(--crypt-edge, #8050b180);
+  --hub-text: var(--crypt-ink, #f4edff);
+  --hub-muted: var(--crypt-muted, #ad99c3);
+  --hub-accent: var(--crypt-violet, #ad72ee);
+  --hub-accent-2: #d8b4fe;
+  --hub-field: rgba(9, 5, 18, 0.72);
+  --hub-field-border: rgba(168, 109, 222, 0.45);
+  --hub-danger: #ff8f9a;
+  --hub-ok: #7fce9a;
+  --hub-warn: #e7c38a;
+  --hub-radius: 20px;
+}
+
+[data-theme="light"] .keys-screen,
+[data-theme="light"] .systemcare-screen {
+  --hub-surface: linear-gradient(155deg, rgba(255, 255, 255, 0.95), rgba(244, 239, 251, 0.92));
+  --hub-surface-2: rgba(124, 58, 237, 0.05);
+  --hub-border: #c8b4e4;
+  --hub-text: #1a1030;
+  --hub-muted: #5b4a78;
+  --hub-accent: #7c3aed;
+  --hub-accent-2: #a855f7;
+  --hub-field: rgba(255, 255, 255, 0.94);
+  --hub-field-border: #c8b4e4;
+  --hub-danger: #b4233a;
+  --hub-ok: #1f7a4d;
+  --hub-warn: #8a5a13;
+}
+
+.keys-screen .hub-header,
+.systemcare-screen .hub-header {
+  display: block;
+  padding: 4px 4px 18px;
+  text-align: start;
+}
+
+.keys-screen .hub-header h1,
+.systemcare-screen .hub-header h1 {
+  margin: 0;
+  font-size: clamp(26px, 4.4cqw, 42px);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--hub-text);
+  background: linear-gradient(105deg, var(--hub-text) 20%, var(--hub-accent-2) 70%, var(--hub-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.keys-screen .hub-header p,
+.systemcare-screen .hub-header p {
+  margin: 8px 0 0;
+  max-width: 62ch;
+  color: var(--hub-muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.keys-screen .hub-section,
+.systemcare-screen .hub-section {
+  position: relative;
+  margin-top: 14px;
+  padding: 18px;
+  border: 1px solid var(--hub-border);
+  border-radius: var(--hub-radius);
+  background: var(--hub-surface);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 18px 42px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(18px);
+}
+
+[data-theme="light"] .keys-screen .hub-section,
+[data-theme="light"] .systemcare-screen .hub-section {
+  box-shadow: inset 0 1px 0 #fff, 0 14px 34px rgba(91, 46, 153, 0.12);
+}
+
+.keys-screen .hub-section-head,
+.systemcare-screen .hub-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.keys-screen .hub-section-head h2,
+.systemcare-screen .hub-section-head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--hub-text);
+}
+
+.keys-screen .hub-button,
+.systemcare-screen .hub-button,
+.keys-screen button.hub-button,
+.systemcare-screen button.hub-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 9px 16px;
+  border: 1px solid var(--hub-border);
+  border-radius: 12px;
+  background: var(--hub-surface-2);
+  color: var(--hub-text);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.keys-screen .hub-button:hover,
+.systemcare-screen .hub-button:hover {
+  border-color: var(--hub-accent);
+  box-shadow: 0 0 0 1px rgba(173, 114, 238, 0.16), 0 8px 24px rgba(124, 58, 237, 0.16);
+}
+
+.keys-screen .hub-button:active,
+.systemcare-screen .hub-button:active {
+  transform: translateY(1px);
+}
+
+.keys-screen .hub-button:disabled,
+.systemcare-screen .hub-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.keys-screen .hub-button.hub-danger,
+.systemcare-screen .hub-button.hub-danger {
+  border-color: color-mix(in srgb, var(--hub-danger) 55%, transparent);
+  color: var(--hub-danger);
+}
+
+.keys-screen .hub-notice {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--hub-danger) 45%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--hub-danger) 10%, transparent);
+  color: var(--hub-text);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.keys-screen .hub-empty {
+  margin: 0;
+  padding: 22px 8px;
+  color: var(--hub-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.keys-screen .hub-form {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 18px;
+  padding: 16px;
+  border: 1px solid var(--hub-border);
+  border-radius: 16px;
+  background: var(--hub-surface-2);
+}
+
+.keys-screen .hub-field {
+  display: grid;
+  gap: 6px;
+}
+
+.keys-screen .hub-field > span {
+  color: var(--hub-muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.keys-screen .hub-field input,
+.keys-screen .hub-field select {
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 1px solid var(--hub-field-border);
+  border-radius: 10px;
+  background: var(--hub-field);
+  color: var(--hub-text);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.keys-screen .hub-field input:focus,
+.keys-screen .hub-field select:focus {
+  border-color: var(--hub-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hub-accent) 22%, transparent);
+}
+
+.keys-screen .hub-key-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.keys-screen .hub-key-card {
+  display: grid;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid var(--hub-border);
+  border-radius: 14px;
+  background: var(--hub-surface-2);
+}
+
+.keys-screen .hub-key-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.keys-screen .hub-key-head strong {
+  color: var(--hub-text);
+  font-size: 14px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.keys-screen .hub-badge {
+  flex-shrink: 0;
+  padding: 4px 9px;
+  border: 1px solid color-mix(in srgb, var(--hub-accent) 45%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hub-accent) 12%, transparent);
+  color: var(--hub-accent);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.keys-screen .hub-key-meta {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 5px 12px;
+  margin: 0;
+  font-size: 11.5px;
+}
+
+.keys-screen .hub-key-meta dt {
+  color: var(--hub-muted);
+}
+
+.keys-screen .hub-key-meta dd {
+  margin: 0;
+  color: var(--hub-text);
+  overflow-wrap: anywhere;
+}
+
+.keys-screen .hub-key-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.keys-screen .hub-key-actions button {
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid var(--hub-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--hub-text);
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.keys-screen .hub-key-actions button:hover {
+  border-color: var(--hub-accent);
+}
+
+.keys-screen .hub-key-actions .hub-danger {
+  color: var(--hub-danger);
+}
+
+.keys-screen .hub-pem {
+  margin: 0;
+  padding: 12px;
+  max-height: 220px;
+  overflow: auto;
+  border: 1px solid var(--hub-border);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #d9c7f5;
+  font: 10.5px/1.55 ui-monospace, "Cascadia Code", Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.keys-screen .hub-export {
+  display: grid;
+  gap: 8px;
+}
+
+.keys-screen .hub-export-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.keys-screen .hub-export-head strong {
+  color: var(--hub-danger);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.keys-screen .hub-export-head button {
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 1px solid var(--hub-border);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--hub-text);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.keys-screen .hub-export-note {
+  margin: 0;
+  color: var(--hub-muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+[data-theme="light"] .keys-screen .hub-pem {
+  background: #f3edfb;
+  color: #3b2457;
+}
+
+.keys-screen .hub-confirm {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--hub-danger) 50%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--hub-danger) 8%, transparent);
+}
+
+.keys-screen .hub-confirm p {
+  margin: 0;
+  color: var(--hub-text);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.keys-screen .hub-confirm button {
+  min-height: 36px;
+  padding: 8px 14px;
+  border: 1px solid var(--hub-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--hub-text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.keys-screen .hub-confirm button.hub-danger {
+  border-color: var(--hub-danger);
+  color: var(--hub-danger);
+}
+
+@media (max-width: 520px) {
+  .keys-screen .hub-section {
+    padding: 14px;
+  }
+}

@@ -48,6 +48,7 @@ export const SCREENS = Object.freeze({
   PRIVACY: "/privacy",
   BACKUP: "/backup",
   TOOLS: "/tools",
+  SYSTEM_CARE: "/tools/system-care",
 });
 export const SERVICES = Object.freeze([
   {

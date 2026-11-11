@@ -333,6 +333,15 @@ export const CIPHER_GLYPHS = Object.freeze({
     </>
   ),
 
+  // ---- maintenance / system care ------------------------------------------
+  careShield: (
+    <>
+      <path d="M12 3 5 5.5v5.6c0 4.6 3 8 7 9.4 4-1.4 7-4.8 7-9.4V5.5Z" {...S} />
+      <path d="M7.5 12h2l1.5-3 2 6 1.5-3h2" {...S} />
+      <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" opacity=".4" />
+    </>
+  ),
+
   // ---- privacy / policy / activity ----------------------------------------
   privacyVeil: (
     <>

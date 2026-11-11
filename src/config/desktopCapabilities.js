@@ -711,6 +711,26 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
       "Hashing and comparison are real and streamed. The manifest is a local, unsigned record: it detects divergence from the baseline but proves neither who changed a file nor that the manifest itself is authentic, and the UI says so.",
   },
   {
+    id: "SYSTEM_CARE",
+    title: "System Care",
+    platformCapability:
+      "Ten local checks built on real providers: device CPU/memory/disk/uptime, app-owned temp and cache measurement, vault enrollment and session state, sealed key inventory, rotation preflight, clipboard lease status, session privacy policy, integrity algorithms, journal hash-chain state, and the native Windows maintenance pages.",
+    permissionNeeds: [
+      "No elevated privileges",
+      "Explicit confirmation to delete app-owned temp files",
+      "Read access to the application data directory",
+    ],
+    requiresNetwork: false,
+    providerReady: true,
+    realTestEvidence: [
+      "tests/maintenance.test.cjs (real temp files are measured, only app-owned roots are deleted after confirm:true, symlinks and files outside the root are skipped, locked files are counted, unknown panels are refused, and the service rejects an out-of-root configuration)",
+      "scripts/check-all-routes.cjs (System Care renders in Arabic and English and every internal link resolves)",
+    ],
+    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatusReason:
+      "Every check reads a real value from this machine, the vault service or the encrypted journal. Cleanup is confined to KnouxCrypt's own temp, cache and log folders and needs explicit confirmation. System Care does not uninstall programs, change OS settings or run an OS repair: those buttons open the genuine Windows maintenance pages, and the screen states that limit.",
+  },
+  {
     id: "SECURE_CLIPBOARD",
     title: "Secure Clipboard",
     platformCapability:

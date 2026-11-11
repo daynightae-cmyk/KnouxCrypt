@@ -18,10 +18,9 @@ export function KnouxAudioProvider({children}){
   const motion=useMotionPreferences();
   const [preferences,setPreferences]=useState(load);
   const [status,setStatus]=useState('off');const [busy,setBusy]=useState(false);
-  const engine=useRef(null),mounted=useRef(false),starting=useRef(false),prefs=useRef(preferences),path=useRef(pathname),reduced=useRef(false);
+  const engine=useRef(null),mounted=useRef(false),starting=useRef(false),prefs=useRef(preferences),path=useRef(pathname),reduced=useRef(false),pendingCue=useRef(null);
   prefs.current=preferences;path.current=pathname;reduced.current=motion.preferences.reducedSensory;
   const update=useCallback(patch=>{const next=audioPreferences({...prefs.current,...patch});prefs.current=next;setPreferences(next);},[]);
-  const cue=useCallback((kind,evidence)=>{try{return engine.current?.cue(kind,evidence)||false;}catch{return false;}},[]);
   const start=useCallback(async()=>{
     if(starting.current||!wantsAudio(prefs.current))return;
     starting.current=true;if(mounted.current)setBusy(true);
@@ -37,11 +36,31 @@ export function KnouxAudioProvider({children}){
       engine.current.setVisible(!document.hidden&&(!prefs.current.reduceOnBlur||document.hasFocus()));
       const started=await Promise.race([engine.current.enable(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Playback blocked')),1500);})]);
       if(mounted.current&&started)setStatus('running');
-    }catch{try{engine.current?.mute();}catch{/* Best-effort audio cleanup. */}if(mounted.current)setStatus(wantsAudio(prefs.current)?'blocked':'off');}
+      // A click that arrived while the context was resuming is played once the
+      // engine is actually enabled, instead of being reported as handled and
+      // then dropped.
+      if(started&&pendingCue.current){
+        const queued=pendingCue.current;pendingCue.current=null;
+        try{engine.current?.cue(queued.kind,queued.evidence);}catch{/* A lost cue must not break the interaction. */}
+      }
+    }catch{pendingCue.current=null;try{engine.current?.mute();}catch{/* Best-effort audio cleanup. */}if(mounted.current)setStatus(wantsAudio(prefs.current)?'blocked':'off');}
     finally{clearTimeout(timer);starting.current=false;if(mounted.current)setBusy(false);}
   },[]);
+  const cue=useCallback((kind,evidence)=>{
+    try{
+      if(engine.current?.cue(kind,evidence))return true;
+      if(!wantsAudio(prefs.current))return false;
+      const ready=engine.current&&engine.current.enabled&&engine.current.context.state==='running';
+      // A ready engine that declined the cue was throttled or gated by the
+      // sonic contract; queuing it would replay a sound the user already heard.
+      if(ready)return false;
+      pendingCue.current={kind,evidence:evidence||{}};
+      start();
+      return true;
+    }catch{return false;}
+  },[start]);
   const toggle=useCallback(()=>{
-    if(prefs.current.ambient){update({ambient:false});try{engine.current?.mute();}catch{/* Preference still turns off. */}setStatus('off');}
+    if(prefs.current.ambient){update({ambient:false});pendingCue.current=null;try{engine.current?.mute();}catch{/* Preference still turns off. */}setStatus('off');}
     else{if(starting.current)return;update({ambient:true});start();}
   },[start,update]);
   useEffect(()=>{

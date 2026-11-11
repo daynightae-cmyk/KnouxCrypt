@@ -81,6 +81,9 @@ export const SERVICE_GLYPHS = Object.freeze({
   SECURE_CLIPBOARD: "clipboardTemp",
   SECURE_RANDOM: "entropyParticles",
 
+  // maintenance / system care
+  SYSTEM_CARE: "careShield",
+
   // policy / privacy / audit
   PRIVACY: "privacyVeil",
   SESSION_PRIVACY: "sessionBoundary",

@@ -445,3 +445,151 @@ html[dir="rtl"] .keys-verification > svg:last-child {
     transition: none !important;
   }
 }
+
+/* Mission 13 — Device Keys detail view */
+.keys-eyebrow {
+  margin: 0 0 6px;
+  color: var(--hub-accent, #ad72ee);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.keys-detail-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+.keys-detail-nav .hub-button svg {
+  width: 16px;
+  height: 16px;
+}
+.keys-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.3fr);
+  gap: 14px;
+  align-items: start;
+}
+.keys-detail-list .hub-section-head small {
+  color: var(--hub-muted, #ad99c3);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.keys-detail-list ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.keys-detail-list button {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--hub-border, #8050b180);
+  border-radius: 12px;
+  background: var(--hub-surface-2, rgba(255, 255, 255, 0.04));
+  color: var(--hub-text, #f4edff);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+.keys-detail-list button:hover,
+.keys-detail-list button.is-selected {
+  border-color: var(--hub-accent, #ad72ee);
+  background: color-mix(in srgb, var(--hub-accent, #ad72ee) 12%, transparent);
+}
+.keys-detail-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.keys-detail-name svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--hub-accent, #ad72ee);
+}
+.keys-detail-badge {
+  justify-self: start;
+  padding: 3px 8px;
+  border: 1px solid color-mix(in srgb, var(--hub-accent, #ad72ee) 45%, transparent);
+  border-radius: 999px;
+  color: var(--hub-accent, #ad72ee);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.keys-detail-list small {
+  color: var(--hub-muted, #ad99c3);
+  font: 10.5px/1.6 ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+.keys-detail-panel {
+  display: grid;
+  gap: 16px;
+}
+.keys-detail-fingerprint {
+  font: 11.5px/1.8 ui-monospace, "Cascadia Code", Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+.keys-detail-public h3 {
+  margin: 0 0 8px;
+  color: var(--hub-muted, #ad99c3);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.keys-detail-public p {
+  margin: 0;
+  color: var(--hub-muted, #ad99c3);
+  font-size: 12px;
+  line-height: 1.65;
+}
+.keys-detail-note {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  color: var(--hub-muted, #ad99c3);
+  font-size: 11.5px;
+  line-height: 1.65;
+}
+.keys-detail-note svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--hub-warn, #e7c38a);
+}
+.keys-detail-empty {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+}
+.keys-detail-empty > svg {
+  width: 28px;
+  height: 28px;
+  color: var(--hub-accent, #ad72ee);
+}
+.keys-detail-empty h2 {
+  margin: 0;
+  color: var(--hub-text, #f4edff);
+  font-size: 17px;
+  font-weight: 500;
+}
+.keys-detail-empty p {
+  max-width: 60ch;
+  margin: 0;
+  color: var(--hub-muted, #ad99c3);
+  font-size: 12.5px;
+  line-height: 1.65;
+}
+@media (max-width: 760px) {
+  .keys-detail-layout {
+    grid-template-columns: 1fr;
+  }
+}

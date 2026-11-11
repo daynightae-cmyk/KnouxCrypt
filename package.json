@@ -42,6 +42,7 @@
     "electron-updater": "^6.6.2",
     "framer-motion": "^10.18.0",
     "hash-wasm": "^4.12.0",
+    "playwright": "^1.65.0",
     "qrcode": "^1.5.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -100,7 +101,9 @@
       "icon": "electron/assets/icon.ico",
       "requestedExecutionLevel": "asInvoker",
       "artifactName": "KnouxCrypt-2025-Setup-${version}-${arch}.${ext}",
-      "signtoolOptions": { "publisherName": "Knoux Technologies" },
+      "signtoolOptions": {
+        "publisherName": "Knoux Technologies"
+      },
       "verifyUpdateCodeSignature": false
     },
     "portable": {

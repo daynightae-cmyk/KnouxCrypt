@@ -217,7 +217,7 @@ export function StagBanner({ title, caption }) {
 
 /* ============ HOME - COMMAND CENTER ============ */
 export function DesktopHome() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const vault = useVault();
 
   // Determine vault status
@@ -230,11 +230,26 @@ export function DesktopHome() {
     [VAULT_STATE.GUEST]: { label: 'Guest preview', tone: 'warn' },
   }[vault.state] || { label: 'Unknown state', tone: 'idle' };
 
+  // Time-based greeting
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good Morning' : hour < 18 ? 'Good Afternoon' : 'Good Evening';
+
   return (
     <main className="dw-page dw-home" data-screen="HOME" data-vault-state={vault.state}>
       <div className="dw-home-center">
+        <header className="dw-home-greeting">
+          <span>{t(greeting)}</span>
+          <span className="dw-greeting-brand">KNOUX <em>CRYPT</em></span>
+          <button className="dw-emergency-lock" title={t('Emergency lock')} onClick={() => vault.lock()} disabled={isLocked}>
+            <Mark name="lock" />
+          </button>
+        </header>
+
         <section className="dw-home-hero">
-          <div className="dw-orbit" aria-hidden="true" />
+          <div className="dw-core-ring" aria-hidden="true">
+            <div className="dw-core-seal" />
+            <div className="dw-core-halo" />
+          </div>
           <StagEmblem className="hub-final-stag" ignite />
           <h1>KNOUX <em>CRYPT</em></h1>
           <p>{t('Private Encryption Suite')}</p>
@@ -244,6 +259,12 @@ export function DesktopHome() {
         </section>
 
         <ServiceGrid />
+
+        <footer className="dw-capability-bar">
+          <span>{t('ON-DEVICE')}</span>
+          <span className="dw-capability-divider" aria-hidden="true" />
+          <span>{t('NO SYNC ENABLED')}</span>
+        </footer>
       </div>
 
       <aside className="dw-inspector">
@@ -364,6 +385,40 @@ export function DesktopFileCipher() {
       <div className="dw-split">
         <div className="dw-main-column">
           <Panel title={t('Cipher Capsule')}>
+            {/* Mechanical Capsule Visualization */}
+            <div className="dw-cipher-capsule" aria-hidden="true">
+              <div className="dw-capsule-chamber input">
+                <div className="dw-chamber-label">{t('SELECT FILE')}</div>
+                <div className="dw-chamber-surface">
+                  {inputPath ? (
+                    <span className="dw-chamber-active">{inputPath.split(/[\\/]/).pop()}</span>
+                  ) : (
+                    <span className="dw-chamber-empty">{t('Drop file or click')}</span>
+                  )}
+                </div>
+              </div>
+              <div className="dw-capsule-lock">
+                <div className="dw-lock-segments">
+                  <span className="dw-lock-segment" />
+                  <span className="dw-lock-segment" />
+                  <span className="dw-lock-segment" />
+                  <span className="dw-lock-segment" />
+                </div>
+                <Mark name={mode === 'encrypt' ? 'lock' : 'unlock'} className="dw-lock-icon" />
+              </div>
+              <div className="dw-capsule-chamber output">
+                <div className="dw-chamber-label">{t('ENCRYPTED OUTPUT')}</div>
+                <div className="dw-chamber-surface">
+                  {outputPath ? (
+                    <span className="dw-chamber-active">{outputPath.split(/[\\/]/).pop()}</span>
+                  ) : (
+                    <span className="dw-chamber-empty">{t('Choose destination')}</span>
+                  )}
+                </div>
+              </div>
+              <div className="dw-verified-path" />
+            </div>
+
             <div className="dw-panel-actions">
               <span data-testid="file-cipher-state">{t(stateLabel)}</span>
             </div>
@@ -512,6 +567,7 @@ export function DesktopVault() {
   const [collection, setCollection] = useState('All Items');
   const [view, setView] = useState('grid');
   const [query, setQuery] = useState('');
+  const [category, setCategory] = useState('All');
 
   const collections = [
     { id: 'All Items', icon: 'grid', count: '—' },
@@ -524,6 +580,27 @@ export function DesktopVault() {
     { id: 'Documents', icon: 'file-text', count: '19' },
     { id: 'Trash', icon: 'trash-2', count: '0' },
   ];
+
+  // Media categories per reference prompt
+  const mediaCategories = ['All', 'Photos', 'Videos', 'Audio'];
+
+  // Sample encrypted media tiles for visual demo (SAMPLE PREVIEW)
+  const sampleTiles = [
+    { id: 1, type: 'image', title: 'encrypted-photo-01.knx', size: '2.4 MB', category: 'Photos' },
+    { id: 2, type: 'image', title: 'encrypted-photo-02.knx', size: '1.8 MB', category: 'Photos' },
+    { id: 3, type: 'video', title: 'encrypted-video-01.knx', size: '47.2 MB', category: 'Videos' },
+    { id: 4, type: 'image', title: 'encrypted-photo-03.knx', size: '3.1 MB', category: 'Photos' },
+    { id: 5, type: 'audio', title: 'encrypted-audio-01.knx', size: '5.6 MB', category: 'Audio' },
+    { id: 6, type: 'image', title: 'encrypted-photo-04.knx', size: '2.9 MB', category: 'Photos' },
+    { id: 7, type: 'video', title: 'encrypted-video-02.knx', size: '33.8 MB', category: 'Videos' },
+    { id: 8, type: 'image', title: 'encrypted-photo-05.knx', size: '1.5 MB', category: 'Photos' },
+    { id: 9, type: 'audio', title: 'encrypted-audio-02.knx', size: '4.3 MB', category: 'Audio' },
+    { id: 10, type: 'image', title: 'encrypted-photo-06.knx', size: '3.7 MB', category: 'Photos' },
+    { id: 11, type: 'video', title: 'encrypted-video-03.knx', size: '52.1 MB', category: 'Videos' },
+    { id: 12, type: 'image', title: 'encrypted-photo-07.knx', size: '2.2 MB', category: 'Photos' },
+  ];
+
+  const filteredTiles = sampleTiles.filter(tile => category === 'All' || tile.category === category);
 
   return (
     <main className="dw-page" data-screen="SHADOW_VAULT">
@@ -552,6 +629,43 @@ export function DesktopVault() {
         </Panel>
 
         <div className="dw-main-column">
+          {/* Category Chips - per reference prompt */}
+          <div className="dw-media-categories" role="group" aria-label={t('Media type')}>
+            {mediaCategories.map(cat => (
+              <button
+                key={cat}
+                className={`dw-media-chip ${category === cat ? 'active' : ''}`}
+                aria-pressed={category === cat}
+                onClick={() => setCategory(cat)}
+              >
+                {t(cat)}
+              </button>
+            ))}
+            <span className="dw-sample-badge">{t('12 ENCRYPTED ITEMS · SAMPLE PREVIEW')}</span>
+          </div>
+
+          {/* Masonry Grid of Encrypted Media Tiles */}
+          <div className={`dw-vault-masonry dw-view-${view}`}>
+            {filteredTiles.map((tile, index) => (
+              <article key={tile.id} className="dw-vault-tile" style={{ '--tile-order': index }}>
+                <div className="dw-tile-media" data-type={tile.type}>
+                  <Mark name={tile.type === 'video' ? 'play-circle' : tile.type === 'audio' ? 'music' : 'image'} className="dw-tile-type-icon" />
+                  <Mark name="lock" className="dw-tile-seal" />
+                </div>
+                <div className="dw-tile-info">
+                  <strong className="dw-tile-title" dir="ltr">{tile.title}</strong>
+                  <span className="dw-tile-meta">{tile.size} · {t(tile.category)}</span>
+                </div>
+                <div className="dw-tile-edge-beam" aria-hidden="true" />
+              </article>
+            ))}
+          </div>
+
+          {/* FAB Import Securely */}
+          <button className="dw-vault-fab" disabled>
+            <Mark name="upload" /> {t('IMPORT SECURELY')}
+          </button>
+
           <StagBanner title={t('Shadow Vault')} caption={t('Unlock to access protected data. No items are loaded while sealed.')} />
 
           <div className="dw-list-heading">
@@ -627,6 +741,7 @@ export function DesktopNotes() {
   const [selected, setSelected] = useState(notes[0]?.id);
   const [query, setQuery] = useState('');
   const [starred, setStarred] = useState(false);
+  const [activeTab, setActiveTab] = useState('notes');
 
   const note = notes.find(n => n.id === (routeId || selected));
   const filtered = notes.filter(n => (!starred || n.pinned) && `${n.title} ${n.body}`.toLowerCase().includes(query.toLowerCase()));
@@ -636,42 +751,122 @@ export function DesktopNotes() {
     navigate(`${SCREENS.NOTES_EDITOR}/${id}`);
   }
 
+  const sampleNotes = [
+    { id: 'sample-1', title: 'PROJECT NOTES', body: 'Key milestones and deliverables for Q4. All encryption keys rotated. Team access via Key Forge.', updated: '2026-11-10', pinned: true },
+    { id: 'sample-2', title: 'PRIVATE JOURNAL', body: 'Personal reflections. End-to-end encrypted. No cloud sync. Vault key rotation scheduled.', updated: '2026-11-08', pinned: false },
+    { id: 'sample-3', title: 'RECOVERY CHECKLIST', body: '1. Verify backup integrity 2. Test key rotation 3. Confirm Shamir shares 4. Document recovery phrase location', updated: '2026-11-05', pinned: true },
+  ];
+
   return (
-    <main className="dw-page dw-notes" data-screen={routeId ? 'NOTES_EDITOR' : 'SECURE_NOTES'}>
-      <section className="dw-note-list">
-        <PageHeading title={t('BLACK ARCHIVE')} caption={t('Secure notes · Encrypted folio')} />
-        <button className="dw-primary" onClick={() => open(createNote())}>
-          <Mark name="plus" /> {t('New Secure Note')}
-        </button>
-        <div className="dw-segments">
-          <button aria-pressed={!starred} onClick={() => setStarred(false)}>{t('All Notes')} <span style={{color:'#8993AD'}}>({notes.length})</span></button>
-          <button aria-pressed={starred} onClick={() => setStarred(true)}>{t('Starred')}</button>
+    <main className="dw-page dw-notes dw-black-archive" data-screen={routeId ? 'NOTES_EDITOR' : 'SECURE_NOTES'}>
+      <aside className="dw-folio-spine" aria-hidden="true">
+        <div className="dw-folio-spine-inner">
+          <div className="dw-folio-emboss">
+            <Mark name="book" />
+          </div>
+          <div className="dw-folio-title">
+            <span>B</span><span>L</span><span>A</span><span>C</span><span>K</span>
+            <span style={{marginBlock: '8px'}} />
+            <span>A</span><span>R</span><span>C</span><span>H</span><span>I</span><span>V</span><span>E</span>
+          </div>
+          <div className="dw-folio-ribbons">
+            <span className="dw-ribbon violet" />
+            <span className="dw-ribbon cyan" />
+            <span className="dw-ribbon magenta" />
+          </div>
         </div>
-        <input
-          aria-label={t('Search notes')}
-          type="search"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder={t('Search notes…')}
-        />
-        {filtered.map(n => (
+      </aside>
+
+      <div className="dw-archive-content">
+        <div className="dw-archive-tabs" role="tablist" aria-label={t('Archive sections')}>
           <button
-            className="dw-note-card"
-            key={n.id}
-            aria-pressed={n.id === note?.id}
-            onClick={() => open(n.id)}
+            role="tab"
+            aria-selected={activeTab === 'notes'}
+            aria-controls="notes-panel"
+            id="tab-notes"
+            className={`dw-archive-tab ${activeTab === 'notes' ? 'active' : ''}`}
+            onClick={() => setActiveTab('notes')}
           >
-            <Mark name="file" style={{ color: n.pinned ? '#7556FF' : '#8993AD' }} />
-            <span>
-              <strong>{n.listTitle ? t(n.listTitle) : noteText(n, 'title', t)}</strong>
-              <small>{t(n.updated)}</small>
-              <p>{noteText(n, 'body', t).slice(0, 100)}</p>
-            </span>
-            <span style={{ color: n.pinned ? '#7556FF' : '#8993AD' }}>{n.pinned ? '★' : '☆'}</span>
+            <Mark name="file" /> {t('SECURE NOTES')}
           </button>
-        ))}
-        {!filtered.length && <p className="dw-empty">{t('No notes match your search.')}</p>}
-      </section>
+          <button
+            role="tab"
+            aria-selected={activeTab === 'passwords'}
+            aria-controls="passwords-panel"
+            id="tab-passwords"
+            className={`dw-archive-tab ${activeTab === 'passwords' ? 'active' : ''}`}
+            onClick={() => setActiveTab('passwords')}
+          >
+            <Mark name="key" /> {t('CREDENTIALS')}
+          </button>
+        </div>
+
+        <div role="tabpanel" id="notes-panel" aria-labelledby="tab-notes" hidden={activeTab !== 'notes'}>
+          <section className="dw-note-list">
+            <PageHeading title={t('BLACK ARCHIVE')} caption={t('Secure notes · Encrypted folio')} />
+            <button className="dw-float-new-note" onClick={() => open(createNote())}>
+              <Mark name="plus" /> {t('NEW SECURE NOTE')}
+            </button>
+            <div className="dw-segments">
+              <button aria-pressed={!starred} onClick={() => setStarred(false)}>{t('All Notes')} <span style={{color:'#8993AD'}}>({notes.length})</span></button>
+              <button aria-pressed={starred} onClick={() => setStarred(true)}>{t('Starred')}</button>
+            </div>
+            <input
+              aria-label={t('Search notes')}
+              type="search"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder={t('Search notes…')}
+            />
+            <div className="dw-archive-layers">
+              {sampleNotes.map((n, i) => (
+                <button
+                  key={n.id}
+                  className={`dw-note-card dw-folded-card ${n.pinned ? 'pinned' : ''}`}
+                  style={{ '--card-index': i }}
+                  onClick={() => open(n.id || `sample-${i}`)}
+                >
+                  <div className="dw-fold-corner" aria-hidden="true" />
+                  <Mark name="file" style={{ color: n.pinned ? '#7556FF' : '#8993AD' }} />
+                  <div className="dw-fold-content">
+                    <strong>{t(n.title)}</strong>
+                    <small>{t(n.updated)}</small>
+                    <p>{n.body.slice(0, 100)}</p>
+                  </div>
+                  <span style={{ color: n.pinned ? '#7556FF' : '#8993AD' }}>{n.pinned ? '★' : '☆'}</span>
+                </button>
+              ))}
+            </div>
+            {filtered.map(n => (
+              <button
+                className={`dw-note-card dw-folded-card ${n.pinned ? 'pinned' : ''}`}
+                key={n.id}
+                aria-pressed={n.id === note?.id}
+                onClick={() => open(n.id)}
+              >
+                <div className="dw-fold-corner" aria-hidden="true" />
+                <Mark name="file" style={{ color: n.pinned ? '#7556FF' : '#8993AD' }} />
+                <div className="dw-fold-content">
+                  <strong>{n.listTitle ? t(n.listTitle) : noteText(n, 'title', t)}</strong>
+                  <small>{t(n.updated)}</small>
+                  <p>{noteText(n, 'body', t).slice(0, 100)}</p>
+                </div>
+                <span style={{ color: n.pinned ? '#7556FF' : '#8993AD' }}>{n.pinned ? '★' : '☆'}</span>
+              </button>
+            ))}
+            {!filtered.length && sampleNotes.length === 0 && <p className="dw-empty">{t('No notes match your search.')}</p>}
+          </section>
+        </div>
+
+        <div role="tabpanel" id="passwords-panel" aria-labelledby="tab-passwords" hidden={activeTab !== 'passwords'}>
+          <p className="dw-muted" style={{ textAlign: 'center', padding: '40px' }}>
+            {t('Switch to Passwords screen for credential management.')}
+          </p>
+          <Link className="dw-primary" style={{ display: 'inline-flex', margin: '0 auto' }} to={SCREENS.PASSWORDS}>
+            <Mark name="key" /> {t('Open Passwords')}
+          </Link>
+        </div>
+      </div>
 
       <section className="dw-note-editor">
         {note ? (
