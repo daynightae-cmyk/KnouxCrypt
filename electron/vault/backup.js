@@ -70,6 +70,13 @@ class VaultBackup {
     for (const name of names) {
       const document = await this.store.read(name, rawKey);
       const records = document.records || [];
+      // Media blobs live outside the encrypted record store. Backing up only
+      // their metadata would create a misleading, unrecoverable "full backup".
+      // Refuse instead of silently claiming the files can be restored.
+      if (name === "mediavault" && records.length > 0) {
+        throw new VaultError(CODES.BAD_INPUT,
+          "Shadow Vault media files are not included in this backup format. Export your media separately, or select non-media collections only.");
+      }
       payload[name] = document;
       manifest.push({
         collection: name,
@@ -214,6 +221,12 @@ class VaultBackup {
       throw new VaultError(CODES.BAD_INPUT, "Restore requires explicit confirmation");
     }
     const summary = await this.inspect(file, rawKey);
+    // An older metadata-only backup must not replace real media references
+    // when the ciphertext blobs are absent from the backup archive.
+    if (summary.manifest.some((entry) => entry.collection === "mediavault" && entry.count > 0)) {
+      throw new VaultError(CODES.BAD_INPUT,
+        "This backup contains Shadow Vault metadata without encrypted media files; restoring it would leave broken media references.");
+    }
 
     // Re-read to get the payload (inspect already proved it is intact).
     const sealed = await fsp.readFile(file);

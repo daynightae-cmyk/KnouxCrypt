@@ -121,6 +121,17 @@ class RotationService {
     }
 
     const currentDek = this.manager.getDek(sessionId);
+    // MediaVault ciphertext blobs are not yet included in this rotation's
+    // re-encryption journal. Rotating the DEK with media present would make
+    // every imported file unreadable even though its metadata was rotated.
+    // Refuse BEFORE updating the enrollment wrapper or creating a journal.
+    if (mode === "reencrypt") {
+      const { records } = await this.store.list("mediavault", currentDek);
+      if (records.length > 0) {
+        throw new VaultError(CODES.BAD_INPUT,
+          "Cannot re-encrypt the vault key while Shadow Vault media exists; encrypted media blobs are not yet supported by key rotation");
+      }
+    }
     const rotationId = crypto.randomBytes(8).toString("hex");
     const startedAt = new Date().toISOString();
 

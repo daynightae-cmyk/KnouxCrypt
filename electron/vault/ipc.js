@@ -1538,6 +1538,7 @@ function registerVaultIpc(service, getWindow) {
       const { sessionId } = requireObject(payload);
       const { rawKey } = service._engineFor(sessionId);
       return service.mediaVault.pickAndImport(rawKey, {
+        assertSession: () => service._engineFor(sessionId),
         showDialog: (opts) =>
           dialog
             .showOpenDialog(getWindow(), {
@@ -1563,7 +1564,13 @@ function registerVaultIpc(service, getWindow) {
         defaultPath: record.originalName,
       });
       if (dlg.canceled || !dlg.filePath) return { cancelled: true };
-      return service.mediaVault.export(rawKey, { id, targetPath: dlg.filePath });
+      // The vault may have locked while the save dialog was open.
+      const liveKey = service._engineFor(sessionId).rawKey;
+      return service.mediaVault.export(liveKey, {
+        id,
+        targetPath: dlg.filePath,
+        assertSession: () => service._engineFor(sessionId),
+      });
     }),
   );
 

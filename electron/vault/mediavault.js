@@ -22,8 +22,8 @@
  *  - Duplicate filenames are accepted (each gets a fresh UUID, the original
  *    name is preserved in metadata).
  *  - A cancelled import leaves no orphan ciphertext and no metadata record.
- *  - A delete with confirm:true atomically removes ciphertext, then removes
- *    the metadata record.
+ *  - A delete with confirm:true removes ciphertext, then the metadata record.
+ *    These are separate writes; metadata-write failure requires recovery.
  */
 const crypto = require("crypto");
 const fsp = require("fs/promises");
@@ -78,7 +78,9 @@ const ALLOWED_TYPES = Object.freeze({
   "application/vnd.openxmlformats-officedocument.presentationml.presentation": "Files",
 });
 
-// Extension → MIME sniffing fallback when the caller only has a path.
+// Extension → MIME classification for native file-picker paths. This is not
+// content-signature sniffing; unknown extensions are refused, but files with
+// misleading extensions must not be represented as independently validated.
 const EXT_TO_MIME = Object.freeze({
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
@@ -165,8 +167,9 @@ class MediaVault {
    *
    * Returns the new metadata record.
    */
-  async import(rawKey, { sourcePath, mimeType, signal } = {}) {
+  async import(rawKey, { sourcePath, mimeType, signal, assertSession } = {}) {
     requireKey(rawKey);
+    if (typeof assertSession === "function") assertSession();
     if (typeof sourcePath !== "string" || !sourcePath) {
       throw badInput("sourcePath is required");
     }
@@ -202,10 +205,9 @@ class MediaVault {
     const blobName = `${blobId}${FILE_EXT}`;
     const blobPath = path.join(this.root, blobName);
 
-    // Encrypt the file. VaultEngine handles temp file + atomic rename.
-    // We override overwrite=true so VaultEngine can commit on first use.
-    const engine = new Proxy(this.engine, {});
-    engine.overwrite = true;
+    // VaultEngine's default no-overwrite policy is mandatory here: each
+    // ciphertext blob has a fresh UUID and must never clobber an existing
+    // encrypted file. Do NOT mutate the shared engine's overwrite flag.
 
     let encResult;
     try {
@@ -236,6 +238,9 @@ class MediaVault {
     };
 
     try {
+      // An unlocked session captured before a file picker or long encryption
+      // may have been revoked by the time metadata is committed.
+      if (typeof assertSession === "function") assertSession();
       await this.store.put(COLLECTION, rawKey, record);
     } catch (err) {
       // Metadata write failed — remove the orphan ciphertext blob.
@@ -243,7 +248,9 @@ class MediaVault {
       throw err;
     }
 
-    this._journal(`Imported "${record.originalName}" (${formatBytes(stat.size)}) into Shadow Vault`);
+    // The security journal is not the encrypted metadata store. Never leak
+    // private media filenames or sizes into its plaintext action messages.
+    this._journal("Imported an encrypted media item into Shadow Vault");
     return { record };
   }
 
@@ -259,8 +266,9 @@ class MediaVault {
    * - Symlink check on targetPath parent is skipped (user-chosen location).
    * - After export the ciphertext remains in the vault.
    */
-  async export(rawKey, { id, targetPath, signal } = {}) {
+  async export(rawKey, { id, targetPath, signal, assertSession } = {}) {
     requireKey(rawKey);
+    if (typeof assertSession === "function") assertSession();
     if (typeof id !== "string" || !id) throw badInput("id is required");
     if (typeof targetPath !== "string" || !targetPath) throw badInput("targetPath is required");
 
@@ -282,14 +290,23 @@ class MediaVault {
     }
 
     // Decrypt — VaultEngine verifies integrity before writing any plaintext.
+    const outputPath = path.resolve(targetPath);
     await this.engine.decryptFile({
       inputPath: blobPath,
-      outputPath: path.resolve(targetPath),
+      outputPath,
       rawKey,
       signal,
     });
+    // If the user locked the vault during a long export, do not leave the
+    // now-unauthorised plaintext file on disk.
+    try {
+      if (typeof assertSession === "function") assertSession();
+    } catch (err) {
+      await fsp.rm(outputPath, { force: true }).catch(() => {});
+      throw err;
+    }
 
-    this._journal(`Exported "${record.originalName}" from Shadow Vault`);
+    this._journal("Exported an encrypted media item from Shadow Vault");
     return { exported: true, originalName: record.originalName, targetPath: path.resolve(targetPath) };
   }
 
@@ -301,9 +318,9 @@ class MediaVault {
    * Permanently delete an item from the vault.
    * Requires confirm:true (prevents accidental programmatic deletion).
    * Order: remove ciphertext blob first, then remove metadata record.
-   * If blob removal succeeds but record removal fails, the stale record
-   * is left with a note that its blob is gone — better than a dangling
-   * unreachable blob.
+   * If ciphertext removal fails, metadata is kept for recovery. If the
+   * subsequent metadata write fails, an unusable reference may remain;
+   * fully transactional deletion is not yet implemented.
    */
   async remove(rawKey, { id, confirm } = {}) {
     requireKey(rawKey);
@@ -315,20 +332,20 @@ class MediaVault {
     const record = await this._getRecord(rawKey, id);
     const blobPath = path.join(this.root, record.blobName);
 
-    // Remove blob (best effort — if it's already gone, proceed).
+    // Do not erase the only metadata reference if the encrypted blob could
+    // not be removed. ENOENT is harmless, but IO failures must fail closed.
     try {
       await fsp.rm(blobPath, { force: true });
     } catch (err) {
-      if (!isPermissionDenial(err)) {
-        // Not a permission error — log and proceed to remove the record.
-      } else {
+      if (isPermissionDenial(err)) {
         throw new VaultError(CODES.PERMISSION_DENIED, "Could not remove the encrypted file");
       }
+      throw new VaultError(CODES.IO_FAILED, "Could not remove the encrypted file");
     }
 
     // Remove metadata record.
     await this.store.remove(COLLECTION, rawKey, id);
-    this._journal(`Deleted "${record.originalName}" from Shadow Vault`);
+    this._journal("Deleted an encrypted media item from Shadow Vault");
     return { removed: true };
   }
 
@@ -354,7 +371,7 @@ class MediaVault {
    * Open an Electron file-picker dialog (passed in as `showDialog`) and
    * import every selected file.  Returns an array of results.
    */
-  async pickAndImport(rawKey, { showDialog, signal } = {}) {
+  async pickAndImport(rawKey, { showDialog, signal, assertSession } = {}) {
     requireKey(rawKey);
     if (typeof showDialog !== "function") throw badInput("showDialog callback is required");
 
@@ -375,11 +392,14 @@ class MediaVault {
     if (result.cancelled || !result.paths?.length) {
       return { cancelled: true, results: [] };
     }
+    // Check again AFTER the operating-system file picker, not only before it.
+    if (typeof assertSession === "function") assertSession();
 
     const results = [];
     for (const sourcePath of result.paths) {
+      if (typeof assertSession === "function") assertSession();
       try {
-        const r = await this.import(rawKey, { sourcePath, signal });
+        const r = await this.import(rawKey, { sourcePath, signal, assertSession });
         results.push({ ok: true, sourcePath, record: r.record });
       } catch (err) {
         results.push({ ok: false, sourcePath, error: { code: err.code || "UNKNOWN", message: err.message } });

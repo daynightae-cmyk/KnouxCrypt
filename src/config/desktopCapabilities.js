@@ -94,9 +94,9 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
       "tests/vault-store.test.cjs (encrypted store read/write, tamper and truncation rejection, guest and revoked session refusal)",
       "scripts/electron-runtime-check.cjs (real Electron process: no plaintext secret remains in the store file)",
     ],
-    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatus: DISPLAY_STATUS.PARTIAL,
     displayStatusReason:
-      "Real file import, encrypted persistence, byte-identical export and confirmed delete are implemented and covered by 23 automated tests. The on-disk blob is AES-256-GCM ciphertext; the original filename is stored only in the encrypted metadata record. Media preview (thumbnail generation) is not implemented and is not claimed.",
+      "Encrypted import/export and metadata persistence have targeted tests, but full live Electron UI QA, media previews, backup of media blobs, and re-encryption of media blobs during DEK rotation are not implemented. Media-bearing DEK re-encryption must be blocked to protect data. This capability remains PARTIAL until these gaps are resolved; metadata-only backups do not recover media files.",
   },
   {
     id: "NOTES",
@@ -247,7 +247,7 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
     id: "BACKUP",
     title: "Backup & Recovery",
     platformCapability:
-      "Encrypted versioned backups: a single authenticated container holds a manifest with a SHA-256 per collection plus every encrypted collection. Restore validates the manifest and checksums and is atomic, rolling back if a write fails.",
+      "Encrypted versioned backups cover selected record collections with an authenticated manifest. Shadow Vault media blobs are excluded; metadata-only media backups and restores are refused until the blob backup format is implemented.",
     permissionNeeds: ["Unlocked vault session", "Explicit confirmation for restore"],
     requiresNetwork: false,
     providerReady: true,
@@ -255,9 +255,9 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
       "tests/batch04-services.test.cjs (round-trip and checksum verification, wrong-key refusal, tamper detection, truncation refusal, empty-file refusal, NOT_FOUND for a missing file, confirmation required for restore, atomic restore, path-traversal id rejection, and end-to-end create/list/inspect/restore through the service)",
       "tests/vault-store.test.cjs (the underlying store is encrypted like every other record store)",
     ],
-    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatus: DISPLAY_STATUS.PARTIAL,
     displayStatusReason:
-      "Backups are real AES-256-GCM containers written with a temp-file-then-rename and verified against a sealed manifest. Cloud or remote backup destinations are not implemented.",
+      "Backups of supported record collections are real AES-256-GCM containers, but encrypted Shadow Vault media blobs are not included. Metadata-only media backups and restores are blocked to prevent false recovery claims. Cloud or remote destinations are also not implemented.",
   },
   {
     id: "SECURE_SHARE",
@@ -507,7 +507,7 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
     id: "VAULT_KEY_ROTATION",
     title: "Vault Key Rotation",
     platformCapability:
-      "Two real rotation modes: rewrap re-wraps the data-encryption key under a new password, and reencrypt rewrites every stored container under a fresh key. Journaled, verified against the new password and rolled back on failure.",
+      "Two rotation modes: rewrap re-wraps the existing DEK under a new password; reencrypt processes supported stored collections under a fresh DEK. Reencrypt is refused while Shadow Vault media exists because its encrypted blobs are not yet part of the rotation journal.",
     permissionNeeds: ["Unlocked vault session only", "Explicit confirmation", "No elevated privileges"],
     requiresNetwork: false,
     providerReady: true,
@@ -515,9 +515,9 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
       "tests/batch08-vaulttools.test.cjs (rewrap keeps data readable and only changes the wrapper, reencrypt rewrites containers and the old key can no longer open them, the old password stops working, confirmation and length are enforced, a failed reencrypt rolls the enrollment back so the old password still opens the vault, a completed reencrypt refuses a rollback, preflight refuses while a rotation is pending)",
       "tests/vault-ipc.test.cjs (rotation channels registered and validated)",
     ],
-    displayStatus: DISPLAY_STATUS.ACTIVE,
+    displayStatus: DISPLAY_STATUS.PARTIAL,
     displayStatusReason:
-      "Rotation is a real key operation with a journal, a post-rotation reopen check and a rollback path, all covered by tests. There is no spinner: every stage maps to a filesystem action that either succeeds or is rolled back.",
+      "Rewrap and reencrypt have real tested implementations for supported record collections, but Shadow Vault media blobs do not rotate yet. Fresh-DEK reencrypt is explicitly blocked when encrypted media exists to prevent irreversible file loss.",
   },
   {
     id: "PACKAGE_INSPECTOR",

@@ -18,6 +18,8 @@ const os = require("node:os");
 const { MediaVault, ALLOWED_TYPES, EXT_TO_MIME, MAX_FILE_BYTES, COLLECTION } = require("../electron/vault/mediavault");
 const { VaultEngine } = require("../electron/vault/engine");
 const { EncryptedStore } = require("../electron/vault/store");
+const { RotationService } = require("../electron/vault/rotation");
+const { VaultBackup } = require("../electron/vault/backup");
 
 // ---------------------------------------------------------------------------
 // Test infrastructure
@@ -45,7 +47,8 @@ async function setup() {
   await fsp.mkdir(mediaRoot, { recursive: true });
 
   const engine = new VaultEngine({ kdfParams: { kdfId: 0, iterations: 0 }, chunkSize: 64 * 1024 });
-  engine.overwrite = true;
+  // Preserve production's default no-overwrite policy; importing media must
+  // never disable collision protection on the shared VaultEngine.
   const store = new EncryptedStore({ root: storeRoot, engine });
   const mv = new MediaVault({ engine, store, root: mediaRoot });
   const rawKey = makeKey();
@@ -129,6 +132,226 @@ describe("mediavault: import and list", () => {
     const listed = await mv.list(rawKey);
     assert.equal(listed.length, 2);
     await fsp.rm(srcDir, { recursive: true, force: true });
+  });
+});
+
+describe("mediavault: shared-engine and journal regressions", () => {
+  test("import never enables overwrite on the shared engine", async () => {
+    const { mv, rawKey, engine } = await setup();
+    const fixtureDir = await mkTmp();
+    try {
+      assert.equal(engine.overwrite, false, "the shared engine starts collision-safe");
+      const sourcePath = await makeFixture(fixtureDir, "image.png", Buffer.alloc(128, 0x61));
+      await mv.import(rawKey, { sourcePath });
+      assert.equal(engine.overwrite, false, "import must not mutate shared overwrite policy");
+
+      const existingPath = await makeFixture(fixtureDir, "existing.knx", Buffer.from("ORIGINAL_STAYS"));
+      await assert.rejects(
+        () => engine.encryptFile({ inputPath: sourcePath, outputPath: existingPath, rawKey }),
+        (err) => err.code === "PATH_CONFLICT",
+      );
+      assert.equal((await fsp.readFile(existingPath)).toString(), "ORIGINAL_STAYS");
+    } finally {
+      await fsp.rm(fixtureDir, { recursive: true, force: true });
+    }
+  });
+
+  test("security journal does not contain private media filenames", async () => {
+    const { mv, rawKey } = await setup();
+    const sourceDir = await mkTmp();
+    const exportDir = await mkTmp();
+    const actions = [];
+    mv.onJournal = (message) => actions.push(message);
+    try {
+      const sourcePath = await makeFixture(sourceDir, "private-medical-record.pdf", Buffer.alloc(256, 0x43));
+      const { record } = await mv.import(rawKey, { sourcePath });
+      await mv.export(rawKey, { id: record.id, targetPath: path.join(exportDir, "export.pdf") });
+      await mv.remove(rawKey, { id: record.id, confirm: true });
+      assert.equal(actions.length, 3);
+      assert.ok(actions.every((a) => !a.includes("private-medical-record")));
+      assert.ok(actions.every((a) => !a.includes("export.pdf")));
+    } finally {
+      await fsp.rm(sourceDir, { recursive: true, force: true });
+      await fsp.rm(exportDir, { recursive: true, force: true });
+    }
+  });
+
+  test("failed blob deletion retains encrypted metadata for recovery", async () => {
+    const { mv, rawKey, mediaRoot } = await setup();
+    const sourceDir = await mkTmp();
+    const sourcePath = await makeFixture(sourceDir, "recoverable.jpg", Buffer.alloc(128, 0x32));
+    const { record } = await mv.import(rawKey, { sourcePath });
+    const blobPath = path.join(mediaRoot, record.blobName);
+    const origRm = fsp.rm;
+    fsp.rm = async (p, options) => {
+      if (p === blobPath) {
+        const failure = new Error("Simulated disk I/O failure");
+        failure.code = "EIO";
+        throw failure;
+      }
+      return origRm(p, options);
+    };
+    try {
+      await assert.rejects(() => mv.remove(rawKey, { id: record.id, confirm: true }), (err) => err.code === "IO_FAILED");
+    } finally {
+      fsp.rm = origRm;
+    }
+    assert.equal((await mv.list(rawKey)).length, 1, "a failed deletion must preserve metadata");
+    assert.ok((await fsp.stat(blobPath)).isFile(), "a failed deletion must preserve ciphertext");
+    await fsp.rm(sourceDir, { recursive: true, force: true });
+  });
+});
+
+describe("mediavault: rotation compatibility", () => {
+  test("fresh DEK rotation refuses existing media before touching the enrollment", async () => {
+    const { root, mediaRoot, engine, store, mv, rawKey } = await setup();
+    const sourceDir = await mkTmp();
+    try {
+      const sourcePath = await makeFixture(sourceDir, "photo.jpg", Buffer.alloc(128, 0x11));
+      await mv.import(rawKey, { sourcePath });
+      let rewrapCalled = false;
+      const manager = {
+        getDek: () => rawKey,
+        rewrapDek: async () => { rewrapCalled = true; throw new Error("must not rewrap"); },
+      };
+      const rotation = new RotationService({ manager, store, engine, userDataPath: root });
+      await assert.rejects(
+        () => rotation.rotate("session", { newPassword: "correct horse battery", mode: "reencrypt", confirm: true }),
+        (err) => err.code === "BAD_INPUT" && /Shadow Vault media/.test(err.message),
+      );
+      assert.equal(rewrapCalled, false, "rotation must be refused before updating enrollment");
+      assert.equal((await mv.list(rawKey)).length, 1, "media remains available after refusal");
+      assert.equal(await rotation.journal(), null, "no partial rotation journal is created");
+      assert.ok((await fsp.stat(path.join(mediaRoot, (await mv.list(rawKey))[0].blobName))).isFile());
+    } finally {
+      await fsp.rm(sourceDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("mediavault: session revocation during dialogs and file I/O", () => {
+  test("file picker cannot import after the vault locks", async () => {
+    const { mv, rawKey } = await setup();
+    const sourceDir = await mkTmp();
+    const sourcePath = await makeFixture(sourceDir, "locked.jpg", Buffer.alloc(64, 0x66));
+    let unlocked = true;
+    const assertSession = () => {
+      if (!unlocked) {
+        const err = new Error("Vault locked");
+        err.code = "SESSION_REQUIRED";
+        throw err;
+      }
+    };
+    try {
+      await assert.rejects(
+        () => mv.pickAndImport(rawKey, {
+          showDialog: async () => {
+            unlocked = false;
+            return { cancelled: false, paths: [sourcePath] };
+          },
+          assertSession,
+        }),
+        (err) => err.code === "SESSION_REQUIRED",
+      );
+      assert.equal((await mv.list(rawKey)).length, 0);
+      assert.ok((await fsp.stat(sourcePath)).isFile());
+    } finally {
+      await fsp.rm(sourceDir, { recursive: true, force: true });
+    }
+  });
+
+  test("revocation after encryption cleans the new ciphertext without committing metadata", async () => {
+    const { mv, rawKey, mediaRoot, engine } = await setup();
+    const sourceDir = await mkTmp();
+    const sourcePath = await makeFixture(sourceDir, "private.jpg", Buffer.alloc(512, 0x21));
+    let unlocked = true;
+    const assertSession = () => {
+      if (!unlocked) {
+        const err = new Error("Vault locked");
+        err.code = "SESSION_REQUIRED";
+        throw err;
+      }
+    };
+    const origEncrypt = engine.encryptFile.bind(engine);
+    engine.encryptFile = async (args) => {
+      const result = await origEncrypt(args);
+      unlocked = false;
+      return result;
+    };
+    try {
+      await assert.rejects(() => mv.import(rawKey, { sourcePath, assertSession }), (err) => err.code === "SESSION_REQUIRED");
+      assert.deepEqual(await fsp.readdir(mediaRoot), [], "no encrypted orphan remains");
+      assert.equal((await mv.list(rawKey)).length, 0, "no metadata committed after lock");
+    } finally {
+      engine.encryptFile = origEncrypt;
+      await fsp.rm(sourceDir, { recursive: true, force: true });
+    }
+  });
+
+  test("revocation during export removes the newly written plaintext", async () => {
+    const { mv, rawKey, engine } = await setup();
+    const sourceDir = await mkTmp();
+    const exportDir = await mkTmp();
+    const sourcePath = await makeFixture(sourceDir, "private.pdf", Buffer.alloc(128, 0x53));
+    const { record } = await mv.import(rawKey, { sourcePath });
+    let unlocked = true;
+    const assertSession = () => {
+      if (!unlocked) {
+        const err = new Error("Vault locked");
+        err.code = "SESSION_REQUIRED";
+        throw err;
+      }
+    };
+    const origDecrypt = engine.decryptFile.bind(engine);
+    engine.decryptFile = async (args) => {
+      const result = await origDecrypt(args);
+      unlocked = false;
+      return result;
+    };
+    const targetPath = path.join(exportDir, "recovered.pdf");
+    try {
+      await assert.rejects(() => mv.export(rawKey, { id: record.id, targetPath, assertSession }),
+        (err) => err.code === "SESSION_REQUIRED");
+      await assert.rejects(() => fsp.stat(targetPath), (err) => err.code === "ENOENT");
+    } finally {
+      engine.decryptFile = origDecrypt;
+      await fsp.rm(sourceDir, { recursive: true, force: true });
+      await fsp.rm(exportDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("mediavault: backup safety", () => {
+  test("backup refuses misleading metadata-only media backups", async () => {
+    const { root, storeRoot, engine, store, mv, rawKey } = await setup();
+    const sourceDir = await mkTmp();
+    try {
+      const sourcePath = await makeFixture(sourceDir, "family.jpg", Buffer.alloc(128, 0x17));
+      await mv.import(rawKey, { sourcePath });
+      const backup = new VaultBackup({ root: storeRoot, engine, store });
+      await assert.rejects(
+        () => backup.build(rawKey),
+        (err) => err.code === "BAD_INPUT" && /media files are not included/i.test(err.message),
+      );
+      // Other encrypted collections remain independently backup-capable.
+      const selected = await backup.build(rawKey, { collections: ["notes"] });
+      assert.deepEqual(selected.manifest.map((entry) => entry.collection), ["notes"]);
+    } finally {
+      await fsp.rm(sourceDir, { recursive: true, force: true });
+    }
+  });
+
+  test("restore refuses older metadata-only media backups before any write", async () => {
+    const { storeRoot, engine, store, rawKey } = await setup();
+    const backup = new VaultBackup({ root: storeRoot, engine, store });
+    backup.inspect = async () => ({
+      manifest: [{ collection: "mediavault", count: 2, sha256: "stub" }],
+      totalRecords: 2,
+    });
+    await assert.rejects(
+      () => backup.restore("not-read-on-refusal.knxb", rawKey, { confirm: true }),
+      (err) => err.code === "BAD_INPUT" && /broken media references/.test(err.message),
+    );
   });
 });
 
@@ -412,14 +635,12 @@ describe("mediavault: persistence", () => {
 
     // Import with the first service instance.
     const engine1 = new VaultEngine({ kdfParams: { kdfId: 0, iterations: 0 } });
-    engine1.overwrite = true;
     const store1 = new EncryptedStore({ root: storeRoot, engine: engine1 });
     const mv1 = new MediaVault({ engine: engine1, store: store1, root: mediaRoot });
     const { record: r1 } = await mv1.import(rawKey, { sourcePath: src });
 
     // Create a fresh service pointing at the same directories.
     const engine2 = new VaultEngine({ kdfParams: { kdfId: 0, iterations: 0 } });
-    engine2.overwrite = true;
     const store2 = new EncryptedStore({ root: storeRoot, engine: engine2 });
     const mv2 = new MediaVault({ engine: engine2, store: store2, root: mediaRoot });
 

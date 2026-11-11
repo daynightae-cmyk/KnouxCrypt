@@ -117,7 +117,12 @@ export function ShadowVault() {
 
   const loadRecords = useCallback(async () => {
     if (!persisted) { setRecords(null); setLoadError(null); return; }
+    const requestedSessionId = vaultRef.current.session?.sessionId;
     const res = await vaultRef.current.mediaList();
+    // A lock or session switch can occur while the IPC request is pending.
+    // Never rehydrate previous-session filenames into renderer state.
+    if (vaultRef.current.state !== VAULT_STATE.UNLOCKED ||
+        vaultRef.current.session?.sessionId !== requestedSessionId) return;
     if (res?.ok) {
       setRecords(Array.isArray(res.data) ? res.data : []);
       setLoadError(null);
@@ -144,6 +149,16 @@ export function ShadowVault() {
   const [sheetError, setSheetError] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [importResults, setImportResults] = useState(null);
+
+  // Clear sensitive media names and open detail sheets on lock/session change.
+  useEffect(() => {
+    if (!persisted) {
+      setRecords(null);
+      setLoadError(null);
+      setSheet(null);
+      setImportResults(null);
+    }
+  }, [persisted, sessionId]);
 
   function openSheet(kind, record = null) {
     setSheet({ kind, record });
@@ -319,7 +334,7 @@ export function ShadowVault() {
       {/* ------------------------------------------------------------------ */}
 
       {/* Import sheet */}
-      {sheet?.kind === "import" && (
+      {persisted && sheet?.kind === "import" && (
         <PreviewSheet title={t("Import Securely")} onClose={closeSheet}>
           {!importResults ? (
             <>
@@ -345,7 +360,7 @@ export function ShadowVault() {
       )}
 
       {/* Item detail / actions sheet */}
-      {sheet?.kind === "details" && sheet.record && (
+      {persisted && sheet?.kind === "details" && sheet.record && (
         <PreviewSheet title={sheet.record.originalName} onClose={closeSheet}>
           <dl className="vault-detail">
             <dt>{t("Category")}</dt><dd>{t(sheet.record.category)}</dd>
@@ -375,7 +390,7 @@ export function ShadowVault() {
       )}
 
       {/* Item context menu */}
-      {sheet?.kind === "menu" && sheet.record && (
+      {persisted && sheet?.kind === "menu" && sheet.record && (
         <PreviewSheet title={sheet.record.originalName} onClose={closeSheet}>
           <p dir="ltr" className="vault-hash">{sheet.record.originalName}</p>
           <p>{t(sheet.record.category)} · {formatBytes(sheet.record.sizeBytes)} · {short(sheet.record.importedAt)}</p>
@@ -397,7 +412,7 @@ export function ShadowVault() {
       )}
 
       {/* Search sheet */}
-      {sheet?.kind === "search" && (
+      {persisted && sheet?.kind === "search" && (
         <PreviewSheet title={t("Search vault")} onClose={closeSheet}>
           <label className="security-search">
             {t("Search encrypted items")}
