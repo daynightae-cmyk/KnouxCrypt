@@ -783,7 +783,7 @@ if (!gotLock) {
     githubAuthService = new GitHubAuthService({ clientId: githubClientId });
     unregisterGitHubAuthIpc = registerGitHubAuthIpc({ service: githubAuthService, store: githubConfigStore });
 
-    // System Care: app-scoped temp/cache measurement and cleanup, plus real
+    // Repair section: app-scoped temp/cache measurement and cleanup, plus real
     // Windows maintenance shortcuts. The service never accepts a path from the
     // renderer and never edits OS settings.
     maintenanceService = new MaintenanceService({

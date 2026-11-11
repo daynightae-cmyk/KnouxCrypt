@@ -73,7 +73,7 @@ const artwork = import.meta.glob("../../assets/service-*.webp", { eager: true, i
 
 // The existing route registry remains authoritative. Home services come first;
 // aliases in the additional Tools shortcuts must not hide or duplicate them.
-const EXTRA_TOOLS = [['KEY_FORGE','Key Forge'],['SIGNATURE','Signature Verification'],['SECURE_SHARE','Secure Share'],['INTEGRITY','Hash & Integrity'],['TEXT_CIPHER','Text Cipher'],['CERTIFICATE_INSPECTOR','Certificate Inspector'],['ARCHIVE','Archive'],['LOCAL_TRANSFER','Local Transfer'],['FINGERPRINT_VERIFY','Fingerprint Verify'],['METADATA_CLEANER','Metadata Cleaner'],['CLIPBOARD_GUARD','Clipboard Guard'],['SECURE_RANDOM','Secure Random Studio'],['HMAC_AUTHENTICITY','HMAC Authenticity Lab'],['PUBLIC_KEY_QR','Public Key QR'],['COLLECTIONS','Collections'],['DOCUMENT_VIEWER','Document viewer'],['PACKAGE_INSPECTOR','Package Inspector'],['AUTOFILL','Autofill'],['OFFLINE_ADVISOR','Offline Security Advisor'],['KEY_DERIVATION','Key Derivation'],['SECURITY_ACTIVITY','Security Activity'],['SECRET_CAPSULE','Expiring Secret Capsule'],['SESSION_PRIVACY','Session Privacy'],['FILE_INTEGRITY','File integrity'],['SYSTEM_CARE','System Care'],['DEVICE_PAIRING','Device Pairing'],['PASSWORD_AUDIT','Password audit']];
+const EXTRA_TOOLS = [['KEY_FORGE','Key Forge'],['SIGNATURE','Signature Verification'],['SECURE_SHARE','Secure Share'],['INTEGRITY','Hash & Integrity'],['TEXT_CIPHER','Text Cipher'],['CERTIFICATE_INSPECTOR','Certificate Inspector'],['ARCHIVE','Archive'],['LOCAL_TRANSFER','Local Transfer'],['FINGERPRINT_VERIFY','Fingerprint Verify'],['METADATA_CLEANER','Metadata Cleaner'],['CLIPBOARD_GUARD','Clipboard Guard'],['SECURE_RANDOM','Secure Random Studio'],['HMAC_AUTHENTICITY','HMAC Authenticity Lab'],['PUBLIC_KEY_QR','Public Key QR'],['COLLECTIONS','Collections'],['DOCUMENT_VIEWER','Document viewer'],['PACKAGE_INSPECTOR','Package Inspector'],['AUTOFILL','Autofill'],['OFFLINE_ADVISOR','Offline Security Advisor'],['KEY_DERIVATION','Key Derivation'],['SECURITY_ACTIVITY','Security Activity'],['SECRET_CAPSULE','Expiring Secret Capsule'],['SESSION_PRIVACY','Session Privacy'],['FILE_INTEGRITY','File integrity'],['SYSTEM_CARE','Repair'],['DEVICE_PAIRING','Device Pairing'],['PASSWORD_AUDIT','Password audit']];
 export const TOOL_SERVICES = Object.freeze(
   [...SERVICES, ...EXTRA_TOOLS.map(([id, title]) => ({ id, title }))]
     .filter((service, index, all) => all.findIndex(entry => SCREENS[entry.id] === SCREENS[service.id]) === index)
@@ -86,7 +86,7 @@ export const TOOL_CATEGORIES = Object.freeze([
   {id:"files", title:"Files & Vault", ids:["INTEGRITY","TEXT_CIPHER","ARCHIVE","METADATA_CLEANER","COLLECTIONS","DOCUMENT_VIEWER","PACKAGE_INSPECTOR","FILE_INTEGRITY"]},
   {id:"keys", title:"Keys & Identity", ids:["SIGNATURE","CERTIFICATE_INSPECTOR","FINGERPRINT_VERIFY","SECURE_RANDOM","HMAC_AUTHENTICITY","PUBLIC_KEY_QR","KEY_DERIVATION","AUTOFILL","PASSWORD_AUDIT"]},
   {id:"privacy", title:"Privacy & Sharing", ids:["SECURE_SHARE","LOCAL_TRANSFER","CLIPBOARD_GUARD","OFFLINE_ADVISOR","SECURITY_ACTIVITY","SECRET_CAPSULE","SESSION_PRIVACY","DEVICE_PAIRING"]},
-  {id:"system", title:"System & Care", ids:["SYSTEM_CARE"]},
+  {id:"system", title:"Repair & Care", ids:["SYSTEM_CARE"]},
   {id:"all", title:"All tools", ids:TOOL_SERVICES.map(service=>service.id)},
 ]);
 export function ToolsDirectory({ query = "", resultsId = "hub-tools-results" }) {

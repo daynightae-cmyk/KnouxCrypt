@@ -25,7 +25,7 @@ export const VAULT_STATE = Object.freeze({
  * The unlocked session and the last status snapshot are shared by every screen.
  *
  * A vault session belongs to this renderer, not to one component: navigating
- * from Secure Access to Notes (or System Care) unmounts the login screen, and
+ * from Secure Access to Notes (or Repair) unmounts the login screen, and
  * a component-local session would silently strand the unlocked vault. The
  * session id still lives only in renderer memory and is never persisted.
  */

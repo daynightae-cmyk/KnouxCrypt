@@ -712,9 +712,9 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
   },
   {
     id: "SYSTEM_CARE",
-    title: "System Care",
+    title: "Repair",
     platformCapability:
-      "Ten local checks built on real providers: device CPU/memory/disk/uptime, app-owned temp and cache measurement, vault enrollment and session state, sealed key inventory, rotation preflight, clipboard lease status, session privacy policy, integrity algorithms, journal hash-chain state, and the native Windows maintenance pages.",
+      "Ten local services built on real providers, each with a live action: device CPU/memory/disk/uptime with animated gauges, selective app-owned temp and cache cleanup (per-folder ids validated against fixed roots), vault lock, sealed key inventory, rotation preflight with resume, clipboard lease status and immediate clear, session privacy policy controls applied live (idle lock, sleep lock, clipboard clearing, journal retention), integrity algorithms, journal hash-chain state, and the native Windows maintenance pages including recovery.",
     permissionNeeds: [
       "No elevated privileges",
       "Explicit confirmation to delete app-owned temp files",
@@ -723,12 +723,12 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
     requiresNetwork: false,
     providerReady: true,
     realTestEvidence: [
-      "tests/maintenance.test.cjs (real temp files are measured, only app-owned roots are deleted after confirm:true, symlinks and files outside the root are skipped, locked files are counted, unknown panels are refused, and the service rejects an out-of-root configuration)",
-      "scripts/check-all-routes.cjs (System Care renders in Arabic and English and every internal link resolves)",
+      "tests/maintenance.test.cjs (real temp files are measured, only app-owned roots are deleted after confirm:true, selective cleanup deletes only the requested folder ids and rejects unknown or empty id lists, symlinks and files outside the root are skipped, locked files are counted, unknown panels are refused, and the service rejects an out-of-root configuration)",
+      "scripts/check-all-routes.cjs (Repair renders in Arabic and English and every internal link resolves)",
     ],
     displayStatus: DISPLAY_STATUS.ACTIVE,
     displayStatusReason:
-      "Every check reads a real value from this machine, the vault service or the encrypted journal. Cleanup is confined to KnouxCrypt's own temp, cache and log folders and needs explicit confirmation. System Care does not uninstall programs, change OS settings or run an OS repair: those buttons open the genuine Windows maintenance pages, and the screen states that limit.",
+      "Every check reads a real value from this machine, the vault service or the encrypted journal, and every action calls a real API: selective cleanup, vault lock, clipboard clear and live privacy-policy updates. Cleanup is confined to KnouxCrypt's own temp, cache and log folders and needs explicit confirmation. Repair does not uninstall programs, change OS settings or run an OS repair: those buttons open the genuine Windows maintenance pages, and the screen states that limit.",
   },
   {
     id: "SECURE_CLIPBOARD",

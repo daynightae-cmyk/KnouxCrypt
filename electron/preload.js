@@ -165,7 +165,7 @@ const ALLOWED_EVENTS = Object.freeze([
   "encrypt-new-file",
 ]);
 
-// System Care maintenance. App-scoped only: the renderer can measure and
+// Repair-section maintenance. App-scoped only: the renderer can measure and
 // clean the app's own temp/cache folders and open native Windows pages.
 const MAINTENANCE_CHANNELS = Object.freeze({
   INFO: "maintenance:info",
@@ -331,7 +331,11 @@ const github = {
 const maintenance = {
   info: () => invoke(MAINTENANCE_CHANNELS.INFO),
   scan: () => invoke(MAINTENANCE_CHANNELS.SCAN),
-  clean: (confirm) => invoke(MAINTENANCE_CHANNELS.CLEAN, { confirm: confirm === true }),
+  clean: (confirm, ids) =>
+    invoke(MAINTENANCE_CHANNELS.CLEAN, {
+      confirm: confirm === true,
+      ...(Array.isArray(ids) ? { ids } : {}),
+    }),
   openPanel: (panel) => invoke(MAINTENANCE_CHANNELS.OPEN_PANEL, { panel }),
 };
 

@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * App-scoped maintenance service for System Care.
+ * App-scoped maintenance service for the Repair section.
  *
  * The app is not an antivirus and must not pretend to be one. What it can do
  * honestly is:
@@ -30,6 +30,7 @@ const PANELS = Object.freeze({
   updates: Object.freeze({ id: "updates", label: "Windows Update", uri: "ms-settings:windowsupdate" }),
   storage: Object.freeze({ id: "storage", label: "Storage settings", uri: "ms-settings:storagesense" }),
   security: Object.freeze({ id: "security", label: "Windows Security", uri: "windowsdefender://" }),
+  recovery: Object.freeze({ id: "recovery", label: "Recovery options", uri: "ms-settings:recovery" }),
 });
 
 class MaintenanceError extends Error {
@@ -267,11 +268,27 @@ class MaintenanceService {
     if (payload.confirm !== true) {
       throw badInput("Cleaning app temp files requires explicit confirmation");
     }
+    // Optional selective cleanup: the renderer may name a subset of the fixed
+    // roots by id. Ids are validated against the configured roots, so a request
+    // can never introduce a new path — only narrow what is already approved.
+    let selected = this.roots;
+    if (payload.ids !== undefined) {
+      if (!Array.isArray(payload.ids) || payload.ids.length === 0) {
+        throw badInput("Selective cleaning requires a non-empty array of folder ids");
+      }
+      const known = new Map(this.roots.map((root) => [root.id, root]));
+      selected = [];
+      for (const id of payload.ids) {
+        const root = known.get(id);
+        if (!root) throw badInput(`Unknown maintenance folder id: ${id}`);
+        if (!selected.includes(root)) selected.push(root);
+      }
+    }
     const details = [];
     let removedFiles = 0;
     let freedBytes = 0;
     let failedFiles = 0;
-    for (const root of this.roots) {
+    for (const root of selected) {
       if (root.cleanable === false) continue;
       const result = await deleteTree(root.path);
       details.push({ id: root.id, label: root.label, ...result });
@@ -285,6 +302,7 @@ class MaintenanceService {
       freedBytes,
       failedFiles,
       locations: details,
+      selectedIds: selected.map((root) => root.id),
       completedAt: new Date().toISOString(),
     };
   }

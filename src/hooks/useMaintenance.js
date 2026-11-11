@@ -13,7 +13,7 @@ function bridge() {
 
 const UNAVAILABLE = Object.freeze({
   ok: false,
-  error: { code: "UNAVAILABLE", message: "System Care needs the desktop app." },
+  error: { code: "UNAVAILABLE", message: "Repair needs the desktop app." },
 });
 
 export function useMaintenance() {
@@ -22,7 +22,7 @@ export function useMaintenance() {
   const info = useCallback(() => (api ? api.info() : UNAVAILABLE), [api]);
   const scan = useCallback(() => (api ? api.scan() : UNAVAILABLE), [api]);
   const clean = useCallback(
-    (confirm) => (api ? api.clean(confirm === true) : UNAVAILABLE),
+    (confirm, ids) => (api ? api.clean(confirm === true, ids) : UNAVAILABLE),
     [api],
   );
   const openPanel = useCallback(
