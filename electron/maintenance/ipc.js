@@ -53,7 +53,19 @@ function registerMaintenanceIpc(options = {}) {
     CHANNELS.CLEAN,
     safe(async (_event, payload) => {
       const p = requireObject(payload);
-      return service.clean({ confirm: p.confirm === true });
+      const request = { confirm: p.confirm === true };
+      if (p.ids !== undefined) {
+        if (
+          !Array.isArray(p.ids) ||
+          p.ids.length === 0 ||
+          p.ids.length > 32 ||
+          p.ids.some((id) => typeof id !== "string" || id.length === 0 || id.length > 32)
+        ) {
+          throw new MaintenanceError("BAD_INPUT", "ids must be a non-empty array of folder ids.");
+        }
+        request.ids = p.ids;
+      }
+      return service.clean(request);
     }),
   );
   ipcMain.handle(

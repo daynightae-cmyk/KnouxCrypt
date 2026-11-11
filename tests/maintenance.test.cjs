@@ -3,7 +3,7 @@
 /**
  * App-scoped maintenance tests.
  *
- * System Care can only be honest if the numbers it shows come from real files
+ * The Repair section can only be honest if the numbers it shows come from real files
  * and the cleanup can only touch roots this service computed itself. These
  * tests build real temp trees on disk, exercise the scanner and the confirmed
  * cleaner, and drive the IPC surface with a stubbed Electron so the channel
@@ -215,6 +215,106 @@ test("a payload cannot add a path or widen the cleanup roots", async () => {
   }
 });
 
+test("selective cleanup deletes only the requested folder ids", async () => {
+  const { userData, roots } = makeWorkspace();
+  try {
+    await writeFile(path.join(userData, "vault-documents", "a.bin"), 1024);
+    await writeFile(path.join(userData, "Cache", "c.bin"), 512);
+    await writeFile(path.join(userData, "logs", "app.log"), 256);
+
+    const service = new MaintenanceService({ userDataPath: userData, roots });
+    const result = await service.clean({ confirm: true, ids: ["documents"] });
+
+    assert.deepEqual(result.selectedIds, ["documents"]);
+    assert.equal(result.removedFiles, 1);
+    assert.equal(result.freedBytes, 1024);
+    assert.equal(await exists(path.join(userData, "vault-documents", "a.bin")), false);
+    assert.equal(await exists(path.join(userData, "Cache", "c.bin")), true, "an unselected root is preserved");
+    assert.equal(await exists(path.join(userData, "logs", "app.log")), true);
+
+    const scan = await service.scan();
+    assert.equal(scan.cleanableBytes, 512, "only the selected root was cleaned");
+  } finally {
+    fs.rmSync(path.dirname(userData), { recursive: true, force: true });
+  }
+});
+
+test("selective cleanup deduplicates ids and skips non-cleanable roots", async () => {
+  const { userData, roots } = makeWorkspace();
+  try {
+    await writeFile(path.join(userData, "vault-documents", "a.bin"), 128);
+    await writeFile(path.join(userData, "logs", "app.log"), 256);
+
+    const service = new MaintenanceService({ userDataPath: userData, roots });
+    const result = await service.clean({ confirm: true, ids: ["documents", "documents", "logs"] });
+
+    assert.deepEqual(result.selectedIds, ["documents", "logs"]);
+    assert.equal(result.removedFiles, 1, "the duplicate id is not cleaned twice and the non-cleanable log root is skipped");
+    assert.equal(result.freedBytes, 128);
+    assert.equal(await exists(path.join(userData, "logs", "app.log")), true);
+  } finally {
+    fs.rmSync(path.dirname(userData), { recursive: true, force: true });
+  }
+});
+
+test("selective cleanup refuses unknown, empty or malformed id lists", async () => {
+  const { userData, roots } = makeWorkspace();
+  try {
+    await writeFile(path.join(userData, "Cache", "c.bin"), 64);
+    const service = new MaintenanceService({ userDataPath: userData, roots });
+
+    await assert.rejects(() => service.clean({ confirm: true, ids: [] }), (err) => err instanceof MaintenanceError && err.code === "BAD_INPUT");
+    await assert.rejects(() => service.clean({ confirm: true, ids: "documents" }), (err) => err.code === "BAD_INPUT");
+    await assert.rejects(() => service.clean({ confirm: true, ids: ["../escape"] }), (err) => err.code === "BAD_INPUT");
+    await assert.rejects(() => service.clean({ confirm: true, ids: ["documents", "not-a-root"] }), (err) => err.code === "BAD_INPUT");
+    assert.equal(await exists(path.join(userData, "Cache", "c.bin")), true, "a refused request deletes nothing");
+  } finally {
+    fs.rmSync(path.dirname(userData), { recursive: true, force: true });
+  }
+});
+
+test("the IPC surface validates selective ids before reaching the service", async () => {
+  const { userData, roots } = makeWorkspace();
+  try {
+    await writeFile(path.join(userData, "vault-documents", "a.bin"), 256);
+    await writeFile(path.join(userData, "Cache", "c.bin"), 128);
+    const service = new MaintenanceService({ userDataPath: userData, roots });
+    const unregister = registerMaintenanceIpc({ service });
+    const call = (channel, payload) => handlers.get(channel)({}, payload);
+
+    const empty = await call(CHANNELS.CLEAN, { confirm: true, ids: [] });
+    assert.equal(empty.ok, false);
+    assert.equal(empty.error.code, "BAD_INPUT");
+
+    const nonString = await call(CHANNELS.CLEAN, { confirm: true, ids: [42] });
+    assert.equal(nonString.ok, false);
+    assert.equal(nonString.error.code, "BAD_INPUT");
+
+    const oversized = await call(CHANNELS.CLEAN, { confirm: true, ids: ["x".repeat(33)] });
+    assert.equal(oversized.ok, false);
+    assert.equal(oversized.error.code, "BAD_INPUT");
+
+    const tooMany = await call(CHANNELS.CLEAN, { confirm: true, ids: Array.from({ length: 33 }, () => "documents") });
+    assert.equal(tooMany.ok, false);
+    assert.equal(tooMany.error.code, "BAD_INPUT");
+
+    const unknown = await call(CHANNELS.CLEAN, { confirm: true, ids: ["not-a-root"] });
+    assert.equal(unknown.ok, false);
+    assert.equal(unknown.error.code, "BAD_INPUT");
+
+    const cleaned = await call(CHANNELS.CLEAN, { confirm: true, ids: ["cache"] });
+    assert.equal(cleaned.ok, true);
+    assert.deepEqual(cleaned.data.selectedIds, ["cache"]);
+    assert.equal(cleaned.data.removedFiles, 1);
+    assert.equal(await exists(path.join(userData, "Cache", "c.bin")), false);
+    assert.equal(await exists(path.join(userData, "vault-documents", "a.bin")), true, "the unselected root survives an IPC selective clean");
+
+    unregister();
+  } finally {
+    fs.rmSync(path.dirname(userData), { recursive: true, force: true });
+  }
+});
+
 test("info reports the real platform, app scope and the native panel inventory", async () => {
   const { userData, roots } = makeWorkspace();
   try {
@@ -226,7 +326,8 @@ test("info reports the real platform, app scope and the native panel inventory",
     assert.equal(info.cleansOsTemp, false);
     assert.equal(info.modifiesOsSettings, false);
     assert.deepEqual(info.panels.map((panel) => panel.id).sort(), Object.keys(PANELS).sort());
-    assert.equal(info.panels.length, 4);
+    assert.equal(info.panels.length, 5);
+    assert.ok(info.panels.some((panel) => panel.id === "recovery"), "the recovery panel is part of the inventory");
   } finally {
     fs.rmSync(path.dirname(userData), { recursive: true, force: true });
   }
