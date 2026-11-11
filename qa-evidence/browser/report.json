@@ -1,9 +1,0 @@
-{
-  "browser": "158.0.8127.18",
-  "checks": [],
-  "screens": [],
-  "warnings": [],
-  "errors": [],
-  "status": "FAIL",
-  "failure": "AssertionError [ERR_ASSERTION]: NOTES_EDITOR en shows real screen, not the splash\n    at run (D:\\KnouxCrypt\\scripts\\check-browser-qa.cjs:105:18)"
-}
