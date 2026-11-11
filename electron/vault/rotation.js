@@ -123,9 +123,18 @@ class RotationService {
     }
 
     const currentDek = this.manager.getDek(sessionId);
-    // MediaVault blobs are re-encrypted in _reencryptMediaBlobs(), which runs
-    // as part of _reencrypt(). The old guard that refused reencrypt when media
-    // exists has been replaced by the streaming blob rotation implementation.
+    // SECURITY HOLD: media blob DEK rotation currently lacks a crash-consistent
+    // transaction/rollback. In particular, a failed verification can leave
+    // the encrypted records and media under a different DEK than enrollment.
+    // Fail BEFORE rewrapping the enrollment or writing any rotation journal.
+    // Keep this guard until crash/restart/rollback tests prove full recovery.
+    if (mode === "reencrypt") {
+      const { records } = await this.store.list("mediavault", currentDek);
+      if (records.length > 0) {
+        throw new VaultError(CODES.BAD_INPUT,
+          "Cannot re-encrypt the vault key while Shadow Vault media exists; crash-safe media rollback is not implemented");
+      }
+    }
     const rotationId = crypto.randomBytes(8).toString("hex");
     const startedAt = new Date().toISOString();
     const nextDek = mode === "reencrypt" ? crypto.randomBytes(32) : currentDek;
