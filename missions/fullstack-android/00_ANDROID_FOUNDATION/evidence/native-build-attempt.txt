@@ -1,0 +1,3 @@
+/opt/omniagent/agent/bin/run.sh: line 273: gradle: command not found
+
+exit=127

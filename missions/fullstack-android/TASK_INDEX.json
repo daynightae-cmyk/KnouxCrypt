@@ -1,0 +1,269 @@
+{
+  "count": 44,
+  "tasks": [
+    {
+      "id": "01",
+      "name": "SPLASH_ENTRY",
+      "prerequisites": "00",
+      "path": "01_SPLASH_ENTRY/TASK.md"
+    },
+    {
+      "id": "02",
+      "name": "SECURE_ACCESS_LOGIN",
+      "prerequisites": "00",
+      "path": "02_SECURE_ACCESS_LOGIN/TASK.md"
+    },
+    {
+      "id": "03",
+      "name": "HOME",
+      "prerequisites": "00,02",
+      "path": "03_HOME/TASK.md"
+    },
+    {
+      "id": "04",
+      "name": "FILE_CIPHER",
+      "prerequisites": "00,02",
+      "path": "04_FILE_CIPHER/TASK.md"
+    },
+    {
+      "id": "05",
+      "name": "SHADOW_VAULT",
+      "prerequisites": "00,04",
+      "path": "05_SHADOW_VAULT/TASK.md"
+    },
+    {
+      "id": "06",
+      "name": "SECURE_NOTES",
+      "prerequisites": "00,02",
+      "path": "06_SECURE_NOTES/TASK.md"
+    },
+    {
+      "id": "07",
+      "name": "NOTES_EDITOR",
+      "prerequisites": "00,06",
+      "path": "07_NOTES_EDITOR/TASK.md"
+    },
+    {
+      "id": "08",
+      "name": "PASSWORDS",
+      "prerequisites": "00,02",
+      "path": "08_PASSWORDS/TASK.md"
+    },
+    {
+      "id": "09",
+      "name": "PASSWORD_DETAIL",
+      "prerequisites": "08,36",
+      "path": "09_PASSWORD_DETAIL/TASK.md"
+    },
+    {
+      "id": "10",
+      "name": "AUTHENTICATOR",
+      "prerequisites": "00,02",
+      "path": "10_AUTHENTICATOR/TASK.md"
+    },
+    {
+      "id": "11",
+      "name": "AUTH_IMPORT",
+      "prerequisites": "10",
+      "path": "11_AUTH_IMPORT/TASK.md"
+    },
+    {
+      "id": "12",
+      "name": "KEY_FORGE",
+      "prerequisites": "00,02",
+      "path": "12_KEY_FORGE/TASK.md"
+    },
+    {
+      "id": "13",
+      "name": "KEY_DETAILS",
+      "prerequisites": "12,31",
+      "path": "13_KEY_DETAILS/TASK.md"
+    },
+    {
+      "id": "14",
+      "name": "PRIVACY",
+      "prerequisites": "00,02,15",
+      "path": "14_PRIVACY/TASK.md"
+    },
+    {
+      "id": "15",
+      "name": "BACKUP",
+      "prerequisites": "00,31,37",
+      "path": "15_BACKUP/TASK.md"
+    },
+    {
+      "id": "16",
+      "name": "SECURE_SHARE",
+      "prerequisites": "00,12,28",
+      "path": "16_SECURE_SHARE/TASK.md"
+    },
+    {
+      "id": "17",
+      "name": "HASH_INTEGRITY",
+      "prerequisites": "00",
+      "path": "17_HASH_INTEGRITY/TASK.md"
+    },
+    {
+      "id": "18",
+      "name": "TEXT_CIPHER",
+      "prerequisites": "00,31",
+      "path": "18_TEXT_CIPHER/TASK.md"
+    },
+    {
+      "id": "19",
+      "name": "DIGITAL_SIGNATURE",
+      "prerequisites": "12,13",
+      "path": "19_DIGITAL_SIGNATURE/TASK.md"
+    },
+    {
+      "id": "20",
+      "name": "CERTIFICATE_INSPECTOR",
+      "prerequisites": "00,19",
+      "path": "20_CERTIFICATE_INSPECTOR/TASK.md"
+    },
+    {
+      "id": "21",
+      "name": "ENCRYPTED_ARCHIVE",
+      "prerequisites": "00,04",
+      "path": "21_ENCRYPTED_ARCHIVE/TASK.md"
+    },
+    {
+      "id": "22",
+      "name": "LOCAL_TRANSFER",
+      "prerequisites": "00,16",
+      "path": "22_LOCAL_TRANSFER/TASK.md"
+    },
+    {
+      "id": "23",
+      "name": "FINGERPRINT_VERIFY",
+      "prerequisites": "00,13",
+      "path": "23_FINGERPRINT_VERIFY/TASK.md"
+    },
+    {
+      "id": "24",
+      "name": "METADATA_CLEANER",
+      "prerequisites": "00,05",
+      "path": "24_METADATA_CLEANER/TASK.md"
+    },
+    {
+      "id": "25",
+      "name": "CLIPBOARD_GUARD",
+      "prerequisites": "00,08",
+      "path": "25_CLIPBOARD_GUARD/TASK.md"
+    },
+    {
+      "id": "26",
+      "name": "SECURE_RANDOM",
+      "prerequisites": "00",
+      "path": "26_SECURE_RANDOM/TASK.md"
+    },
+    {
+      "id": "27",
+      "name": "HMAC_AUTHENTICITY",
+      "prerequisites": "00,12",
+      "path": "27_HMAC_AUTHENTICITY/TASK.md"
+    },
+    {
+      "id": "28",
+      "name": "PUBLIC_KEY_QR",
+      "prerequisites": "12,23",
+      "path": "28_PUBLIC_KEY_QR/TASK.md"
+    },
+    {
+      "id": "29",
+      "name": "VAULT_COLLECTIONS",
+      "prerequisites": "05",
+      "path": "29_VAULT_COLLECTIONS/TASK.md"
+    },
+    {
+      "id": "30",
+      "name": "DOCUMENT_VIEWER",
+      "prerequisites": "04,05",
+      "path": "30_DOCUMENT_VIEWER/TASK.md"
+    },
+    {
+      "id": "31",
+      "name": "VAULT_KEY_ROTATION",
+      "prerequisites": "00,02",
+      "path": "31_VAULT_KEY_ROTATION/TASK.md"
+    },
+    {
+      "id": "32",
+      "name": "CIPHERTEXT_PACKAGE_INSPECTOR",
+      "prerequisites": "04",
+      "path": "32_CIPHERTEXT_PACKAGE_INSPECTOR/TASK.md"
+    },
+    {
+      "id": "33",
+      "name": "ANDROID_AUTOFILL",
+      "prerequisites": "08,09",
+      "path": "33_ANDROID_AUTOFILL/TASK.md"
+    },
+    {
+      "id": "34",
+      "name": "OFFLINE_SECURITY_ADVISOR",
+      "prerequisites": "14,39",
+      "path": "34_OFFLINE_SECURITY_ADVISOR/TASK.md"
+    },
+    {
+      "id": "35",
+      "name": "MULTI_DEVICE_PAIRING",
+      "prerequisites": "12,16,28",
+      "path": "35_MULTI_DEVICE_PAIRING/TASK.md"
+    },
+    {
+      "id": "36",
+      "name": "PASSWORD_STRENGTH_AUDIT",
+      "prerequisites": "08",
+      "path": "36_PASSWORD_STRENGTH_AUDIT/TASK.md"
+    },
+    {
+      "id": "37",
+      "name": "ARGON2ID_KEY_DERIVATION",
+      "prerequisites": "00",
+      "path": "37_ARGON2ID_KEY_DERIVATION/TASK.md"
+    },
+    {
+      "id": "38",
+      "name": "SIGNATURE_STUDIO",
+      "prerequisites": "12,19",
+      "path": "38_SIGNATURE_STUDIO/TASK.md"
+    },
+    {
+      "id": "39",
+      "name": "LOCAL_SECURITY_ACTIVITY",
+      "prerequisites": "00,14",
+      "path": "39_LOCAL_SECURITY_ACTIVITY/TASK.md"
+    },
+    {
+      "id": "40",
+      "name": "TRANSFER_WIZARD",
+      "prerequisites": "04,16,22",
+      "path": "40_TRANSFER_WIZARD/TASK.md"
+    },
+    {
+      "id": "41",
+      "name": "EXPIRING_SECRET_CAPSULE",
+      "prerequisites": "16,40",
+      "path": "41_EXPIRING_SECRET_CAPSULE/TASK.md"
+    },
+    {
+      "id": "42",
+      "name": "SESSION_PRIVACY_CONTROLS",
+      "prerequisites": "02,14",
+      "path": "42_SESSION_PRIVACY_CONTROLS/TASK.md"
+    },
+    {
+      "id": "43",
+      "name": "FILE_INTEGRITY_TOOL",
+      "prerequisites": "04,17",
+      "path": "43_FILE_INTEGRITY_TOOL/TASK.md"
+    },
+    {
+      "id": "44",
+      "name": "SECURE_CLIPBOARD",
+      "prerequisites": "25,08",
+      "path": "44_SECURE_CLIPBOARD/TASK.md"
+    }
+  ]
+}
