@@ -62,7 +62,12 @@ object AutofillFieldParser {
         val attrs = node.htmlInfo?.attributes?.associate { it.first.lowercase() to it.second.lowercase() } ?: emptyMap()
         val autocomplete = attrs["autocomplete"].orEmpty()
         val htmlType = attrs["type"].orEmpty()
-        val idEntry = listOfNotNull(node.idEntry, node.hintIdEntry, node.textIdEntry)
+        val textIdEntry = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            node.textIdEntry
+        } else {
+            null
+        }
+        val idEntry = listOfNotNull(node.idEntry, node.hintIdEntry, textIdEntry)
             .joinToString(" ").lowercase()
 
         if (autocomplete.contains("new-password") || autocomplete.contains("new password")) {
