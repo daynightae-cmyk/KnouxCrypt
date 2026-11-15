@@ -67,7 +67,12 @@ object AutofillFieldParser {
         } else {
             null
         }
-        val idEntry = listOfNotNull(node.idEntry, node.hintIdEntry, textIdEntry)
+        val hintIdEntry = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            node.hintIdEntry
+        } else {
+            null
+        }
+        val idEntry = listOfNotNull(node.idEntry, hintIdEntry, textIdEntry)
             .joinToString(" ").lowercase()
 
         if (autocomplete.contains("new-password") || autocomplete.contains("new password")) {
