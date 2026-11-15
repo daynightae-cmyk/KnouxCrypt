@@ -61,6 +61,18 @@ jobs:
           )
           exec(open('scripts/check-dex-arabic.py', encoding='utf-8').read())
           PYEOF
+      - name: Dependency vulnerability scan
+        run: |
+          gradle --no-daemon -p native-android dependencyCheckAnalyze --stacktrace || true
+      - name: Upload dependency check report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          if-no-files-found: warn
+          path: |
+            native-android/**/build/reports/dependency-check-report.html
+            native-android/**/build/reports/dependency-check-report.json
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@v4
