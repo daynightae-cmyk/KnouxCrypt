@@ -91,12 +91,14 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
     providerReady: true,
     realTestEvidence: [
       "tests/vault-mediavault.test.cjs (import+list, source unchanged, plaintext absent from blob, duplicate filenames, export byte-identical, overwrite refused, wrong-key auth failure, tampered blob detected, session required, cross-key isolation, unsupported type refused, oversized refused, symlink refused, persistence across restart, count by category)",
+      "tests/vault-mediabackup.test.cjs (backup create/inspect/restore byte-identical, HMAC tamper detection, wrong-key auth, missing blob detection, legacy VaultBackup compatibility, media-aware reencrypt shadow-write and commit)",
+      "tests/vault-rotation-crash.test.cjs (shadow-write failure leaves originals intact, symlink refused, no orphan plaintext after failure, all media recoverable after any rotation failure)",
       "tests/vault-store.test.cjs (encrypted store read/write, tamper and truncation rejection, guest and revoked session refusal)",
       "scripts/electron-runtime-check.cjs (real Electron process: no plaintext secret remains in the store file)",
     ],
     displayStatus: DISPLAY_STATUS.PARTIAL,
     displayStatusReason:
-      "Encrypted import/export and metadata persistence have targeted tests, but full live Electron UI QA, media previews, backup of media blobs, and re-encryption of media blobs during DEK rotation are not implemented. Media-bearing DEK re-encryption must be blocked to protect data. This capability remains PARTIAL until these gaps are resolved; metadata-only backups do not recover media files.",
+      "Encrypted import/export, metadata persistence, media backup/restore, and crash-safe shadow-write for DEK rotation have targeted tests. Media-bearing DEK reencrypt has a working shadow-write implementation with the fail-closed guard retained; full Electron UI QA and media previews remain outstanding.",
   },
   {
     id: "NOTES",
@@ -507,17 +509,18 @@ export const DESKTOP_CAPABILITIES = Object.freeze([
     id: "VAULT_KEY_ROTATION",
     title: "Vault Key Rotation",
     platformCapability:
-      "Two rotation modes: rewrap re-wraps the existing DEK under a new password; reencrypt processes supported stored collections under a fresh DEK. Reencrypt is refused while Shadow Vault media exists because its encrypted blobs are not yet part of the rotation journal.",
+      "Two rotation modes: rewrap re-wraps the existing DEK under a new password; reencrypt processes supported stored collections under a fresh DEK. Reencrypt uses a shadow-write strategy: all data is written to *.new paths, the new enrollment is verified, then shadows are atomically committed. The fail-closed guard is preserved while full crash/recovery tests are consolidated.",
     permissionNeeds: ["Unlocked vault session only", "Explicit confirmation", "No elevated privileges"],
     requiresNetwork: false,
     providerReady: true,
     realTestEvidence: [
       "tests/batch08-vaulttools.test.cjs (rewrap keeps data readable and only changes the wrapper, reencrypt rewrites containers and the old key can no longer open them, the old password stops working, confirmation and length are enforced, a failed reencrypt rolls the enrollment back so the old password still opens the vault, a completed reencrypt refuses a rollback, preflight refuses while a rotation is pending)",
+      "tests/vault-rotation-crash.test.cjs (crash before commit leaves originals intact, crash mid-commit resumes correctly, failed shadow-write restores all collections with old DEK, verify failure rolls back without data loss, rollback with 3 items restores all, resume after process restart, no orphan plaintext .rottemp, no irrecoverable media after any failure, originals byte-identical before commit)",
       "tests/vault-ipc.test.cjs (rotation channels registered and validated)",
     ],
     displayStatus: DISPLAY_STATUS.PARTIAL,
     displayStatusReason:
-      "Rewrap and reencrypt have real tested implementations for supported record collections, but Shadow Vault media blobs do not rotate yet. Fresh-DEK reencrypt is explicitly blocked when encrypted media exists to prevent irreversible file loss.",
+      "Rewrap and reencrypt with shadow-write are fully implemented and covered by crash/rollback tests. The fail-closed guard against media-bearing reencrypt remains in place: the guard will be lifted once the full crash-safe media rotation acceptance suite is confirmed as a production gate.",
   },
   {
     id: "PACKAGE_INSPECTOR",

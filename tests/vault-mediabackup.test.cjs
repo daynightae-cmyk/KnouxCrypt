@@ -247,8 +247,8 @@ describe("mediabackup: restore", () => {
 // ---------------------------------------------------------------------------
 describe("rotation: media-aware reencrypt", () => {
   test("reencrypt with media produces unreadable old-key blobs and readable new-key exports", async () => {
-    // We test the _reencryptMediaBlobs logic directly since RotationService
-    // needs a real VaultSessionManager for the full rotate() path.
+    // We test the shadow-write media blob rotation logic directly since
+    // RotationService needs a real VaultSessionManager for the full rotate() path.
     const { mv, rawKey, mediaRoot, storeRoot, engine } = await setup();
     const srcDir = await mkTmp();
     const exportDir = await mkTmp();
@@ -259,13 +259,16 @@ describe("rotation: media-aware reencrypt", () => {
     const newDek = makeKey();
     const store2 = new EncryptedStore({ root: storeRoot, engine });
 
-    // Simulate the rotation: re-write mediavault collection under newDek,
-    // then run _reencryptMediaBlobs.
-    const doc = await store2.read("mediavault", rawKey);
-    await store2.write("mediavault", newDek, doc);
-
-    // Build a mock rotation state.
-    const state = { completedMediaBlobs: [] };
+    // Build a mock rotation state (shadow-write approach: originals untouched
+    // until verified, then committed).
+    const state = {
+      previousDek: rawKey.toString("base64"),
+      newDek: newDek.toString("base64"),
+      shadowBlobs: [],
+      committedBlobs: [],
+      shadowCollections: [],
+      committedCollections: [],
+    };
     const rotSvc = new RotationService({
       manager: { getDek: () => rawKey, replaceDek: () => {} },
       store: store2,
@@ -275,10 +278,22 @@ describe("rotation: media-aware reencrypt", () => {
     });
     // Patch _writeJournal to no-op for this unit test.
     rotSvc._writeJournal = async () => {};
-    await rotSvc._reencryptMediaBlobs(state, rawKey, newDek);
+
+    // Phase 1: shadow-write blobs. Originals must be unchanged.
+    await rotSvc._shadowWriteMediaBlobs(state, rawKey, newDek);
+    const blobPath = path.join(mediaRoot, record.blobName);
+    // Original blob must still be readable with the old key BEFORE commit.
+    await engine.verifyPackage({ inputPath: blobPath, rawKey });
+
+    // Also shadow-write the mediavault collection.
+    const doc = await store2.read("mediavault", rawKey);
+    await store2.writeShadow("mediavault", newDek, doc);
+    state.shadowCollections = ["notes", "passwords", "authenticator", "keys", "collections", "mediavault"];
+
+    // Phase 2: commit. Renames shadows over originals.
+    await rotSvc._commitShadows(state);
 
     // The blob should now be unreadable with the old key.
-    const blobPath = path.join(mediaRoot, record.blobName);
     let oldKeyErr = null;
     try {
       await engine.decryptFile({ inputPath: blobPath, outputPath: path.join(exportDir, "fail.jpg"), rawKey });
@@ -305,8 +320,6 @@ describe("rotation: media-aware reencrypt", () => {
 
     const newDek = makeKey();
     const store2 = new EncryptedStore({ root: storeRoot, engine });
-    const doc = await store2.read("mediavault", rawKey);
-    await store2.write("mediavault", newDek, doc);
 
     // Tamper the blob so decryption fails mid-rotation.
     const blobPath = path.join(mediaRoot, record.blobName);
@@ -314,7 +327,12 @@ describe("rotation: media-aware reencrypt", () => {
     blob[blob.length - 20] ^= 0x55;
     await fsp.writeFile(blobPath, blob);
 
-    const state = { completedMediaBlobs: [] };
+    const state = {
+      previousDek: rawKey.toString("base64"),
+      newDek: newDek.toString("base64"),
+      shadowBlobs: [],
+      committedBlobs: [],
+    };
     const rotSvc = new RotationService({
       manager: { getDek: () => rawKey, replaceDek: () => {} },
       store: store2,
@@ -325,7 +343,7 @@ describe("rotation: media-aware reencrypt", () => {
     rotSvc._writeJournal = async () => {};
 
     let rotErr = null;
-    try { await rotSvc._reencryptMediaBlobs(state, rawKey, newDek); } catch (e) { rotErr = e; }
+    try { await rotSvc._shadowWriteMediaBlobs(state, rawKey, newDek); } catch (e) { rotErr = e; }
     assert.ok(rotErr !== null, "rotation must fail on tampered blob");
 
     // No .rottemp files remain.

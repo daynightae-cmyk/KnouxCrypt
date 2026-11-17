@@ -309,16 +309,27 @@ class MediaBackup {
         await inFd.close().catch(() => {});
       }
 
-      // 4. Commit: atomic rename for each blob, then write metadata records.
+      // 4. Commit: atomic rename for each blob.
       for (const { stagePath, finalPath } of stagedBlobs) {
         await fsp.rename(stagePath, finalPath);
         await protectFile(finalPath);
       }
 
-      // 5. Write metadata records (each put is atomic inside EncryptedStore).
+      // 5. Write ALL metadata records in a single atomic store write so either
+      // all records appear or none do.  Reading the existing document and
+      // merging avoids partial state if two restores are run sequentially.
+      const existingDoc = await targetStore.read("mediavault", rawKey);
+      const mergedRecords = existingDoc.records.slice();
       for (const item of manifest.items) {
-        await targetStore.put("mediavault", rawKey, item);
+        // Double-check: skip any id that was somehow added between our
+        // collision check and now (concurrent restore race).
+        if (!mergedRecords.some((r) => r.id === item.id)) {
+          mergedRecords.unshift(item);
+        }
       }
+      existingDoc.records = mergedRecords;
+      existingDoc.updatedAt = new Date().toISOString();
+      await targetStore.write("mediavault", rawKey, existingDoc);
 
       // 6. Remove stage dir (now empty).
       await fsp.rmdir(stageDir).catch(() => {});

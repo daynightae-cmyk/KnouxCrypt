@@ -23,6 +23,9 @@ const STORE_VERSION = 1;
 const MAX_RECORDS = 5000;
 const MAX_RECORD_BYTES = 256 * 1024;
 
+// Suffix appended to shadow (in-progress rotation) collection files.
+const SHADOW_SUFFIX = ".knx.new";
+
 class EncryptedStore {
   constructor(options = {}) {
     this.root = options.root;
@@ -35,6 +38,51 @@ class EncryptedStore {
       throw badInput(`Unknown collection "${collection}"`);
     }
     return path.join(this.root, `${collection}.knx`);
+  }
+
+  /** Path for the shadow (not-yet-committed) rotation file. */
+  shadowPathFor(collection) {
+    if (!COLLECTIONS.includes(collection)) {
+      throw badInput(`Unknown collection "${collection}"`);
+    }
+    return path.join(this.root, `${collection}${SHADOW_SUFFIX}`);
+  }
+
+  /**
+   * Write a collection to its SHADOW path (`*.knx.new`). The canonical file
+   * is NOT touched. Used by crash-safe key rotation — the shadow is renamed
+   * over the canonical path only after verification passes.
+   */
+  async writeShadow(collection, rawKey, document) {
+    const shadowPath = this.shadowPathFor(collection);
+    const payload = Buffer.from(JSON.stringify(document), "utf8");
+    if (payload.length > MAX_RECORD_BYTES * MAX_RECORDS) {
+      throw new VaultError(CODES.BAD_INPUT, "The store has grown past its supported size");
+    }
+    const { bytes } = this.engine.encryptBuffer(payload, { rawKey });
+    await fsp.mkdir(this.root, { recursive: true });
+    await ensureProtected(this.root);
+    const tmp = path.join(this.root, `.shadow-${collection}.${crypto.randomBytes(6).toString("hex")}.tmp`);
+    try {
+      const fh = await fsp.open(tmp, "w", 0o600);
+      try {
+        await fh.write(bytes, 0, bytes.length, 0);
+        await fh.sync();
+      } finally {
+        await fh.close();
+      }
+      await protectFile(tmp);
+      await fsp.rename(tmp, shadowPath);
+      await protectFile(shadowPath);
+    } catch (err) {
+      await fsp.rm(tmp, { force: true }).catch(() => {});
+      if (err instanceof VaultError) throw err;
+      if (isPermissionDenial(err)) {
+        throw new VaultError(CODES.PERMISSION_DENIED, "The encrypted store directory does not allow this user to write");
+      }
+      throw new VaultError(CODES.IO_FAILED, "Could not write the shadow collection file");
+    }
+    return { bytes: bytes.length, records: document.records.length };
   }
 
   async read(collection, rawKey) {
@@ -146,4 +194,4 @@ function validateRecord(record) {
   return record;
 }
 
-module.exports = { EncryptedStore, COLLECTIONS, STORE_VERSION, MAX_RECORDS, MAX_RECORD_BYTES };
+module.exports = { EncryptedStore, COLLECTIONS, STORE_VERSION, MAX_RECORDS, MAX_RECORD_BYTES, SHADOW_SUFFIX };

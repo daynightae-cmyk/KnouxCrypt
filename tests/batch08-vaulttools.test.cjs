@@ -367,20 +367,20 @@ test("rotation: a failed reencrypt rolls the enrollment back so the old password
   const { service, sessionId } = await unlocked(dir);
   await service.storePut(sessionId, "notes", { id: "n1", title: "kept", body: "hello" });
 
-  // Force the store write to fail partway through the reencrypt.
-  const original = service.store.write.bind(service.store);
+  // Force the shadow write to fail partway through the reencrypt.
+  const originalShadow = service.store.writeShadow.bind(service.store);
   let calls = 0;
-  service.store.write = async (...args) => {
+  service.store.writeShadow = async (...args) => {
     calls += 1;
     if (calls >= 1) throw new Error("simulated disk failure");
-    return original(...args);
+    return originalShadow(...args);
   };
 
   await rejects(
     service.rotationStart(sessionId, { newPassword: NEW_PASSWORD, mode: "reencrypt", confirm: true }),
     CODES.IO_FAILED,
   );
-  service.store.write = original;
+  service.store.writeShadow = originalShadow;
 
   // The journal records the failure and the old enrollment is restored.
   const status = await service.rotationStatus();
@@ -413,15 +413,15 @@ test("rotation: preflight refuses to start while a rotation is pending", async (
   const { service, sessionId } = await unlocked(dir);
   await service.storePut(sessionId, "notes", { id: "n1", title: "kept", body: "hello" });
 
-  const original = service.store.write.bind(service.store);
-  service.store.write = async () => {
+  const originalShadow = service.store.writeShadow.bind(service.store);
+  service.store.writeShadow = async () => {
     throw new Error("simulated disk failure");
   };
   await rejects(
     service.rotationStart(sessionId, { newPassword: NEW_PASSWORD, mode: "reencrypt", confirm: true }),
     CODES.IO_FAILED,
   );
-  service.store.write = original;
+  service.store.writeShadow = originalShadow;
 
   await rejects(
     service.rotationStart(sessionId, { newPassword: "yet another passphrase", mode: "rewrap", confirm: true }),
