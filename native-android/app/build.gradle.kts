@@ -12,10 +12,21 @@ android {
         applicationId = "com.knoux.crypt"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "0.2.0-foundation"
+        versionCode = 3
+        versionName = "1.0.0-rc1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
+    }
+    signingConfigs {
+        create("release") {
+            // Owner must provide these credentials via environment variables or
+            // a local signing.properties file (NOT committed to version control).
+            // storeFile = file(System.getenv("KNOUX_KEYSTORE_PATH") ?: "release.keystore")
+            // storePassword = System.getenv("KNOUX_KEYSTORE_PASSWORD") ?: ""
+            // keyAlias = System.getenv("KNOUX_KEY_ALIAS") ?: ""
+            // keyPassword = System.getenv("KNOUX_KEY_PASSWORD") ?: ""
+            // Until credentials are provided, release builds are unsigned.
+        }
     }
     buildTypes {
         debug {
@@ -24,7 +35,13 @@ android {
         }
         release {
             isDebuggable = false
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            // signingConfig = signingConfigs.getByName("release")
         }
     }
     buildFeatures {
