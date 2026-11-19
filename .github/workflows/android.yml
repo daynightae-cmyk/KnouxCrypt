@@ -35,6 +35,9 @@ jobs:
         with:
           gradle-version: '8.14.6'
           cache-read-only: true
+          arguments: --max-workers=1
+      - name: Set Gradle JVM args for CI
+        run: echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m -Dfile.encoding=UTF-8" >> native-android/gradle.properties
       - name: Source boundary check
         run: python3 native-android/scripts/check-source.py
       - name: Compile Kotlin
