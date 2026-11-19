@@ -61,9 +61,28 @@ jobs:
           )
           exec(open('scripts/check-dex-arabic.py', encoding='utf-8').read())
           PYEOF
-      - name: Dependency vulnerability scan
+      - name: Dependency vulnerability scan (OWASP DependencyCheck CLI)
         run: |
-          gradle --no-daemon -p native-android dependencyCheckAnalyze --stacktrace || true
+          set -euo pipefail
+          DC_DIR="${RUNNER_TEMP}/dependency-check"
+          DC_VER="9.0.0"
+          mkdir -p "$DC_DIR"
+          cd "$DC_DIR"
+          if [ ! -f "dependency-check-${DC_VER}-release.zip" ]; then
+            curl -sSL "https://github.com/jeremylong/DependencyCheck/releases/download/v${DC_VER}/dependency-check-${DC_VER}-release.zip" -o "dependency-check-${DC_VER}-release.zip"
+          fi
+          unzip -q -o "dependency-check-${DC_VER}-release.zip"
+          chmod +x dependency-check/bin/dependency-check.sh
+          dependency-check/bin/dependency-check.sh \
+            --project "KnouxCrypt-Android" \
+            --scan "native-android" \
+            --format "HTML" \
+            --format "JSON" \
+            --out "native-android/dependency-check-report" \
+            --suppression "native-android/suppressions.xml" \
+            --failOnCVSS 7 \
+            --nvdApiKey "${NVD_API_KEY:-}" \
+            || true
       - name: Upload dependency check report
         if: always()
         uses: actions/upload-artifact@v4
@@ -71,8 +90,8 @@ jobs:
           name: dependency-check-report
           if-no-files-found: warn
           path: |
-            native-android/**/build/reports/dependency-check-report.html
-            native-android/**/build/reports/dependency-check-report.json
+            native-android/dependency-check-report/*.html
+            native-android/dependency-check-report/*.json
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@v4
