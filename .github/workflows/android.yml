@@ -36,7 +36,9 @@ jobs:
           gradle-version: '8.14.6'
           cache-read-only: true
       - name: Set Gradle JVM args for CI
-        run: echo "org.gradle.jvmargs=-Xmx3072m -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8" >> native-android/gradle.properties
+        run: |
+          echo "" >> native-android/gradle.properties
+          echo "org.gradle.jvmargs=-Xmx3072m -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8" >> native-android/gradle.properties
       - name: Configure Gradle workers
         run: echo "org.gradle.workers.max=1" >> native-android/gradle.properties
       - name: Source boundary check
